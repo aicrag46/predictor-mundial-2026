@@ -318,13 +318,15 @@ function renderRevisao(resultados) {
         ${r ? `<span class="res-badge">${r.gc}-${r.gf}</span>` : `<span class="pendente-dot">·</span>`}
         <span class="equipas-small">${fl(j.casa)} × ${fl(j.fora)}</span>
       </td>`;
-    for (const p of participantes) {
-      const prog = DADOS.prognosticos[p]?.[j.codigo];
-      if (!prog) { html += `<td class="tipo-pendente">—</td>`; continue; }
-      const tipo = getTipo(prog.casa, prog.fora, r?.gc, r?.gf);
-      const pts = getPontos(tipo);
-      html += `<td class="${TIPO_CSS[tipo]}" title="${p}: ${prog.resultado} | ${tipo} | ${pts}pts">
-        <span class="prog-val">${prog.resultado}</span>
+    for (let pi2 = 0; pi2 < participantes.length; pi2++) {
+      const p    = participantes[pi2];
+      const pred = getGSPredFor(pi2, j.codigo);
+      if (!pred) { html += `<td class="tipo-pendente">—</td>`; continue; }
+      const tipo = getTipo(pred.casa, pred.fora, r?.gc, r?.gf);
+      const pts  = getPontos(tipo);
+      const res  = `${pred.casa}-${pred.fora}`;
+      html += `<td class="${TIPO_CSS[tipo]}" title="${p}: ${res} | ${tipo} | ${pts}pts">
+        <span class="prog-val">${res}</span>
         ${r ? `<span class="pts-small">${pts}p</span>` : ""}
       </td>`;
     }
