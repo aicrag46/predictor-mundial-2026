@@ -439,14 +439,15 @@ function buildMsgJogo(codigo, resultados) {
   msg += `_${j.codigo} · Grupo ${j.grupo}_\n`;
   msg += `${SEP}\n\n`;
   msg += "```\n";
-  for (const p of DADOS.participantes) {
-    const prog = DADOS.prognosticos[p]?.[j.codigo];
-    if (!prog) continue;
-    const tipo = getTipo(prog.casa, prog.fora, r.gc, r.gf);
+  for (let pi = 0; pi < DADOS.participantes.length; pi++) {
+    const p    = DADOS.participantes[pi];
+    const pred = getGSPredFor(pi, j.codigo); // usa overrides da aba Previsões
+    if (!pred) continue;
+    const tipo = getTipo(pred.casa, pred.fora, r.gc, r.gf);
     const pts  = getPontos(tipo);
     const em   = TIPO_EM[tipo];
     const name = p.split(" ")[0].substring(0, 8).padEnd(9);
-    const res  = (prog.resultado || `${prog.casa}-${prog.fora}`).padEnd(5);
+    const res  = `${pred.casa}-${pred.fora}`.padEnd(5);
     const pStr = (pts > 0 ? `+${pts}pts` : "  0pt").padEnd(6);
     msg += `${em} ${name} ${res} ${pStr}\n`;
   }
