@@ -588,7 +588,16 @@ body {
 .tipo-pill.tipo-pend,
 .tipo-pill.tipo-pendente { background: var(--bg3); color: var(--muted); }
 
-.ko-preds-table td:nth-child(4) { min-width: 130px; }
+/* Colunas KO preds table */
+.ko-preds-table td:nth-child(4) { min-width: 120px; }
+.ko-pts-hint { font-size: .66rem; color: var(--muted); }
+
+/* Resultado score/apurado nas colunas de resultado KO */
+.qual-match-ok { color: var(--accent2); font-weight: 700; font-size: .8rem; }
+.qual-match-no { color: var(--muted);   font-weight: 400; font-size: .8rem; }
+
+/* Banner sub-stats */
+.pp-stat-sub { font-size: .72rem; color: var(--muted); }
 .ko-qual-cell { display: flex; flex-direction: column; gap: 3px; }
 .ko-qual-btn {
   background: var(--bg3); border: 1px solid var(--border); color: var(--muted);

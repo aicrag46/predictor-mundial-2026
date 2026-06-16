@@ -40,7 +40,7 @@ function getResultados() {
 }
 function saveResultados(r) { localStorage.setItem(LS_KEY, JSON.stringify(r)); }
 
-// ─── SCORING (não cumulativo: um tipo por jogo) ───────────────────────────────
+// ─── SCORING FASE DE GRUPOS (não cumulativo) ─────────────────────────────────
 function vit(a, b) { return a > b ? "c" : b > a ? "f" : "e"; }
 
 function getTipo(pgc, pgf, rgc, rgf) {
@@ -55,34 +55,97 @@ function getPontos(tipo) {
   return { "Exato": 5, "Vencedor/Empate": 2, "Golos Equipa": 1, "Não Pontuou": 0, "Pendente": 0 }[tipo] ?? 0;
 }
 
-// gsOv (opcional): overrides de previsões { [pi]: { [codigo]: {casa,fora} } }
-function calcParticipante(nome, resultados, gsOv) {
-  const pi   = DADOS.participantes.indexOf(nome);
+// ─── SCORING MATA-MATA (acumulativo: score90 + apurado independentes) ─────────
+// Pontuação por fase, conforme tabela oficial
+const KO_PONTOS = {
+  r32:   { exato: 7,  ve: 3,  golos: 1, qual: 3  },
+  r16:   { exato: 10, ve: 4,  golos: 2, qual: 5  },
+  qf:    { exato: 15, ve: 6,  golos: 3, qual: 10 },
+  sf:    { exato: 20, ve: 8,  golos: 4, qual: 15 },
+  tp:    { exato: 25, ve: 10, golos: 5, qual: 15 },
+  final: { exato: 35, ve: 15, golos: 6, qual: 15 },
+};
+
+// Retorna { tipoScore, scorePts, qualMatch, qualPts, pts }
+// - tipoScore: tipo do resultado aos 90' (não cumulativo)
+// - qualMatch: se acertou a equipa apurada
+// - pts: scorePts + qualPts (acumulam entre si)
+function calcKO(roundId, pgc, pgf, pqual, rgc, rgf, rqual) {
+  if (rgc === null || rgc === undefined) {
+    return { tipoScore: "Pendente", scorePts: 0, qualMatch: false, qualPts: 0, pts: 0 };
+  }
+  const tbl = KO_PONTOS[roundId] || KO_PONTOS.r32;
+
+  // Score aos 90 minutos (não cumulativo)
+  const tipoScore = getTipo(pgc, pgf, rgc, rgf);
+  const scorePts  = { "Exato": tbl.exato, "Vencedor/Empate": tbl.ve, "Golos Equipa": tbl.golos, "Não Pontuou": 0, "Pendente": 0 }[tipoScore] ?? 0;
+
+  // Apurado (independente e acumulativo)
+  const qualMatch = Boolean(rqual && pqual && pqual === rqual);
+  const qualPts   = qualMatch ? tbl.qual : 0;
+
+  return { tipoScore, scorePts, qualMatch, qualPts, pts: scorePts + qualPts };
+}
+
+// Alias legado (usado nalgumas comparações — devolve apenas tipo do score)
+function getTipoKO(pgc, pgf, pqual, rgc, rgf, rqual) {
+  return calcKO("r32", pgc, pgf, pqual, rgc, rgf, rqual).tipoScore;
+}
+
+// ─── CÁLCULO POR PARTICIPANTE ─────────────────────────────────────────────────
+// gsOv:   overrides GS  { [pi]: { [codigo]: {casa,fora} } }
+// mm:     estado mata-mata
+// koP:    previsões KO  { [pi]: { [roundId:idx]: {gc,gf,qualifier} } }
+function calcParticipante(nome, resultados, gsOv, mm, koP) {
+  const pi    = DADOS.participantes.indexOf(nome);
   const progs = DADOS.prognosticos[nome] || {};
   let pts = 0, exatos = 0, ve = 0, golos = 0, naoPontua = 0;
+
+  // Fase de grupos
   for (const j of DADOS.jogos) {
-    const ov = gsOv?.[pi]?.[j.codigo];
-    const p  = ov || progs[j.codigo];
-    const r  = resultados[j.codigo];
+    const ov   = gsOv?.[pi]?.[j.codigo];
+    const p    = ov || progs[j.codigo];
+    const r    = resultados[j.codigo];
     if (!p) continue;
     const tipo = getTipo(p.casa, p.fora, r?.gc, r?.gf);
     pts += getPontos(tipo);
-    if (tipo === "Exato") exatos++;
+    if (tipo === "Exato")            exatos++;
     else if (tipo === "Vencedor/Empate") ve++;
-    else if (tipo === "Golos Equipa") golos++;
-    else if (tipo === "Não Pontuou") naoPontua++;
+    else if (tipo === "Golos Equipa")    golos++;
+    else if (tipo === "Não Pontuou")     naoPontua++;
   }
-  return { nome, pts, exatos, ve, golos, naoPontua };
+  const gsPts = pts;
+
+  // Mata-mata
+  let koPts = 0;
+  if (mm && koP) {
+    for (const round of MM_ROUNDS) {
+      const games = mm[round.id];
+      if (!games) continue;
+      games.forEach((game, idx) => {
+        const pred = koP[pi]?.[`${round.id}:${idx}`];
+        if (!pred || pred.gc === null || pred.gc === undefined) return;
+        if (game.gc === null || game.gc === undefined) return;
+        const winner = mmWinner(game);
+        const { pts: kp } = calcKO(round.id, pred.gc, pred.gf, pred.qualifier, game.gc, game.gf, winner);
+        koPts += kp;
+      });
+    }
+  }
+
+  return { nome, pts: gsPts + koPts, gsPts, koPts, exatos, ve, golos, naoPontua };
 }
 
 function calcClassificacao(resultados) {
   const gsOv = getGSOverrides();
-  const stats = DADOS.participantes.map(n => calcParticipante(n, resultados, gsOv));
+  const mm   = getMataMata();
+  const koP  = getKOPredsAll();
+  const stats = DADOS.participantes.map(n => calcParticipante(n, resultados, gsOv, mm, koP));
   stats.sort((a, b) => {
-    if (b.pts !== a.pts) return b.pts - a.pts;
-    if (b.exatos !== a.exatos) return b.exatos - a.exatos;
-    if (b.ve !== a.ve) return b.ve - a.ve;
-    if (b.golos !== a.golos) return b.golos - a.golos;
+    if (b.pts !== a.pts)         return b.pts - a.pts;
+    if (b.exatos !== a.exatos)   return b.exatos - a.exatos;
+    if (b.ve !== a.ve)           return b.ve - a.ve;
+    if (b.golos !== a.golos)     return b.golos - a.golos;
     if (a.naoPontua !== b.naoPontua) return a.naoPontua - b.naoPontua;
     return a.nome.localeCompare(b.nome);
   });
@@ -819,9 +882,11 @@ function renderPrevisoes() {
     <span class="pp-pos-badge ${paga ? "paga-sim" : "paga-nao"}">🏅 ${pos}º</span>
     <strong class="pp-full-name">${nome}</strong>
     <span class="pp-stat">⭐ <strong>${stats.pts}</strong> pts</span>
+    <span class="pp-stat pp-stat-sub">⚽ Grupos: ${stats.gsPts}p</span>
+    ${stats.koPts > 0 ? `<span class="pp-stat pp-stat-sub">⚔️ KO: ${stats.koPts}p</span>` : ""}
     <span class="pp-stat">✅ ${stats.exatos} exatos</span>
-    <span class="pp-stat">⚽ ${stats.ve} VE</span>
-    <span class="pp-stat">🎯 ${stats.golos} golos</span>
+    <span class="pp-stat">🔵 ${stats.ve} VE</span>
+    <span class="pp-stat">🟡 ${stats.golos} golos</span>
     <span class="pp-stat">❌ ${stats.naoPontua}</span>
     <span class="pp-jantar ${paga ? "j-paga" : "j-nao"}">${paga ? "🍽️ PAGA" : "🎉 NÃO PAGA"}</span>
   </div>`;
@@ -926,40 +991,56 @@ function toggleFlatGroup(tbId) {
 function renderKOPredSection(pi, mm) {
   let html = `<div class="preds-section">
     <div class="preds-section-title">⚔️ Mata-Mata — previsões
-      <span class="edit-hint">Score + quem passa (inclui AET/PEN)</span>
+      <span class="edit-hint">Resultado aos 90' + equipa apurada · pontos acumulam</span>
     </div>
     <div class="ko-scoring-info">
-      ✅ Exato = score certo + quem passa certo (5pts) &nbsp;·&nbsp;
-      ⚽ VE = score certo OU quem passa certo (2pts) &nbsp;·&nbsp;
-      🎯 Golos = golos de 1 equipa certos (1pt)
+      Score (90') e Apurado pontuam <strong>independentemente e acumulam</strong>.
+      Máximos: R32=10 · R16=15 · QF=25 · SF=35 · 3.º=40 · Final=50
     </div>`;
 
-  for (const r of MM_ROUNDS) {
-    const games = mm[r.id];
+  for (const round of MM_ROUNDS) {
+    const games = mm[round.id];
+    const tbl   = KO_PONTOS[round.id] || KO_PONTOS.r32;
+    const maxPts = tbl.exato + tbl.qual;
+
     html += `<div class="preds-group">
       <div class="preds-group-header" onclick="togglePredGroup(this)">
-        <span class="pgr-label">${r.name}</span>
+        <span class="pgr-label">${round.name}</span>
+        <span class="pgr-prog ko-pts-hint">
+          Exato=${tbl.exato} · VE=${tbl.ve} · Golos=${tbl.golos} · Apurado=${tbl.qual} · <strong>Máx ${maxPts}pts</strong>
+        </span>
         <span class="preds-chevron">▾</span>
       </div>
       <div class="preds-group-body">
         <table class="preds-table ko-preds-table">
           <thead><tr>
             <th>#</th><th>Jogo</th>
-            <th>Resultado (pred.)</th><th>Quem passa (pred.)</th>
-            <th>Real</th><th>Classificado</th>
-            <th>Tipo</th><th>Pts</th>
+            <th>Res. 90' (pred)</th><th>Apurado (pred)</th>
+            <th>Real 90'</th><th>Apurado real</th>
+            <th>Score 90'</th><th>Apurado</th><th>Total</th>
           </tr></thead><tbody>`;
 
     games.forEach((game, idx) => {
-      const pred   = getKOPredFor(pi, r.id, idx);
+      const pred   = getKOPredFor(pi, round.id, idx);
       const winner = mmWinner(game);
-      const hasRes = game.gc !== null && game.gf !== null;
-      const tipo   = (hasRes && pred?.gc !== null && pred?.gc !== undefined)
-        ? getTipoKO(pred.gc, pred.gf, pred.qualifier, game.gc, game.gf, winner)
-        : "Pendente";
-      const pts = getPontos(tipo);
+      const hasRes = game.gc !== null && game.gc !== undefined;
+      const hasPred = pred && pred.gc !== null && pred.gc !== undefined;
       const f1  = FLAGS[game.e1] || (game.e1 ? "🏳" : "");
       const f2  = FLAGS[game.e2] || (game.e2 ? "🏳" : "");
+
+      let scoreCell = `<span class="muted-dash">—</span>`;
+      let qualCell  = `<span class="muted-dash">—</span>`;
+      let totalCell = `<span class="muted-dash">—</span>`;
+
+      if (hasRes && hasPred) {
+        const ko = calcKO(round.id, pred.gc, pred.gf, pred.qualifier, game.gc, game.gf, winner);
+        scoreCell = `<span class="tipo-pill ${TIPO_CSS[ko.tipoScore]}">${tipoAbr(ko.tipoScore)}</span>
+                     <span class="pts-small">+${ko.scorePts}p</span>`;
+        qualCell  = ko.qualMatch
+          ? `<span class="qual-match-ok">✓ +${ko.qualPts}p</span>`
+          : `<span class="qual-match-no">✗ 0p</span>`;
+        totalCell = `<strong class="pts-cell">${ko.pts}</strong>`;
+      }
 
       html += `<tr>
         <td><span class="badge-grupo ko-badge">${idx + 1}</span></td>
@@ -968,24 +1049,24 @@ function renderKOPredSection(pi, mm) {
           <span class="vs">×</span>
           ${game.e2 ? `${f2} ${game.e2}` : `<span class="muted-dash">TBD</span>`}
         </td>
-        <td>
+        <td class="td-center">
           <input class="pred-inp ko-pred-inp" type="text"
-            value="${pred && pred.gc !== null ? `${pred.gc}-${pred.gf}` : ""}"
+            value="${hasPred ? `${pred.gc}-${pred.gf}` : ""}"
             placeholder="0-0"
-            data-pi="${pi}" data-round="${r.id}" data-idx="${idx}" maxlength="7" />
+            data-pi="${pi}" data-round="${round.id}" data-idx="${idx}" maxlength="7" />
         </td>
         <td class="ko-qual-cell">
           ${game.e1 ? `<button class="ko-qual-btn ${pred?.qualifier === game.e1 ? "ko-sel" : ""}"
-            data-pi="${pi}" data-round="${r.id}" data-idx="${idx}" data-qual="${esc(game.e1)}">${f1} ${game.e1}</button>` : ""}
+            data-pi="${pi}" data-round="${round.id}" data-idx="${idx}" data-qual="${esc(game.e1)}">${f1} ${game.e1}</button>` : ""}
           ${game.e2 ? `<button class="ko-qual-btn ${pred?.qualifier === game.e2 ? "ko-sel" : ""}"
-            data-pi="${pi}" data-round="${r.id}" data-idx="${idx}" data-qual="${esc(game.e2)}">${f2} ${game.e2}</button>` : ""}
+            data-pi="${pi}" data-round="${round.id}" data-idx="${idx}" data-qual="${esc(game.e2)}">${f2} ${game.e2}</button>` : ""}
           ${!game.e1 && !game.e2 ? `<span class="muted-dash">TBD</span>` : ""}
         </td>
-        <td class="real-cell">${hasRes ? `${game.gc}-${game.gf}` : "—"}</td>
+        <td class="real-cell td-center">${hasRes ? `${game.gc}-${game.gf}` : "—"}</td>
         <td class="real-cell">${winner ? `${FLAGS[winner] || ""} ${winner}` : "—"}</td>
-        <td>${hasRes && pred?.gc !== null && pred?.gc !== undefined
-          ? `<span class="tipo-pill ${TIPO_CSS[tipo]}">${tipoAbr(tipo)}</span>` : `<span class="muted-dash">—</span>`}</td>
-        <td class="pts-cell">${hasRes && pred?.gc !== null && pred?.gc !== undefined ? pts : "—"}</td>
+        <td class="td-center">${scoreCell}</td>
+        <td class="td-center">${qualCell}</td>
+        <td class="td-center">${totalCell}</td>
       </tr>`;
     });
     html += `</tbody></table></div></div>`;
