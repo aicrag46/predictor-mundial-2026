@@ -63,7 +63,7 @@ const KO_PONTOS = {
   qf:    { exato: 15, ve: 6,  golos: 3, qual: 10 },
   sf:    { exato: 20, ve: 8,  golos: 4, qual: 15 },
   tp:    { exato: 25, ve: 10, golos: 5, qual: 15 },
-  final: { exato: 35, ve: 15, golos: 6, qual: 15 },
+  f:     { exato: 35, ve: 15, golos: 6, qual: 15 },
 };
 
 // Retorna { tipoScore, scorePts, qualMatch, qualPts, pts }
