@@ -388,48 +388,96 @@ function renderWhatsapp(resultados) {
     return;
   }
   const cls = calcClassificacao(resultados);
+  const nao = cls.filter(s => !s.paga);
+  const sim = cls.filter(s =>  s.paga);
+  const SEP = "━━━━━━━━━━━━━━━━━━━━━";
+  const MEDALS = { 1:"🥇", 2:"🥈", 3:"🥉" };
+  const TIPO_EM = { "Exato":"✅","Vencedor/Empate":"⚽","Golos Equipa":"🎯","Não Pontuou":"❌","Pendente":"⏳" };
 
-  let msgGeral = `🌍 *PREDICTOR PARQUE BIOLÓGICO — MUNDIAL 2026*\n`;
-  msgGeral += `📊 _Classificação — ${jogosFeitos.length} jogo(s) jogado(s):_\n\n`;
+  // ── MSG 1: CLASSIFICAÇÃO ──────────────────────────────────────────────────
+  let msgCls = "";
+  msgCls += `🏆 *PREDICTOR PARQUE BIOLÓGICO*\n`;
+  msgCls += `⚽ *MUNDIAL 2026* · _${jogosFeitos.length} jogos jogados_\n\n`;
+  msgCls += `${SEP}\n`;
+  msgCls += `📊 *CLASSIFICAÇÃO GERAL*\n`;
+  msgCls += `${SEP}\n\n`;
+
   for (const s of cls) {
-    const medal = s.pos === 1 ? "🥇" : s.pos === 2 ? "🥈" : s.pos === 3 ? "🥉" : `${s.pos}.`;
-    msgGeral += `${medal} *${s.nome}* — ${s.pts}pts`;
-    if (s.exatos > 0) msgGeral += ` (${s.exatos} ✅)`;
-    msgGeral += "\n";
+    const medal = MEDALS[s.pos] || `${s.pos}.`;
+    const bold  = !s.paga;
+    const nome  = bold ? `*${s.nome}*` : s.nome;
+    const pts   = bold ? `*${s.pts} pts*` : `${s.pts} pts`;
+    let line = `${medal} ${nome} · ${pts}`;
+    if (s.exatos > 0)  line += ` ✅×${s.exatos}`;
+    if (s.paga)        line += ` 🍽️`;
+    msgCls += line + "\n";
+    if (s.pos === 5)   msgCls += `${SEP}\n`;
   }
-  msgGeral += `\n💰 _Paga jantar: ${cls.filter(s => s.paga).map(s => s.nome.split(" ")[0]).join(", ")}_`;
-  msgGeral += `\n🍾 _Não paga: ${cls.filter(s => !s.paga).map(s => s.nome.split(" ")[0]).join(", ")}_`;
 
-  const recentes = [...jogosFeitos].reverse().slice(0, 8);
-  let msgJogos = `⚽ *RESULTADOS RECENTES — MUNDIAL 2026*\n\n`;
+  msgCls += `\n`;
+  msgCls += `_🍾 Não paga jantar: ${nao.map(s => s.nome.split(" ")[0]).join(", ")}_\n`;
+  msgCls += `_🍽️ Paga jantar: ${sim.map(s => s.nome.split(" ")[0]).join(", ")}_\n\n`;
+  msgCls += `_Pontuação: ✅ Exato=5pts · ⚽ VE=2pts · 🎯 Golos=1pt_`;
+
+  // ── MSG 2: RESULTADOS ─────────────────────────────────────────────────────
+  const recentes = [...jogosFeitos].reverse().slice(0, 6);
+  let msgRes = "";
+  msgRes += `⚽ *RESULTADOS RECENTES*\n`;
+  msgRes += `🌍 *MUNDIAL 2026*\n`;
+
   for (const j of recentes) {
-    const r = resultados[j.codigo];
-    msgJogos += `*${fl(j.casa)} ${r.gc}–${r.gf} ${fl(j.fora)}*\n`;
-    msgJogos += `_${j.codigo} · Grupo ${j.grupo}_\n`;
-    const EMOJI = { "Exato":"✅","Vencedor/Empate":"⚽","Golos Equipa":"🎯","Não Pontuou":"❌","Pendente":"⏳" };
+    const r  = resultados[j.codigo];
+    const f1 = FLAGS[j.casa] || "🏳";
+    const f2 = FLAGS[j.fora] || "🏳";
+    msgRes += `\n${SEP}\n`;
+    msgRes += `${f1} *${j.casa} ${r.gc}–${r.gf} ${j.fora}* ${f2}\n`;
+    msgRes += `_${j.codigo} · Grupo ${j.grupo}_\n`;
+    // código monoespaçado para alinhamento perfeito no WhatsApp
+    msgRes += "```\n";
     for (const p of DADOS.participantes) {
       const prog = DADOS.prognosticos[p]?.[j.codigo];
       if (!prog) continue;
       const tipo = getTipo(prog.casa, prog.fora, r.gc, r.gf);
-      const pts = getPontos(tipo);
-      msgJogos += `${EMOJI[tipo]} ${p.split(" ")[0].padEnd(9)} ${prog.resultado}  (+${pts})\n`;
+      const pts  = getPontos(tipo);
+      const em   = TIPO_EM[tipo];
+      const name = p.split(" ")[0].substring(0, 9).padEnd(10);
+      const res  = prog.resultado.padEnd(5);
+      const pStr = (pts > 0 ? `+${pts}pts` : " 0pt").padEnd(5);
+      msgRes += `${em} ${name}${res} ${pStr}\n`;
     }
-    msgJogos += "\n";
+    msgRes += "```\n";
   }
 
-  let html = `<div class="wa-container">
+  const html = `<div class="wa-container">
     <div class="wa-block">
       <div class="wa-title">📊 Classificação Geral</div>
-      <textarea class="wa-textarea" id="wa-geral" readonly>${msgGeral}</textarea>
+      <div class="wa-preview">${waPreview(msgCls)}</div>
+      <textarea class="wa-textarea" id="wa-geral" readonly>${msgCls}</textarea>
       <button class="btn-copy" onclick="copyWA('wa-geral')">📋 Copiar para WhatsApp</button>
     </div>
     <div class="wa-block">
-      <div class="wa-title">⚽ Últimos Resultados (${recentes.length})</div>
-      <textarea class="wa-textarea" id="wa-jogos" readonly>${msgJogos}</textarea>
+      <div class="wa-title">⚽ Últimos Resultados (${recentes.length} jogos)</div>
+      <div class="wa-preview">${waPreview(msgRes)}</div>
+      <textarea class="wa-textarea" id="wa-jogos" readonly>${msgRes}</textarea>
       <button class="btn-copy" onclick="copyWA('wa-jogos')">📋 Copiar para WhatsApp</button>
     </div>
   </div>`;
   container.innerHTML = html;
+}
+
+// Render a WhatsApp-like preview of the message
+function waPreview(text) {
+  let html = text
+    .replace(/&/g, "&amp;").replace(/</g, "&lt;").replace(/>/g, "&gt;")
+    // Bold: *text*
+    .replace(/\*([^*\n]+)\*/g, "<strong>$1</strong>")
+    // Italic: _text_
+    .replace(/_([^_\n]+)_/g, "<em>$1</em>")
+    // Code block: ```...```
+    .replace(/```\n([\s\S]*?)```/g, (_, code) => `<code class="wa-code">${code}</code>`)
+    // Line breaks
+    .replace(/\n/g, "<br>");
+  return html;
 }
 
 function copyWA(id) {
@@ -451,10 +499,13 @@ function setMMRound(id) {
 function renderMataMata(mm) {
   const container = document.getElementById("matamata-content");
 
-  // Round selector
-  let html = `<div class="mm-round-tabs">`;
+  // Bracket SEMPRE VISÍVEL no topo (auto-actualiza em cada mudança)
+  let html = buildBracketHTML(mm);
+
+  // Selector de ronda
+  html += `<div class="mm-round-tabs">`;
   for (const r of MM_ROUNDS) {
-    const done  = mm[r.id].filter(g => g.gc !== null).length;
+    const done = mm[r.id].filter(g => g.gc !== null).length;
     html += `<button class="mm-round-btn ${mmActiveRound === r.id ? "active" : ""}"
       onclick="setMMRound('${r.id}')">${r.abbr}
       <span class="mm-prog ${done === r.count ? "mm-prog-done" : ""}">${done}/${r.count}</span>
@@ -462,15 +513,12 @@ function renderMataMata(mm) {
   }
   html += `</div>`;
 
-  // Bracket overview (collapsible)
-  html += buildBracketHTML(mm);
-
-  // Active round
+  // Editor da ronda activa
   const cfg = MM_ROUNDS.find(r => r.id === mmActiveRound);
   html += `<div class="mm-section">
     <div class="mm-section-header">
       <h2 class="mm-section-title">${cfg.name}</h2>
-      <span class="mm-hint">Introduz equipa + resultado (ex: 2-1). Em empate, escolhe quem passa via AET/PEN.</span>
+      <span class="mm-hint">Escreve equipa + resultado (ex: 2-1). Em empate escolhe quem passa (AET/PEN).</span>
     </div>
     <div class="mm-games-list">`;
   mm[mmActiveRound].forEach((game, idx) => {
@@ -522,53 +570,75 @@ function buildMMCard(game, roundId, idx) {
 
 function esc(s) { return (s || "").replace(/"/g, "&quot;"); }
 
+// Bracket sempre visível, alinhamento por space-around (matemáticamente perfeito)
 function buildBracketHTML(mm) {
-  const ROUNDS_MAIN = MM_ROUNDS.filter(r => r.id !== "tp");
-  let html = `<div class="bracket-wrapper">
-    <button class="btn-bracket-toggle" onclick="toggleBracket(this)">📐 Ver Bracket Completo ▼</button>
-    <div class="bracket-outer" style="display:none;">
-      <div class="bracket-scroll">`;
+  const H    = 660;  // altura fixa igual para todas as colunas
+  const CW   = 162;  // largura de cada coluna de jogos
+  const CONN = 22;   // largura das colunas de ligação
 
-  for (const r of ROUNDS_MAIN) {
-    html += `<div class="bcol" data-count="${r.count}">
-      <div class="bcol-title">${r.abbr}</div>
-      <div class="bcol-games">`;
-    mm[r.id].forEach((game, idx) => {
-      const w = mmWinner(game);
-      const hasRes = game.gc !== null && game.gf !== null;
-      html += `<div class="bgame ${hasRes ? "bgame-done" : ""}">
-        <div class="bteam ${w === game.e1 && game.e1 ? "bwin" : ""}">${FLAGS[game.e1] || ""} ${game.e1 || "TBD"}</div>
-        <div class="bscore">${hasRes ? `${game.gc}–${game.gf}` : "–"}</div>
-        <div class="bteam ${w === game.e2 && game.e2 ? "bwin" : ""}">${FLAGS[game.e2] || ""} ${game.e2 || "TBD"}</div>
+  const MAIN = [
+    { id:"r32", name:"Round of 32",      count:16, abbr:"R32" },
+    { id:"r16", name:"Oitavos de Final", count:8,  abbr:"R16" },
+    { id:"qf",  name:"Quartos de Final", count:4,  abbr:"QF"  },
+    { id:"sf",  name:"Meias-Final",      count:2,  abbr:"SF"  },
+    { id:"f",   name:"Final",            count:1,  abbr:"🏆"  },
+  ];
+
+  // ── Cabeçalho de títulos ──────────────────────────────────────────────────
+  let titles = `<div class="br-titles">`;
+  MAIN.forEach((r, i) => {
+    titles += `<span class="brt" style="width:${CW}px">${r.name}</span>`;
+    if (i < MAIN.length - 1)
+      titles += `<span class="brt" style="width:${CONN}px"></span>`;
+  });
+  titles += `<span class="brt brt-tp" style="width:${CW}px">3.º Lugar</span>`;
+  titles += `</div>`;
+
+  // ── Corpo do bracket ──────────────────────────────────────────────────────
+  let body = `<div class="br-body">`;
+
+  MAIN.forEach((r, i) => {
+    // Coluna de jogos
+    body += `<div class="bcol" style="width:${CW}px;height:${H}px">`;
+    mm[r.id].forEach((g, idx) => {
+      const w    = mmWinner(g);
+      const done = g.gc !== null && g.gf !== null;
+      const f1   = FLAGS[g.e1] || (g.e1 ? "🏳":"");
+      const f2   = FLAGS[g.e2] || (g.e2 ? "🏳":"");
+      body += `<div class="bgame ${done?"bgame-done":""}" onclick="setMMRound('${r.id}')" title="Jogo ${idx+1} · clica para editar">
+        <div class="brow ${w===g.e1&&g.e1?"bwin":done&&w?"blose":""}">${f1} <span>${g.e1||"TBD"}</span></div>
+        <div class="bscore">${done?`${g.gc}–${g.gf}`:"·"}</div>
+        <div class="brow ${w===g.e2&&g.e2?"bwin":done&&w?"blose":""}">${f2} <span>${g.e2||"TBD"}</span></div>
       </div>`;
     });
-    html += `</div></div>`;
-  }
+    body += `</div>`;
 
-  // 3rd place
-  const tp = mm.tp[0];
-  const tpW = mmWinner(tp);
-  const tpHas = tp.gc !== null;
-  html += `<div class="bcol bcol-tp" data-count="1">
-    <div class="bcol-title">3.º</div>
-    <div class="bcol-games">
-      <div class="bgame ${tpHas ? "bgame-done" : ""}">
-        <div class="bteam ${tpW === tp.e1 && tp.e1 ? "bwin" : ""}">${FLAGS[tp.e1] || ""} ${tp.e1 || "TBD"}</div>
-        <div class="bscore">${tpHas ? `${tp.gc}–${tp.gf}` : "–"}</div>
-        <div class="bteam ${tpW === tp.e2 && tp.e2 ? "bwin" : ""}">${FLAGS[tp.e2] || ""} ${tp.e2 || "TBD"}</div>
-      </div>
+    // Coluna de ligação (N items = count da próxima ronda → space-around alinha perfeitamente)
+    if (i < MAIN.length - 1) {
+      const nc = MAIN[i + 1].count;
+      body += `<div class="bcol-conn" style="width:${CONN}px;height:${H}px">`;
+      for (let c = 0; c < nc; c++) body += `<div class="conn-h"></div>`;
+      body += `</div>`;
+    }
+  });
+
+  // 3.º lugar (coluna separada)
+  const tp   = mm.tp[0];
+  const tpW  = mmWinner(tp);
+  const tpD  = tp.gc !== null;
+  const tf1  = FLAGS[tp.e1] || (tp.e1 ? "🏳":"");
+  const tf2  = FLAGS[tp.e2] || (tp.e2 ? "🏳":"");
+  body += `<div class="bcol bcol-tp" style="width:${CW}px;height:${H}px">
+    <div class="bgame ${tpD?"bgame-done":""}" onclick="setMMRound('tp')" title="3.º Lugar · clica para editar">
+      <div class="brow ${tpW===tp.e1&&tp.e1?"bwin":tpD&&tpW?"blose":""}">${tf1} <span>${tp.e1||"TBD"}</span></div>
+      <div class="bscore">${tpD?`${tp.gc}–${tp.gf}`:"·"}</div>
+      <div class="brow ${tpW===tp.e2&&tp.e2?"bwin":tpD&&tpW?"blose":""}">${tf2} <span>${tp.e2||"TBD"}</span></div>
     </div>
   </div>`;
 
-  html += `</div></div></div>`;
-  return html;
-}
+  body += `</div>`;
 
-function toggleBracket(btn) {
-  const outer = btn.nextElementSibling;
-  const open = outer.style.display !== "none";
-  outer.style.display = open ? "none" : "block";
-  btn.textContent = open ? "📐 Ver Bracket Completo ▼" : "📐 Fechar Bracket ▲";
+  return `<div class="bracket-outer"><div class="bracket-scroll">${titles}${body}</div></div>`;
 }
 
 function attachMMEvents(container, mm) {
