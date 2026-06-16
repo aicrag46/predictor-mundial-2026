@@ -1,0 +1,82 @@
+<!DOCTYPE html>
+<html lang="pt">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Predictor Parque Biológico — Mundial 2026</title>
+  <link rel="stylesheet" href="css/style.css" />
+</head>
+<body>
+
+  <header class="app-header">
+    <div class="header-title">
+      <span class="header-trophy">🏆</span>
+      <div>
+        <h1>Predictor Parque Biológico — Mundial 2026</h1>
+        <p>10 participantes · 72 jogos · 720 prognósticos</p>
+      </div>
+    </div>
+    <button class="btn-reset" onclick="resetResultados()">🗑️ Reset Resultados</button>
+  </header>
+
+  <nav class="tabs-nav">
+    <button class="tab-btn active" data-tab="resultados" onclick="switchTab('resultados')">
+      ⚽ Resultados
+    </button>
+    <button class="tab-btn" data-tab="classificacao" onclick="switchTab('classificacao')">
+      🏅 Classificação
+    </button>
+    <button class="tab-btn" data-tab="revisao" onclick="switchTab('revisao')">
+      📊 Revisão Larga
+    </button>
+    <button class="tab-btn" data-tab="grupos" onclick="switchTab('grupos')">
+      🗂️ Grupos
+    </button>
+    <button class="tab-btn" data-tab="whatsapp" onclick="switchTab('whatsapp')">
+      💬 WhatsApp
+    </button>
+  </nav>
+
+  <main class="main-content">
+
+    <!-- TAB: RESULTADOS -->
+    <div class="tab-content active" id="tab-resultados">
+      <div id="resultados-content" class="grupos-wrapper">
+        <p style="color:var(--text-muted)">A carregar…</p>
+      </div>
+    </div>
+
+    <!-- TAB: CLASSIFICAÇÃO -->
+    <div class="tab-content" id="tab-classificacao">
+      <div id="classificacao-content">
+        <p style="color:var(--text-muted)">A carregar…</p>
+      </div>
+    </div>
+
+    <!-- TAB: REVISÃO LARGA -->
+    <div class="tab-content" id="tab-revisao">
+      <div id="revisao-content">
+        <p style="color:var(--text-muted)">A carregar…</p>
+      </div>
+    </div>
+
+    <!-- TAB: GRUPOS -->
+    <div class="tab-content" id="tab-grupos">
+      <div id="grupos-content">
+        <p style="color:var(--text-muted)">A carregar…</p>
+      </div>
+    </div>
+
+    <!-- TAB: WHATSAPP -->
+    <div class="tab-content" id="tab-whatsapp">
+      <div id="whatsapp-content">
+        <p style="color:var(--text-muted)">A carregar…</p>
+      </div>
+    </div>
+
+  </main>
+
+  <script src="js/data.js"></script>
+  <script src="js/app.js"></script>
+</body>
+</html>
