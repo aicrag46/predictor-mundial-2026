@@ -514,6 +514,7 @@ body {
 }
 .edit-hint { font-size: .68rem; color: var(--muted); font-weight: 400; }
 
+/* Accordion para KO (Mata-Mata dentro de Previsões) */
 .preds-group { border-bottom: 1px solid rgba(30,45,69,.7); }
 .preds-group:last-child { border-bottom: none; }
 .preds-group-header {
@@ -522,24 +523,49 @@ body {
   transition: background .15s;
 }
 .preds-group-header:hover { background: var(--bg3); }
-.pgr-label { font-weight: 700; font-size: .83rem; }
-.pgr-prog  { font-size: .7rem; color: var(--muted); }
-.preds-chevron { font-size: .82rem; color: var(--muted); transition: transform .2s; }
 .preds-group.preds-collapsed .preds-group-body { display: none; }
-.preds-group.preds-collapsed .preds-chevron { transform: rotate(-90deg); }
+.preds-group.preds-collapsed > .preds-group-header .preds-chevron { transform: rotate(-90deg); }
+
+/* Tabela de previsões — única tabela flat com colgroup para alinhar colunas */
+.preds-gs-scroll { overflow-x: auto; }
+
+.preds-flat { table-layout: fixed; width: 100%; border-collapse: collapse; }
+.preds-flat .col-cod  { width: 62px; }
+.preds-flat .col-pred { width: 108px; }
+.preds-flat .col-real { width: 66px; }
+.preds-flat .col-tipo { width: 82px; }
+.preds-flat .col-pts  { width: 46px; }
+/* col-jogo takes remaining space */
 
 .preds-table { width: 100%; border-collapse: collapse; }
 .preds-table th {
   background: rgba(30,45,69,.6); color: var(--muted); font-size: .65rem;
   text-transform: uppercase; letter-spacing: .05em;
-  padding: 6px 10px; text-align: left; white-space: nowrap;
+  padding: 7px 10px; text-align: left; white-space: nowrap;
+  position: sticky; top: 0; z-index: 2;
 }
 .preds-table td {
-  padding: 5px 10px; border-bottom: 1px solid rgba(30,45,69,.4);
-  vertical-align: middle; font-size: .82rem;
+  padding: 6px 10px; border-bottom: 1px solid rgba(30,45,69,.4);
+  vertical-align: middle; font-size: .82rem; overflow: hidden; text-overflow: ellipsis;
 }
 .preds-table tr:last-child td { border-bottom: none; }
-.preds-table tr:hover td { background: rgba(255,255,255,.015); }
+.preds-table tr:hover td { background: rgba(255,255,255,.018); }
+.td-center { text-align: center; }
+
+/* Linha de cabeçalho de grupo dentro da tabela flat */
+.preds-group-hdr { cursor: pointer; }
+.preds-group-hdr td {
+  background: linear-gradient(90deg, #0d1f3c, #111827) !important;
+  padding: 0 !important; border-bottom: 2px solid rgba(245,158,11,.2) !important;
+}
+.preds-group-hdr:hover td { filter: brightness(1.12); }
+.pgr-inner {
+  display: flex; align-items: center; gap: 12px;
+  padding: 8px 14px;
+}
+.pgr-label { font-weight: 700; font-size: .83rem; color: var(--accent); }
+.pgr-prog  { font-size: .72rem; color: var(--muted); margin-left: auto; }
+.preds-chevron { font-size: .8rem; color: var(--muted); transition: transform .2s; margin-left: 8px; }
 
 .pred-inp {
   width: 68px; padding: 4px 7px; background: var(--bg3);

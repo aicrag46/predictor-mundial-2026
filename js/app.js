@@ -836,11 +836,31 @@ function renderPrevisoes() {
   attachPredsEvents(container);
 }
 
-// ── Group stage section ───────────────────────────────────────────────────────
+// ── Group stage section — única tabela com tbody por grupo ────────────────────
 function renderGSPredSection(pi, nome, resultados, gsOv) {
   const grupos = [...new Set(DADOS.jogos.map(j => j.grupo))];
+
   let html = `<div class="preds-section">
-    <div class="preds-section-title">⚽ Fase de Grupos — 72 jogos <span class="edit-hint">✏️ clica no prognóstico para editar</span></div>`;
+    <div class="preds-section-title">
+      ⚽ Fase de Grupos — 72 jogos
+      <span class="edit-hint">✏️ edita o prognóstico e prime Enter</span>
+    </div>
+    <div class="preds-gs-scroll">
+    <table class="preds-table preds-flat">
+      <colgroup>
+        <col class="col-cod">
+        <col class="col-jogo">
+        <col class="col-pred">
+        <col class="col-real">
+        <col class="col-tipo">
+        <col class="col-pts">
+      </colgroup>
+      <thead>
+        <tr>
+          <th>Cód.</th><th>Jogo</th>
+          <th>Prognóstico</th><th>Real</th><th>Tipo</th><th>Pts</th>
+        </tr>
+      </thead>`;
 
   for (const g of grupos) {
     const jogos = DADOS.jogos.filter(j => j.grupo === g);
@@ -850,19 +870,21 @@ function renderGSPredSection(pi, nome, resultados, gsOv) {
       const r    = resultados[j.codigo];
       if (r && pred) { gpts += getPontos(getTipo(pred.casa, pred.fora, r.gc, r.gf)); gj++; }
     }
+    const tbId = `gs-tb-${pi}-${g}`;
 
-    html += `<div class="preds-group">
-      <div class="preds-group-header" onclick="togglePredGroup(this)">
-        <span class="pgr-label">Grupo ${g}</span>
-        <span class="pgr-prog">${gj}/${jogos.length} · <strong>${gpts}pts</strong></span>
-        <span class="preds-chevron">▾</span>
-      </div>
-      <div class="preds-group-body">
-        <table class="preds-table">
-          <thead><tr>
-            <th>Cód.</th><th>Jogo</th>
-            <th>Prognóstico</th><th>Real</th><th>Tipo</th><th>Pts</th>
-          </tr></thead><tbody>`;
+    // Linha de cabeçalho de grupo (clicável para colapsar)
+    html += `<tbody>
+      <tr class="preds-group-hdr" onclick="toggleFlatGroup('${tbId}')">
+        <td colspan="6">
+          <div class="pgr-inner">
+            <span class="pgr-label">Grupo ${g}</span>
+            <span class="pgr-prog">${gj}/${jogos.length} · <strong>${gpts}pts</strong></span>
+            <span class="preds-chevron" id="ch-${tbId}">▾</span>
+          </div>
+        </td>
+      </tr>
+    </tbody>
+    <tbody id="${tbId}">`;
 
     for (const j of jogos) {
       const pred = getGSPredFor(pi, j.codigo);
@@ -874,20 +896,30 @@ function renderGSPredSection(pi, nome, resultados, gsOv) {
       html += `<tr>
         <td><span class="badge-grupo">${j.codigo}</span></td>
         <td class="jogo-nome-sm">${fl(j.casa)} <span class="vs">×</span> ${fl(j.fora)}</td>
-        <td>
+        <td class="td-center">
           <input class="pred-inp gs-pred-inp ${isOv ? "pred-edited" : ""}" type="text"
             value="${pred ? `${pred.casa}-${pred.fora}` : ""}"
             placeholder="0-0" data-pi="${pi}" data-codigo="${j.codigo}" maxlength="7" />
         </td>
-        <td class="real-cell">${r ? `${r.gc}-${r.gf}` : "—"}</td>
-        <td>${r ? `<span class="tipo-pill ${TIPO_CSS[tipo]}">${tipoAbr(tipo)}</span>` : "<span class='muted-dash'>—</span>"}</td>
+        <td class="real-cell td-center">${r ? `${r.gc}-${r.gf}` : "—"}</td>
+        <td class="td-center">${r ? `<span class="tipo-pill ${TIPO_CSS[tipo]}">${tipoAbr(tipo)}</span>` : `<span class="muted-dash">—</span>`}</td>
         <td class="pts-cell">${r ? pts : "—"}</td>
       </tr>`;
     }
-    html += `</tbody></table></div></div>`;
+    html += `</tbody>`;
   }
-  html += `</div>`;
+
+  html += `</table></div></div>`;
   return html;
+}
+
+function toggleFlatGroup(tbId) {
+  const tb = document.getElementById(tbId);
+  const ch = document.getElementById('ch-' + tbId);
+  if (!tb) return;
+  const hidden = tb.style.display === 'none';
+  tb.style.display = hidden ? '' : 'none';
+  if (ch) ch.style.transform = hidden ? '' : 'rotate(-90deg)';
 }
 
 // ── Mata-Mata section ─────────────────────────────────────────────────────────
