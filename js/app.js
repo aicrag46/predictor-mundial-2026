@@ -242,6 +242,7 @@ function renderTab(tab) {
   else if (tab === "whatsapp")      renderWhatsapp(r);
   else if (tab === "matamata")      renderMataMata(getMataMata());
   else if (tab === "previsoes")     renderPrevisoes();
+  else if (tab === "regras")        renderRegras();
 }
 
 // ─── PARSE ───────────────────────────────────────────────────────────────────
@@ -1146,6 +1147,112 @@ function onKOQualClick(btn) {
   };
   saveKOPredsAll(all);
   renderPrevisoes();
+}
+
+// ─── TAB: REGRAS ─────────────────────────────────────────────────────────────
+function renderRegras() {
+  const container = document.getElementById("regras-content");
+  container.innerHTML = `
+  <div class="regras-wrap">
+
+    <div class="regras-card">
+      <h2 class="regras-h2">🏆 Predictor Parque Biológico — Mundial 2026</h2>
+      <p class="regras-intro">Regras e pontuação oficial. Os pontos <strong>não acumulam</strong> na fase de grupos — só conta a melhor categoria. No mata-mata, o resultado (aos 90') e o apurado <strong>acumulam entre si</strong>.</p>
+    </div>
+
+    <!-- FASE DE GRUPOS -->
+    <div class="regras-card">
+      <h3 class="regras-h3">⚽ Fase de Grupos — pontuação não cumulativa</h3>
+      <table class="regras-table">
+        <thead><tr><th>Tipo</th><th>Condição</th><th>Pontos</th></tr></thead>
+        <tbody>
+          <tr><td><span class="tipo-pill tipo-exato">Exato</span></td><td>Resultado exato</td><td class="pts-highlight">5</td></tr>
+          <tr><td><span class="tipo-pill tipo-ve">Vencedor/Empate</span></td><td>Acertou o vencedor ou que era empate</td><td class="pts-highlight">2</td></tr>
+          <tr><td><span class="tipo-pill tipo-golos">Golos</span></td><td>Acertou os golos de pelo menos uma equipa</td><td class="pts-highlight">1</td></tr>
+          <tr><td><span class="tipo-pill tipo-nao">Nada</span></td><td>Não acertou nada</td><td class="pts-highlight muted">0</td></tr>
+        </tbody>
+      </table>
+      <div class="regras-nota">⚠️ Os pontos <strong>não acumulam</strong>. Se acertou o vencedor E os golos de uma equipa, fica só com os 2pts do vencedor.</div>
+    </div>
+
+    <!-- TABELA MATA-MATA -->
+    <div class="regras-card">
+      <h3 class="regras-h3">⚔️ Mata-Mata — pontuação progressiva (score 90' + apurado acumulam)</h3>
+      <div class="regras-scroll">
+      <table class="regras-table regras-ko-table">
+        <thead>
+          <tr>
+            <th>Fase</th>
+            <th>✅ Exato</th>
+            <th>🔵 VE</th>
+            <th>🟡 Golos</th>
+            <th>🟢 Apurado</th>
+            <th class="pts-max-col">Máximo</th>
+          </tr>
+        </thead>
+        <tbody>
+          <tr><td>R32 — 16 avos</td><td>7</td><td>3</td><td>1</td><td>3</td><td class="pts-max">10</td></tr>
+          <tr><td>R16 — Oitavos</td><td>10</td><td>4</td><td>2</td><td>5</td><td class="pts-max">15</td></tr>
+          <tr><td>QF — Quartos</td><td>15</td><td>6</td><td>3</td><td>10</td><td class="pts-max">25</td></tr>
+          <tr><td>SF — Meias</td><td>20</td><td>8</td><td>4</td><td>15</td><td class="pts-max">35</td></tr>
+          <tr><td>3.º/4.º lugar</td><td>25</td><td>10</td><td>5</td><td>15</td><td class="pts-max">40</td></tr>
+          <tr class="regras-final-row"><td>🏆 Final</td><td>35</td><td>15</td><td>6</td><td>15</td><td class="pts-max">50</td></tr>
+        </tbody>
+      </table>
+      </div>
+      <div class="regras-nota">
+        O resultado considerado é sempre <strong>o dos 90 minutos</strong>, mesmo que o jogo vá a prolongamento ou penáltis.
+        Score 90' e Apurado pontuam <strong>independentemente e acumulam</strong>.
+      </div>
+    </div>
+
+    <!-- EXEMPLOS FASE DE GRUPOS -->
+    <div class="regras-card">
+      <h3 class="regras-h3">📌 Exemplos — Fase de Grupos</h3>
+      <div class="regras-exemplos">
+
+        ${exDiv("Resultado exato","França 3-1 Senegal","França 3-1 Senegal","✅ Resultado exato","5 pts","tipo-exato")}
+        ${exDiv("Acertou vencedor","França 3-1 Senegal","França 2-0 Senegal","✅ Vencedor certo · ❌ Não exato","2 pts","tipo-ve")}
+        ${exDiv("Acertou golos de uma equipa","França 3-1 Senegal","França 1-1 Senegal","❌ Apostou empate · ✅ Golos do Senegal: 1","1 pt","tipo-golos")}
+        ${exDiv("Não pontuou","França 3-1 Senegal","França 0-2 Senegal","❌ Nada correto","0 pts","tipo-nao")}
+        ${exDiv("Não acumula","França 3-1 Senegal","França 3-0 Senegal","✅ Vencedor · ✅ Golos França · ❌ Não exato → fica com o melhor","2 pts","tipo-ve")}
+
+      </div>
+    </div>
+
+    <!-- EXEMPLOS MATA-MATA -->
+    <div class="regras-card">
+      <h3 class="regras-h3">⚔️ Exemplos — Mata-Mata (16 avos)</h3>
+      <p class="regras-sub">Jogo: Portugal 1-1 Espanha aos 90'. Portugal passa nos penáltis.</p>
+      <div class="regras-exemplos">
+        ${exKO("Acertou tudo","1-1","Portugal","1-1","Portugal","✅ Exato 7pts · ✅ Apurado 3pts","10 pts")}
+        ${exKO("Acertou empate + apurado","2-2","Portugal","1-1","Portugal","✅ VE 3pts · ✅ Apurado 3pts","6 pts")}
+        ${exKO("Errou score, acertou apurado","2-0","Portugal","1-1","Portugal","❌ Score 0pts · ✅ Apurado 3pts","3 pts")}
+        ${exKO("Acertou score, errou apurado","1-1","Espanha","1-1","Portugal","✅ Exato 7pts · ❌ Apurado 0pts","7 pts")}
+      </div>
+    </div>
+
+  </div>`;
+}
+
+function exDiv(titulo, real, pred, desc, pts, pClass) {
+  return `<div class="ex-card">
+    <div class="ex-title">${titulo}</div>
+    <div class="ex-row"><span class="ex-label">Real:</span> <strong>${real}</strong></div>
+    <div class="ex-row"><span class="ex-label">Prev:</span> <strong>${pred}</strong></div>
+    <div class="ex-desc">${desc}</div>
+    <div class="ex-pts"><span class="tipo-pill ${pClass}">${pts}</span></div>
+  </div>`;
+}
+
+function exKO(titulo, predScore, predApurado, realScore, realApurado, desc, pts) {
+  return `<div class="ex-card">
+    <div class="ex-title">${titulo}</div>
+    <div class="ex-row"><span class="ex-label">Real:</span> <strong>${realScore}</strong> · Apurado: <strong>${realApurado}</strong></div>
+    <div class="ex-row"><span class="ex-label">Prev:</span> <strong>${predScore}</strong> · Apurado: <strong>${predApurado}</strong></div>
+    <div class="ex-desc">${desc}</div>
+    <div class="ex-pts"><span class="regras-pts-badge">${pts}</span></div>
+  </div>`;
 }
 
 // ─── RESET ────────────────────────────────────────────────────────────────────

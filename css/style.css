@@ -617,6 +617,57 @@ body {
 .pts-cell     { font-weight: 800; color: var(--accent); text-align: center; }
 .muted-dash   { color: var(--bg5); font-size: .75rem; }
 
+/* ─── REGRAS ─────────────────────────────────────────────────────────────────── */
+.regras-wrap { display: flex; flex-direction: column; gap: 16px; max-width: 900px; }
+.regras-card {
+  background: var(--bg2); border: 1px solid var(--border);
+  border-radius: var(--radius); padding: 20px 24px;
+  box-shadow: var(--shadow-sm);
+}
+.regras-h2 { font-size: 1.1rem; font-weight: 800; color: var(--accent); margin-bottom: 10px; }
+.regras-h3 { font-size: .95rem; font-weight: 700; color: var(--accent); margin-bottom: 14px; }
+.regras-intro { color: var(--muted); font-size: .88rem; line-height: 1.6; }
+.regras-sub   { color: var(--muted); font-size: .82rem; margin-bottom: 12px; }
+
+.regras-table { width: 100%; border-collapse: collapse; margin-bottom: 12px; }
+.regras-table th {
+  background: var(--bg3); color: var(--muted); font-size: .68rem;
+  text-transform: uppercase; letter-spacing: .05em;
+  padding: 8px 12px; text-align: left;
+}
+.regras-table td { padding: 9px 12px; border-bottom: 1px solid rgba(30,45,69,.5); font-size: .85rem; }
+.regras-table tr:last-child td { border-bottom: none; }
+.pts-highlight { font-weight: 800; color: var(--accent); text-align: center; font-size: 1rem; }
+.pts-highlight.muted { color: var(--muted); }
+
+.regras-scroll { overflow-x: auto; margin-bottom: 12px; }
+.regras-ko-table td { text-align: center; }
+.regras-ko-table td:first-child { text-align: left; font-weight: 600; }
+.pts-max-col { text-align: center !important; color: var(--accent) !important; }
+.pts-max     { font-weight: 900; color: var(--accent); font-size: 1rem; }
+.regras-final-row { background: rgba(245,158,11,.06); border-top: 2px solid rgba(245,158,11,.3); }
+.regras-nota {
+  background: rgba(245,158,11,.06); border: 1px solid rgba(245,158,11,.15);
+  border-radius: 7px; padding: 9px 13px; font-size: .8rem; color: var(--muted); line-height: 1.6;
+}
+.regras-nota strong { color: var(--text); }
+
+/* Exemplos */
+.regras-exemplos { display: grid; grid-template-columns: repeat(auto-fill, minmax(220px,1fr)); gap: 10px; }
+.ex-card {
+  background: var(--bg3); border: 1px solid var(--border); border-radius: 9px;
+  padding: 13px 14px; display: flex; flex-direction: column; gap: 6px;
+}
+.ex-title  { font-weight: 700; font-size: .82rem; color: var(--text); }
+.ex-row    { font-size: .78rem; }
+.ex-label  { color: var(--muted); font-size: .72rem; }
+.ex-desc   { font-size: .75rem; color: var(--muted); line-height: 1.5; border-top: 1px solid var(--border); padding-top: 6px; margin-top: 2px; }
+.ex-pts    { margin-top: 4px; }
+.regras-pts-badge {
+  display: inline-block; background: var(--accent); color: #0a0f1e;
+  font-weight: 900; font-size: .82rem; padding: 3px 11px; border-radius: 8px;
+}
+
 /* ─── SCROLLBAR ──────────────────────────────────────────────────────────────── */
 ::-webkit-scrollbar       { width: 5px; height: 5px; }
 ::-webkit-scrollbar-track { background: var(--bg); }
