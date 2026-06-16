@@ -29,9 +29,10 @@ function getResultados() {
     if (r) return JSON.parse(r);
   } catch {}
   const init = {};
+  let ts0 = Date.now() - DADOS.jogos.length * 1000;
   for (const j of DADOS.jogos) {
     if (j.estado === "FT" && j.gc !== null) {
-      init[j.codigo] = { gc: j.gc, gf: j.gf };
+      init[j.codigo] = { gc: j.gc, gf: j.gf, _ts: ts0++ };
     }
   }
   saveResultados(init);
@@ -228,6 +229,10 @@ function onResultadoChange(inp) {
     delete resultados[cod];
     saveResultados(resultados);
     renderTab(activeTab);
+    if (activeTab !== "whatsapp") {
+      const wa = document.getElementById("whatsapp-content");
+      if (wa && wa.innerHTML) renderWhatsapp(resultados);
+    }
     return;
   }
   const parsed = parseRes(val);
@@ -237,9 +242,14 @@ function onResultadoChange(inp) {
     setTimeout(() => { inp.classList.remove("res-error"); inp.title = ""; }, 2000);
     return;
   }
-  resultados[cod] = parsed;
+  resultados[cod] = { ...parsed, _ts: Date.now() };
   saveResultados(resultados);
   renderTab(activeTab);
+  // Sempre manter WhatsApp atualizado (mesmo quando noutro tab)
+  if (activeTab !== "whatsapp") {
+    const wa = document.getElementById("whatsapp-content");
+    if (wa && wa.innerHTML) renderWhatsapp(resultados);
+  }
 }
 
 // ─── TAB: CLASSIFICAÇÃO ──────────────────────────────────────────────────────
@@ -425,7 +435,10 @@ function renderWhatsapp(resultados) {
   msgCls += `_Pontuação: ✅ Exato=5pts · ⚽ VE=2pts · 🎯 Golos=1pt_`;
 
   // ── MSG 2: RESULTADOS ─────────────────────────────────────────────────────
-  const recentes = [...jogosFeitos].reverse().slice(0, 6);
+  // Ordenar por hora de inserção (mais recente primeiro); fallback: ordem inversa no array
+  const recentes = [...jogosFeitos]
+    .sort((a, b) => (resultados[b.codigo]._ts || 0) - (resultados[a.codigo]._ts || 0))
+    .slice(0, 6);
   let msgRes = "";
   msgRes += `⚽ *RESULTADOS RECENTES*\n`;
   msgRes += `🌍 *MUNDIAL 2026*\n`;
