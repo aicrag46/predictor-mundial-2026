@@ -54,12 +54,15 @@ function getPontos(tipo) {
   return { "Exato": 5, "Vencedor/Empate": 2, "Golos Equipa": 1, "Não Pontuou": 0, "Pendente": 0 }[tipo] ?? 0;
 }
 
-function calcParticipante(nome, resultados) {
+// gsOv (opcional): overrides de previsões { [pi]: { [codigo]: {casa,fora} } }
+function calcParticipante(nome, resultados, gsOv) {
+  const pi   = DADOS.participantes.indexOf(nome);
   const progs = DADOS.prognosticos[nome] || {};
   let pts = 0, exatos = 0, ve = 0, golos = 0, naoPontua = 0;
   for (const j of DADOS.jogos) {
-    const p = progs[j.codigo];
-    const r = resultados[j.codigo];
+    const ov = gsOv?.[pi]?.[j.codigo];
+    const p  = ov || progs[j.codigo];
+    const r  = resultados[j.codigo];
     if (!p) continue;
     const tipo = getTipo(p.casa, p.fora, r?.gc, r?.gf);
     pts += getPontos(tipo);
@@ -72,7 +75,8 @@ function calcParticipante(nome, resultados) {
 }
 
 function calcClassificacao(resultados) {
-  const stats = DADOS.participantes.map(n => calcParticipante(n, resultados));
+  const gsOv = getGSOverrides();
+  const stats = DADOS.participantes.map(n => calcParticipante(n, resultados, gsOv));
   stats.sort((a, b) => {
     if (b.pts !== a.pts) return b.pts - a.pts;
     if (b.exatos !== a.exatos) return b.exatos - a.exatos;
@@ -167,12 +171,13 @@ function switchTab(tab) {
 
 function renderTab(tab) {
   const r = getResultados();
-  if      (tab === "resultados")   renderResultados(r);
+  if      (tab === "resultados")    renderResultados(r);
   else if (tab === "classificacao") renderClassificacao(r);
-  else if (tab === "revisao")      renderRevisao(r);
-  else if (tab === "grupos")       renderGrupos(r);
-  else if (tab === "whatsapp")     renderWhatsapp(r);
-  else if (tab === "matamata")     renderMataMata(getMataMata());
+  else if (tab === "revisao")       renderRevisao(r);
+  else if (tab === "grupos")        renderGrupos(r);
+  else if (tab === "whatsapp")      renderWhatsapp(r);
+  else if (tab === "matamata")      renderMataMata(getMataMata());
+  else if (tab === "previsoes")     renderPrevisoes();
 }
 
 // ─── PARSE ───────────────────────────────────────────────────────────────────
@@ -694,6 +699,299 @@ function resetMataMata() {
   localStorage.removeItem(LS_MM_KEY);
   mmActiveRound = "r32";
   renderMataMata(initMataMata());
+}
+
+// ─── PREVISÕES ────────────────────────────────────────────────────────────────
+const LS_GS_OV_KEY = "preds_gs_overrides_2026";
+const LS_KO_PK_KEY = "preds_ko_2026";
+
+// ── GS overrides ──────────────────────────────────────────────────────────────
+function getGSOverrides() {
+  try { const s = localStorage.getItem(LS_GS_OV_KEY); if (s) return JSON.parse(s); } catch {}
+  return {};
+}
+function saveGSOverrides(o) { localStorage.setItem(LS_GS_OV_KEY, JSON.stringify(o)); }
+
+function getGSPredFor(pi, codigo) {
+  const ov = getGSOverrides();
+  if (ov[pi]?.[codigo]) return ov[pi][codigo];
+  const p = DADOS.prognosticos[DADOS.participantes[pi]]?.[codigo];
+  return p ? { casa: p.casa, fora: p.fora } : null;
+}
+
+// ── KO predictions ────────────────────────────────────────────────────────────
+function getKOPredsAll() {
+  try { const s = localStorage.getItem(LS_KO_PK_KEY); if (s) return JSON.parse(s); } catch {}
+  return {};
+}
+function saveKOPredsAll(p) { localStorage.setItem(LS_KO_PK_KEY, JSON.stringify(p)); }
+
+function getKOPredFor(pi, roundId, idx) {
+  return getKOPredsAll()[pi]?.[`${roundId}:${idx}`] || null;
+}
+
+// ── KO scoring ────────────────────────────────────────────────────────────────
+// Exato (5): score certo + qualificado certo
+// VE (2):    score certo OU qualificado certo
+// Golos (1): pelo menos 1 equipa com golos certos
+// Não pontuou (0)
+function getTipoKO(pgc, pgf, pqual, rgc, rgf, rqual) {
+  if (rgc === null || rgc === undefined) return "Pendente";
+  const sm = (pgc === rgc && pgf === rgf);
+  const qm = Boolean(rqual && pqual && pqual === rqual);
+  if (sm && qm) return "Exato";
+  if (sm || qm) return "Vencedor/Empate";
+  if (pgc === rgc || pgf === rgf) return "Golos Equipa";
+  return "Não Pontuou";
+}
+
+// ── State ─────────────────────────────────────────────────────────────────────
+let predsPI = 0;
+function setPredsParticipant(i) { predsPI = i; renderPrevisoes(); }
+
+// ── Main render ───────────────────────────────────────────────────────────────
+function renderPrevisoes() {
+  const container = document.getElementById("previsoes-content");
+  if (!container) return;
+  const resultados = getResultados();
+  const mm         = getMataMata();
+  const gsOv       = getGSOverrides();
+  const nome       = DADOS.participantes[predsPI];
+  const stats      = calcParticipante(nome, resultados, gsOv);
+  const cls        = calcClassificacao(resultados);
+  const pos        = cls.find(s => s.nome === nome)?.pos ?? "?";
+
+  // ── Sub-tabs ──────────────────────────────────────────────────────────────
+  let html = `<div class="pp-tabs">`;
+  DADOS.participantes.forEach((n, i) => {
+    const st = calcParticipante(n, resultados, gsOv);
+    html += `<button class="pp-btn ${predsPI === i ? "active" : ""}" onclick="setPredsParticipant(${i})">
+      <span class="pp-nome">${n.split(" ")[0]}</span>
+      <span class="pp-pts">${st.pts}pts</span>
+    </button>`;
+  });
+  html += `</div>`;
+
+  // ── Banner ────────────────────────────────────────────────────────────────
+  const paga = cls.find(s => s.nome === nome)?.paga;
+  html += `<div class="pp-banner">
+    <span class="pp-pos-badge ${paga ? "paga-sim" : "paga-nao"}">🏅 ${pos}º</span>
+    <strong class="pp-full-name">${nome}</strong>
+    <span class="pp-stat">⭐ <strong>${stats.pts}</strong> pts</span>
+    <span class="pp-stat">✅ ${stats.exatos} exatos</span>
+    <span class="pp-stat">⚽ ${stats.ve} VE</span>
+    <span class="pp-stat">🎯 ${stats.golos} golos</span>
+    <span class="pp-stat">❌ ${stats.naoPontua}</span>
+    <span class="pp-jantar ${paga ? "j-paga" : "j-nao"}">${paga ? "🍽️ PAGA" : "🎉 NÃO PAGA"}</span>
+  </div>`;
+
+  // ── Grupo stage ───────────────────────────────────────────────────────────
+  html += renderGSPredSection(predsPI, nome, resultados, gsOv);
+
+  // ── Mata-Mata ─────────────────────────────────────────────────────────────
+  html += renderKOPredSection(predsPI, mm);
+
+  container.innerHTML = html;
+  attachPredsEvents(container);
+}
+
+// ── Group stage section ───────────────────────────────────────────────────────
+function renderGSPredSection(pi, nome, resultados, gsOv) {
+  const grupos = [...new Set(DADOS.jogos.map(j => j.grupo))];
+  let html = `<div class="preds-section">
+    <div class="preds-section-title">⚽ Fase de Grupos — 72 jogos <span class="edit-hint">✏️ clica no prognóstico para editar</span></div>`;
+
+  for (const g of grupos) {
+    const jogos = DADOS.jogos.filter(j => j.grupo === g);
+    let gpts = 0, gj = 0;
+    for (const j of jogos) {
+      const pred = getGSPredFor(pi, j.codigo);
+      const r    = resultados[j.codigo];
+      if (r && pred) { gpts += getPontos(getTipo(pred.casa, pred.fora, r.gc, r.gf)); gj++; }
+    }
+
+    html += `<div class="preds-group">
+      <div class="preds-group-header" onclick="togglePredGroup(this)">
+        <span class="pgr-label">Grupo ${g}</span>
+        <span class="pgr-prog">${gj}/${jogos.length} · <strong>${gpts}pts</strong></span>
+        <span class="preds-chevron">▾</span>
+      </div>
+      <div class="preds-group-body">
+        <table class="preds-table">
+          <thead><tr>
+            <th>Cód.</th><th>Jogo</th>
+            <th>Prognóstico</th><th>Real</th><th>Tipo</th><th>Pts</th>
+          </tr></thead><tbody>`;
+
+    for (const j of jogos) {
+      const pred = getGSPredFor(pi, j.codigo);
+      const r    = resultados[j.codigo];
+      const tipo = pred ? getTipo(pred.casa, pred.fora, r?.gc, r?.gf) : "Pendente";
+      const pts  = getPontos(tipo);
+      const isOv = gsOv[pi]?.[j.codigo];
+
+      html += `<tr>
+        <td><span class="badge-grupo">${j.codigo}</span></td>
+        <td class="jogo-nome-sm">${fl(j.casa)} <span class="vs">×</span> ${fl(j.fora)}</td>
+        <td>
+          <input class="pred-inp gs-pred-inp ${isOv ? "pred-edited" : ""}" type="text"
+            value="${pred ? `${pred.casa}-${pred.fora}` : ""}"
+            placeholder="0-0" data-pi="${pi}" data-codigo="${j.codigo}" maxlength="7" />
+        </td>
+        <td class="real-cell">${r ? `${r.gc}-${r.gf}` : "—"}</td>
+        <td>${r ? `<span class="tipo-pill ${TIPO_CSS[tipo]}">${tipoAbr(tipo)}</span>` : "<span class='muted-dash'>—</span>"}</td>
+        <td class="pts-cell">${r ? pts : "—"}</td>
+      </tr>`;
+    }
+    html += `</tbody></table></div></div>`;
+  }
+  html += `</div>`;
+  return html;
+}
+
+// ── Mata-Mata section ─────────────────────────────────────────────────────────
+function renderKOPredSection(pi, mm) {
+  let html = `<div class="preds-section">
+    <div class="preds-section-title">⚔️ Mata-Mata — previsões
+      <span class="edit-hint">Score + quem passa (inclui AET/PEN)</span>
+    </div>
+    <div class="ko-scoring-info">
+      ✅ Exato = score certo + quem passa certo (5pts) &nbsp;·&nbsp;
+      ⚽ VE = score certo OU quem passa certo (2pts) &nbsp;·&nbsp;
+      🎯 Golos = golos de 1 equipa certos (1pt)
+    </div>`;
+
+  for (const r of MM_ROUNDS) {
+    const games = mm[r.id];
+    html += `<div class="preds-group">
+      <div class="preds-group-header" onclick="togglePredGroup(this)">
+        <span class="pgr-label">${r.name}</span>
+        <span class="preds-chevron">▾</span>
+      </div>
+      <div class="preds-group-body">
+        <table class="preds-table ko-preds-table">
+          <thead><tr>
+            <th>#</th><th>Jogo</th>
+            <th>Resultado (pred.)</th><th>Quem passa (pred.)</th>
+            <th>Real</th><th>Classificado</th>
+            <th>Tipo</th><th>Pts</th>
+          </tr></thead><tbody>`;
+
+    games.forEach((game, idx) => {
+      const pred   = getKOPredFor(pi, r.id, idx);
+      const winner = mmWinner(game);
+      const hasRes = game.gc !== null && game.gf !== null;
+      const tipo   = (hasRes && pred?.gc !== null && pred?.gc !== undefined)
+        ? getTipoKO(pred.gc, pred.gf, pred.qualifier, game.gc, game.gf, winner)
+        : "Pendente";
+      const pts = getPontos(tipo);
+      const f1  = FLAGS[game.e1] || (game.e1 ? "🏳" : "");
+      const f2  = FLAGS[game.e2] || (game.e2 ? "🏳" : "");
+
+      html += `<tr>
+        <td><span class="badge-grupo ko-badge">${idx + 1}</span></td>
+        <td class="jogo-nome-sm">
+          ${game.e1 ? `${f1} ${game.e1}` : `<span class="muted-dash">TBD</span>`}
+          <span class="vs">×</span>
+          ${game.e2 ? `${f2} ${game.e2}` : `<span class="muted-dash">TBD</span>`}
+        </td>
+        <td>
+          <input class="pred-inp ko-pred-inp" type="text"
+            value="${pred && pred.gc !== null ? `${pred.gc}-${pred.gf}` : ""}"
+            placeholder="0-0"
+            data-pi="${pi}" data-round="${r.id}" data-idx="${idx}" maxlength="7" />
+        </td>
+        <td class="ko-qual-cell">
+          ${game.e1 ? `<button class="ko-qual-btn ${pred?.qualifier === game.e1 ? "ko-sel" : ""}"
+            data-pi="${pi}" data-round="${r.id}" data-idx="${idx}" data-qual="${esc(game.e1)}">${f1} ${game.e1}</button>` : ""}
+          ${game.e2 ? `<button class="ko-qual-btn ${pred?.qualifier === game.e2 ? "ko-sel" : ""}"
+            data-pi="${pi}" data-round="${r.id}" data-idx="${idx}" data-qual="${esc(game.e2)}">${f2} ${game.e2}</button>` : ""}
+          ${!game.e1 && !game.e2 ? `<span class="muted-dash">TBD</span>` : ""}
+        </td>
+        <td class="real-cell">${hasRes ? `${game.gc}-${game.gf}` : "—"}</td>
+        <td class="real-cell">${winner ? `${FLAGS[winner] || ""} ${winner}` : "—"}</td>
+        <td>${hasRes && pred?.gc !== null && pred?.gc !== undefined
+          ? `<span class="tipo-pill ${TIPO_CSS[tipo]}">${tipoAbr(tipo)}</span>` : `<span class="muted-dash">—</span>`}</td>
+        <td class="pts-cell">${hasRes && pred?.gc !== null && pred?.gc !== undefined ? pts : "—"}</td>
+      </tr>`;
+    });
+    html += `</tbody></table></div></div>`;
+  }
+  html += `</div>`;
+  return html;
+}
+
+// ── Helpers ───────────────────────────────────────────────────────────────────
+function tipoAbr(tipo) {
+  return { "Exato":"Exato","Vencedor/Empate":"VE","Golos Equipa":"Golos","Não Pontuou":"Nada","Pendente":"Pend." }[tipo] ?? tipo;
+}
+
+function togglePredGroup(hdr) {
+  hdr.parentElement.classList.toggle("preds-collapsed");
+}
+
+// ── Event handlers ────────────────────────────────────────────────────────────
+function attachPredsEvents(container) {
+  container.querySelectorAll(".gs-pred-inp").forEach(inp => {
+    inp.addEventListener("change", e => onGSPredChange(e.target));
+    inp.addEventListener("keydown", e => { if (e.key === "Enter") e.target.blur(); });
+  });
+  container.querySelectorAll(".ko-pred-inp").forEach(inp => {
+    inp.addEventListener("change", e => onKOPredChange(e.target));
+    inp.addEventListener("keydown", e => { if (e.key === "Enter") e.target.blur(); });
+  });
+  container.querySelectorAll(".ko-qual-btn").forEach(btn => {
+    btn.addEventListener("click", e => onKOQualClick(e.currentTarget));
+  });
+}
+
+function onGSPredChange(inp) {
+  const { pi, codigo } = inp.dataset;
+  const val = inp.value.trim();
+  const ov  = getGSOverrides();
+  if (!ov[pi]) ov[pi] = {};
+
+  if (!val || val === "-") {
+    delete ov[pi][codigo];
+  } else {
+    const p = parseRes(val);
+    if (!p) { inp.classList.add("res-error"); setTimeout(() => inp.classList.remove("res-error"), 2000); return; }
+    ov[pi][codigo] = { casa: p.gc, fora: p.gf };
+  }
+  saveGSOverrides(ov);
+  renderPrevisoes();
+}
+
+function onKOPredChange(inp) {
+  const { pi, round, idx } = inp.dataset;
+  const val  = inp.value.trim();
+  const all  = getKOPredsAll();
+  const key  = `${round}:${idx}`;
+  if (!all[pi]) all[pi] = {};
+
+  if (!val || val === "-") {
+    if (all[pi][key]) { all[pi][key].gc = null; all[pi][key].gf = null; }
+  } else {
+    const p = parseRes(val);
+    if (!p) { inp.classList.add("res-error"); setTimeout(() => inp.classList.remove("res-error"), 2000); return; }
+    all[pi][key] = { ...all[pi][key], gc: p.gc, gf: p.gf };
+  }
+  saveKOPredsAll(all);
+  renderPrevisoes();
+}
+
+function onKOQualClick(btn) {
+  const { pi, round, idx, qual } = btn.dataset;
+  const all = getKOPredsAll();
+  const key = `${round}:${idx}`;
+  if (!all[pi]) all[pi] = {};
+  // Toggle: segundo clique remove seleção
+  all[pi][key] = {
+    ...all[pi][key],
+    qualifier: all[pi][key]?.qualifier === qual ? null : qual
+  };
+  saveKOPredsAll(all);
+  renderPrevisoes();
 }
 
 // ─── RESET ────────────────────────────────────────────────────────────────────
