@@ -64,6 +64,22 @@
 
   </main>
 
+  <!-- Modal Resumo WhatsApp por jogo -->
+  <div class="wa-modal-overlay" id="wa-modal" onclick="if(event.target===this)closeWAModal()">
+    <div class="wa-modal-box">
+      <div class="wa-modal-header">
+        <span class="wa-modal-icon">💬</span>
+        <span class="wa-modal-title-text" id="wa-modal-title">Resumo do Jogo</span>
+        <button class="wa-modal-close" onclick="closeWAModal()">✕</button>
+      </div>
+      <div class="wa-modal-body">
+        <div class="wa-preview" id="wa-modal-preview"></div>
+        <textarea class="wa-textarea" id="wa-modal-textarea" readonly></textarea>
+        <button class="btn-copy" id="wa-modal-copy-btn" onclick="copyWAModal()">📋 Copiar para WhatsApp</button>
+      </div>
+    </div>
+  </div>
+
   <script src="js/data.js"></script>
   <script src="js/app.js"></script>
 </body>

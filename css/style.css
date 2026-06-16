@@ -488,6 +488,57 @@ body { font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-
 .muted-dash    { color: var(--bg4); font-size: .75rem; }
 .vs            { color: var(--muted); font-size: .7rem; margin: 0 3px; }
 
+/* ─── BOTÃO WA POR JOGO ──────────────────────────────────────────────────────── */
+.res-estado-cell { display: flex; align-items: center; gap: 6px; white-space: nowrap; }
+.btn-wa-jogo {
+  background: #25d366; border: none; color: #fff;
+  width: 28px; height: 28px; border-radius: 50%;
+  font-size: .85rem; cursor: pointer; line-height: 1;
+  transition: transform .15s, box-shadow .15s;
+  display: inline-flex; align-items: center; justify-content: center;
+  flex-shrink: 0;
+}
+.btn-wa-jogo:hover { transform: scale(1.15); box-shadow: 0 2px 8px rgba(37,211,102,.5); }
+
+/* ─── WA HINT no título do tab ───────────────────────────────────────────────── */
+.wa-hint {
+  font-size: .72rem; color: var(--muted); font-weight: 400; margin-left: 10px;
+}
+
+/* ─── MODAL RESUMO DE JOGO ───────────────────────────────────────────────────── */
+.wa-modal-overlay {
+  display: none; position: fixed; inset: 0;
+  background: rgba(0,0,0,.65); z-index: 1000;
+  align-items: center; justify-content: center;
+}
+.wa-modal-overlay.active { display: flex; }
+
+.wa-modal-box {
+  background: var(--bg2); border: 1px solid var(--border);
+  border-radius: 14px; width: min(520px, 96vw);
+  max-height: 90vh; display: flex; flex-direction: column;
+  overflow: hidden; box-shadow: 0 20px 60px rgba(0,0,0,.6);
+  animation: modal-in .2s ease;
+}
+@keyframes modal-in { from { transform: scale(.93) translateY(8px); opacity: 0; } to { transform: scale(1) translateY(0); opacity: 1; } }
+
+.wa-modal-header {
+  display: flex; align-items: center; gap: 10px;
+  padding: 14px 18px; border-bottom: 1px solid var(--border);
+  background: var(--bg3);
+}
+.wa-modal-icon { font-size: 1.2rem; }
+.wa-modal-title-text { flex: 1; font-weight: 700; font-size: .95rem; color: var(--accent); }
+.wa-modal-close {
+  background: none; border: none; color: var(--muted); font-size: 1rem;
+  cursor: pointer; padding: 4px 8px; border-radius: 6px; transition: all .15s;
+}
+.wa-modal-close:hover { background: var(--danger); color: #fff; }
+
+.wa-modal-body {
+  padding: 16px; overflow-y: auto; display: flex; flex-direction: column; gap: 12px;
+}
+
 /* ─── RESPONSIVE ─────────────────────────────────────────────────────────────── */
 @media (max-width: 640px) {
   .main-content { padding: 10px; }

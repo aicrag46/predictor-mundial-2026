@@ -198,7 +198,7 @@ function renderResultados(resultados) {
     html += `<div class="grupo-block">
       <div class="grupo-header">Grupo ${g} <span class="grupo-prog">${done}/${jogos.length}</span></div>
       <table class="res-table">
-        <thead><tr><th>Cód.</th><th>Jogo</th><th>Resultado</th><th>Estado</th></tr></thead>
+        <thead><tr><th>Cód.</th><th>Jogo</th><th>Resultado</th><th>Estado · 💬 Resumo WA</th></tr></thead>
         <tbody>`;
     for (const j of jogos) {
       const r = resultados[j.codigo];
@@ -209,7 +209,10 @@ function renderResultados(resultados) {
         <td class="jogo-nome">${fl(j.casa)} <span class="vs">vs</span> ${fl(j.fora)}</td>
         <td><input type="text" class="res-input ${ft ? "res-filled" : ""}" placeholder="ex: 2-1"
           value="${val}" data-codigo="${j.codigo}" maxlength="7" /></td>
-        <td><span class="estado-badge ${ft ? "estado-ft" : "estado-pendente"}">${ft ? "✅ FT" : "⏳ PEND."}</span></td>
+        <td class="res-estado-cell">
+          <span class="estado-badge ${ft ? "estado-ft" : "estado-pendente"}">${ft ? "✅ FT" : "⏳ PEND."}</span>
+          ${ft ? `<button class="btn-wa-jogo" onclick="showWAModal('${j.codigo}')" title="Resumo WhatsApp deste jogo">💬</button>` : ""}
+        </td>
       </tr>`;
     }
     html += `</tbody></table></div>`;
@@ -395,92 +398,114 @@ function renderGrupos(resultados) {
 }
 
 // ─── TAB: WHATSAPP ───────────────────────────────────────────────────────────
+const SEP   = "━━━━━━━━━━━━━━━━━━━━━";
+const MEDALS = { 1:"🥇", 2:"🥈", 3:"🥉" };
+const TIPO_EM = { "Exato":"✅","Vencedor/Empate":"⚽","Golos Equipa":"🎯","Não Pontuou":"❌","Pendente":"⏳" };
+
+function buildMsgClassificacao(resultados) {
+  const jogosFeitos = DADOS.jogos.filter(j => resultados[j.codigo]);
+  const cls = calcClassificacao(resultados);
+  const nao = cls.filter(s => !s.paga);
+  const sim = cls.filter(s =>  s.paga);
+  let msg = "";
+  msg += `🏆 *PREDICTOR PARQUE BIOLÓGICO*\n`;
+  msg += `⚽ *MUNDIAL 2026* · _${jogosFeitos.length} jogos jogados_\n\n`;
+  msg += `${SEP}\n📊 *CLASSIFICAÇÃO GERAL*\n${SEP}\n\n`;
+  for (const s of cls) {
+    const medal = MEDALS[s.pos] || `${s.pos}.`;
+    let line = `${medal} ${s.paga ? s.nome : `*${s.nome}*`} · ${s.paga ? `${s.pts} pts` : `*${s.pts} pts*`}`;
+    if (s.exatos > 0) line += ` ✅×${s.exatos}`;
+    if (s.paga)       line += ` 🍽️`;
+    msg += line + "\n";
+    if (s.pos === 5)  msg += `${SEP}\n`;
+  }
+  msg += `\n_🍾 Não paga: ${nao.map(s => s.nome.split(" ")[0]).join(", ")}_\n`;
+  msg += `_🍽️ Paga: ${sim.map(s => s.nome.split(" ")[0]).join(", ")}_\n\n`;
+  msg += `_✅ Exato=5pts · ⚽ VE=2pts · 🎯 Golos=1pt_`;
+  return msg;
+}
+
+function buildMsgJogo(codigo, resultados) {
+  const j = DADOS.jogos.find(x => x.codigo === codigo);
+  if (!j) return "";
+  const r  = resultados[codigo];
+  if (!r)  return "";
+  const f1 = FLAGS[j.casa] || "🏳";
+  const f2 = FLAGS[j.fora] || "🏳";
+  let msg = "";
+  msg += `🌍 *MUNDIAL 2026 — RESUMO DO JOGO*\n\n`;
+  msg += `${SEP}\n`;
+  msg += `${f1} *${j.casa}  ${r.gc} – ${r.gf}  ${j.fora}* ${f2}\n`;
+  msg += `_${j.codigo} · Grupo ${j.grupo}_\n`;
+  msg += `${SEP}\n\n`;
+  msg += "```\n";
+  for (const p of DADOS.participantes) {
+    const prog = DADOS.prognosticos[p]?.[j.codigo];
+    if (!prog) continue;
+    const tipo = getTipo(prog.casa, prog.fora, r.gc, r.gf);
+    const pts  = getPontos(tipo);
+    const em   = TIPO_EM[tipo];
+    const name = p.split(" ")[0].substring(0, 8).padEnd(9);
+    const res  = (prog.resultado || `${prog.casa}-${prog.fora}`).padEnd(5);
+    const pStr = (pts > 0 ? `+${pts}pts` : "  0pt").padEnd(6);
+    msg += `${em} ${name} ${res} ${pStr}\n`;
+  }
+  msg += "```\n\n";
+  msg += `_✅ Exato=5pts · ⚽ VE=2pts · 🎯 Golos=1pt_`;
+  return msg;
+}
+
 function renderWhatsapp(resultados) {
   const container = document.getElementById("whatsapp-content");
   const jogosFeitos = DADOS.jogos.filter(j => resultados[j.codigo]);
   if (!jogosFeitos.length) {
-    container.innerHTML = `<div class="wa-empty">Ainda não há resultados. Vai ao separador <strong>Resultados</strong> e introduz resultados.</div>`;
+    container.innerHTML = `<div class="wa-empty">
+      Ainda não há resultados.<br>
+      Vai ao separador <strong>⚽ Resultados</strong>, introduz um resultado e clica em <strong>💬</strong> ao lado do jogo para gerar o resumo.
+    </div>`;
     return;
   }
-  const cls = calcClassificacao(resultados);
-  const nao = cls.filter(s => !s.paga);
-  const sim = cls.filter(s =>  s.paga);
-  const SEP = "━━━━━━━━━━━━━━━━━━━━━";
-  const MEDALS = { 1:"🥇", 2:"🥈", 3:"🥉" };
-  const TIPO_EM = { "Exato":"✅","Vencedor/Empate":"⚽","Golos Equipa":"🎯","Não Pontuou":"❌","Pendente":"⏳" };
-
-  // ── MSG 1: CLASSIFICAÇÃO ──────────────────────────────────────────────────
-  let msgCls = "";
-  msgCls += `🏆 *PREDICTOR PARQUE BIOLÓGICO*\n`;
-  msgCls += `⚽ *MUNDIAL 2026* · _${jogosFeitos.length} jogos jogados_\n\n`;
-  msgCls += `${SEP}\n`;
-  msgCls += `📊 *CLASSIFICAÇÃO GERAL*\n`;
-  msgCls += `${SEP}\n\n`;
-
-  for (const s of cls) {
-    const medal = MEDALS[s.pos] || `${s.pos}.`;
-    const bold  = !s.paga;
-    const nome  = bold ? `*${s.nome}*` : s.nome;
-    const pts   = bold ? `*${s.pts} pts*` : `${s.pts} pts`;
-    let line = `${medal} ${nome} · ${pts}`;
-    if (s.exatos > 0)  line += ` ✅×${s.exatos}`;
-    if (s.paga)        line += ` 🍽️`;
-    msgCls += line + "\n";
-    if (s.pos === 5)   msgCls += `${SEP}\n`;
-  }
-
-  msgCls += `\n`;
-  msgCls += `_🍾 Não paga jantar: ${nao.map(s => s.nome.split(" ")[0]).join(", ")}_\n`;
-  msgCls += `_🍽️ Paga jantar: ${sim.map(s => s.nome.split(" ")[0]).join(", ")}_\n\n`;
-  msgCls += `_Pontuação: ✅ Exato=5pts · ⚽ VE=2pts · 🎯 Golos=1pt_`;
-
-  // ── MSG 2: RESULTADOS ─────────────────────────────────────────────────────
-  // Ordenar por hora de inserção (mais recente primeiro); fallback: ordem inversa no array
-  const recentes = [...jogosFeitos]
-    .sort((a, b) => (resultados[b.codigo]._ts || 0) - (resultados[a.codigo]._ts || 0))
-    .slice(0, 6);
-  let msgRes = "";
-  msgRes += `⚽ *RESULTADOS RECENTES*\n`;
-  msgRes += `🌍 *MUNDIAL 2026*\n`;
-
-  for (const j of recentes) {
-    const r  = resultados[j.codigo];
-    const f1 = FLAGS[j.casa] || "🏳";
-    const f2 = FLAGS[j.fora] || "🏳";
-    msgRes += `\n${SEP}\n`;
-    msgRes += `${f1} *${j.casa} ${r.gc}–${r.gf} ${j.fora}* ${f2}\n`;
-    msgRes += `_${j.codigo} · Grupo ${j.grupo}_\n`;
-    // código monoespaçado para alinhamento perfeito no WhatsApp
-    msgRes += "```\n";
-    for (const p of DADOS.participantes) {
-      const prog = DADOS.prognosticos[p]?.[j.codigo];
-      if (!prog) continue;
-      const tipo = getTipo(prog.casa, prog.fora, r.gc, r.gf);
-      const pts  = getPontos(tipo);
-      const em   = TIPO_EM[tipo];
-      const name = p.split(" ")[0].substring(0, 9).padEnd(10);
-      const res  = prog.resultado.padEnd(5);
-      const pStr = (pts > 0 ? `+${pts}pts` : " 0pt").padEnd(5);
-      msgRes += `${em} ${name}${res} ${pStr}\n`;
-    }
-    msgRes += "```\n";
-  }
-
-  const html = `<div class="wa-container">
+  const msgCls = buildMsgClassificacao(resultados);
+  container.innerHTML = `<div class="wa-container">
     <div class="wa-block">
-      <div class="wa-title">📊 Classificação Geral</div>
+      <div class="wa-title">📊 Classificação Geral
+        <span class="wa-hint">Para o resumo de cada jogo, clica em 💬 no separador Resultados</span>
+      </div>
       <div class="wa-preview">${waPreview(msgCls)}</div>
       <textarea class="wa-textarea" id="wa-geral" readonly>${msgCls}</textarea>
       <button class="btn-copy" onclick="copyWA('wa-geral')">📋 Copiar para WhatsApp</button>
     </div>
-    <div class="wa-block">
-      <div class="wa-title">⚽ Últimos Resultados (${recentes.length} jogos)</div>
-      <div class="wa-preview">${waPreview(msgRes)}</div>
-      <textarea class="wa-textarea" id="wa-jogos" readonly>${msgRes}</textarea>
-      <button class="btn-copy" onclick="copyWA('wa-jogos')">📋 Copiar para WhatsApp</button>
-    </div>
   </div>`;
-  container.innerHTML = html;
+}
+
+// ── Modal de resumo por jogo ──────────────────────────────────────────────────
+function showWAModal(codigo) {
+  const resultados = getResultados();
+  const msg = buildMsgJogo(codigo, resultados);
+  const j   = DADOS.jogos.find(x => x.codigo === codigo);
+  const r   = resultados[codigo];
+  const f1  = FLAGS[j?.casa] || "🏳";
+  const f2  = FLAGS[j?.fora] || "🏳";
+
+  const modal = document.getElementById("wa-modal");
+  document.getElementById("wa-modal-title").textContent =
+    `${f1} ${j?.casa} ${r?.gc}–${r?.gf} ${j?.fora} ${f2}`;
+  document.getElementById("wa-modal-preview").innerHTML = waPreview(msg);
+  document.getElementById("wa-modal-textarea").value = msg;
+  modal.classList.add("active");
+}
+
+function closeWAModal() {
+  document.getElementById("wa-modal").classList.remove("active");
+}
+
+function copyWAModal() {
+  const ta  = document.getElementById("wa-modal-textarea");
+  const btn = document.getElementById("wa-modal-copy-btn");
+  navigator.clipboard.writeText(ta.value).then(() => {
+    btn.textContent = "✅ Copiado!";
+    setTimeout(() => { btn.textContent = "📋 Copiar para WhatsApp"; }, 2500);
+  }).catch(() => { ta.select(); document.execCommand("copy"); });
 }
 
 // Render a WhatsApp-like preview of the message
