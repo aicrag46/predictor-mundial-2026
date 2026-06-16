@@ -13,65 +13,48 @@
       <span class="header-trophy">🏆</span>
       <div>
         <h1>Predictor Parque Biológico — Mundial 2026</h1>
-        <p>10 participantes · 72 jogos · 720 prognósticos</p>
+        <p>10 participantes · 72 jogos · 720 prognósticos · Fase de grupos + Mata-Mata</p>
       </div>
     </div>
-    <button class="btn-reset" onclick="resetResultados()">🗑️ Reset Resultados</button>
+    <div class="header-actions">
+      <button class="btn-reset" onclick="resetResultados()">🗑️ Reset Grupos</button>
+      <button class="btn-reset" onclick="resetMataMata()">🗑️ Reset Mata-Mata</button>
+    </div>
   </header>
 
   <nav class="tabs-nav">
-    <button class="tab-btn active" data-tab="resultados" onclick="switchTab('resultados')">
-      ⚽ Resultados
-    </button>
-    <button class="tab-btn" data-tab="classificacao" onclick="switchTab('classificacao')">
-      🏅 Classificação
-    </button>
-    <button class="tab-btn" data-tab="revisao" onclick="switchTab('revisao')">
-      📊 Revisão Larga
-    </button>
-    <button class="tab-btn" data-tab="grupos" onclick="switchTab('grupos')">
-      🗂️ Grupos
-    </button>
-    <button class="tab-btn" data-tab="whatsapp" onclick="switchTab('whatsapp')">
-      💬 WhatsApp
-    </button>
+    <button class="tab-btn active" data-tab="resultados"    onclick="switchTab('resultados')">⚽ Resultados</button>
+    <button class="tab-btn"        data-tab="classificacao" onclick="switchTab('classificacao')">🏅 Classificação</button>
+    <button class="tab-btn"        data-tab="revisao"       onclick="switchTab('revisao')">📊 Revisão Larga</button>
+    <button class="tab-btn"        data-tab="grupos"        onclick="switchTab('grupos')">🗂️ Grupos</button>
+    <button class="tab-btn"        data-tab="matamata"      onclick="switchTab('matamata')">⚔️ Mata-Mata</button>
+    <button class="tab-btn"        data-tab="whatsapp"      onclick="switchTab('whatsapp')">💬 WhatsApp</button>
   </nav>
 
   <main class="main-content">
 
-    <!-- TAB: RESULTADOS -->
     <div class="tab-content active" id="tab-resultados">
-      <div id="resultados-content" class="grupos-wrapper">
-        <p style="color:var(--text-muted)">A carregar…</p>
-      </div>
+      <div id="resultados-content" class="grupos-wrapper"></div>
     </div>
 
-    <!-- TAB: CLASSIFICAÇÃO -->
     <div class="tab-content" id="tab-classificacao">
-      <div id="classificacao-content">
-        <p style="color:var(--text-muted)">A carregar…</p>
-      </div>
+      <div id="classificacao-content"></div>
     </div>
 
-    <!-- TAB: REVISÃO LARGA -->
     <div class="tab-content" id="tab-revisao">
-      <div id="revisao-content">
-        <p style="color:var(--text-muted)">A carregar…</p>
-      </div>
+      <div id="revisao-content"></div>
     </div>
 
-    <!-- TAB: GRUPOS -->
     <div class="tab-content" id="tab-grupos">
-      <div id="grupos-content">
-        <p style="color:var(--text-muted)">A carregar…</p>
-      </div>
+      <div id="grupos-content"></div>
     </div>
 
-    <!-- TAB: WHATSAPP -->
+    <div class="tab-content" id="tab-matamata">
+      <div id="matamata-content"></div>
+    </div>
+
     <div class="tab-content" id="tab-whatsapp">
-      <div id="whatsapp-content">
-        <p style="color:var(--text-muted)">A carregar…</p>
-      </div>
+      <div id="whatsapp-content"></div>
     </div>
 
   </main>
