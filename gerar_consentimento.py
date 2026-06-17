@@ -1,352 +1,366 @@
 """
 Gera o documento Word de consentimento para o Predictor Mundial 2026.
-Uma página por jogador com os prognósticos da BD, observações e assinatura.
+UMA FOLHA por jogador — tudo compactado para caber em A4 Portrait.
 """
 import json, datetime
 from docx import Document
-from docx.shared import Pt, Cm, RGBColor, Inches
-from docx.enum.text import WD_ALIGN_PARAGRAPH
+from docx.shared import Pt, Cm, RGBColor, Twips
+from docx.enum.text import WD_ALIGN_PARAGRAPH, WD_LINE_SPACING
 from docx.enum.table import WD_TABLE_ALIGNMENT, WD_ALIGN_VERTICAL
 from docx.oxml.ns import qn
 from docx.oxml import OxmlElement
-import copy
 
-# ── Carregar dados ────────────────────────────────────────────────────────────
+# ── Dados ─────────────────────────────────────────────────────────────────────
 with open("/tmp/predictor_data.json", encoding="utf-8") as f:
     dados = json.load(f)
 
 participantes = dados["participantes"]
 jogos         = dados["jogos"]
 prognosticos  = dados["prognosticos"]
-
-grupos_order = list(dict.fromkeys(j["grupo"] for j in jogos))  # ordem de aparição
-hoje = datetime.date.today().strftime("%d de %B de %Y")
+grupos_order  = list(dict.fromkeys(j["grupo"] for j in jogos))
+hoje          = datetime.date.today().strftime("%d/%m/%Y")
 
 # ── Cores ─────────────────────────────────────────────────────────────────────
-AZUL_ESCURO  = RGBColor(0x1a, 0x3a, 0x6e)
-AZUL_CLARO   = RGBColor(0xe8, 0xee, 0xf5)
-AMARELO      = RGBColor(0xf5, 0xa6, 0x23)
-VERMELHO     = RGBColor(0xc0, 0x39, 0x2b)
-BRANCO       = RGBColor(0xff, 0xff, 0xff)
-CINZA_CLARO  = RGBColor(0xf5, 0xf7, 0xfa)
-CINZA_TEXTO  = RGBColor(0x55, 0x55, 0x55)
+AZUL   = RGBColor(0x1a, 0x3a, 0x6e)
+AZUL_L = RGBColor(0xd6, 0xe4, 0xf0)
+AMAR   = RGBColor(0xf5, 0xa6, 0x23)
+VERM   = RGBColor(0xcc, 0x22, 0x22)
+BRNC   = RGBColor(0xff, 0xff, 0xff)
+CZ1    = RGBColor(0xf2, 0xf5, 0xf9)
+CZ2    = RGBColor(0x55, 0x55, 0x55)
 
-# ── Helpers ───────────────────────────────────────────────────────────────────
-def rgb_hex(rgb: RGBColor) -> str:
-    return f"{rgb[0]:02X}{rgb[1]:02X}{rgb[2]:02X}"
+def hx(rgb): return f"{rgb[0]:02X}{rgb[1]:02X}{rgb[2]:02X}"
 
-def set_cell_bg(cell, rgb: RGBColor):
-    tc   = cell._tc
-    tcPr = tc.get_or_add_tcPr()
+# ── Helpers XML ───────────────────────────────────────────────────────────────
+def cell_bg(cell, rgb):
+    tcPr = cell._tc.get_or_add_tcPr()
     shd  = OxmlElement("w:shd")
     shd.set(qn("w:val"),   "clear")
     shd.set(qn("w:color"), "auto")
-    shd.set(qn("w:fill"),  rgb_hex(rgb))
+    shd.set(qn("w:fill"),  hx(rgb))
     tcPr.append(shd)
 
-def set_cell_border(cell, sides=("top","bottom","left","right"), size=4, color="1A3A6E"):
-    tc   = cell._tc
-    tcPr = tc.get_or_add_tcPr()
-    tcBorders = OxmlElement("w:tcBorders")
-    for side in sides:
-        el = OxmlElement(f"w:{side}")
-        el.set(qn("w:val"),   "single")
-        el.set(qn("w:sz"),    str(size))
+def cell_no_border(cell):
+    tcPr = cell._tc.get_or_add_tcPr()
+    b    = OxmlElement("w:tcBorders")
+    for s in ("top","bottom","left","right","insideH","insideV"):
+        el = OxmlElement(f"w:{s}")
+        el.set(qn("w:val"),   "none")
+        el.set(qn("w:sz"),    "0")
         el.set(qn("w:space"), "0")
-        el.set(qn("w:color"), color)
-        tcBorders.append(el)
-    tcPr.append(tcBorders)
+        el.set(qn("w:color"), "FFFFFF")
+        b.append(el)
+    tcPr.append(b)
 
-def para_fmt(para, align=WD_ALIGN_PARAGRAPH.LEFT, space_before=0, space_after=0):
-    fmt = para.paragraph_format
-    fmt.alignment    = align
-    fmt.space_before = Pt(space_before)
-    fmt.space_after  = Pt(space_after)
+def cell_margins(cell, top=0, bottom=0, left=36, right=36):
+    """Margens internas da célula em twips (1cm=567)."""
+    tcPr = cell._tc.get_or_add_tcPr()
+    mar  = OxmlElement("w:tcMar")
+    for side, val in (("top",top),("bottom",bottom),("left",left),("right",right)):
+        el = OxmlElement(f"w:{side}")
+        el.set(qn("w:w"),    str(val))
+        el.set(qn("w:type"), "dxa")
+        mar.append(el)
+    tcPr.append(mar)
 
-def add_run(para, text, bold=False, italic=False, size=9, color=None):
+def para_shd(para, rgb):
+    pPr = para._p.get_or_add_pPr()
+    shd = OxmlElement("w:shd")
+    shd.set(qn("w:val"),   "clear")
+    shd.set(qn("w:color"), "auto")
+    shd.set(qn("w:fill"),  hx(rgb))
+    pPr.append(shd)
+
+def set_line_spacing(para, lines=1.0):
+    pf = para.paragraph_format
+    pf.line_spacing_rule = WD_LINE_SPACING.MULTIPLE
+    pf.line_spacing      = Pt(lines * 12)
+
+def p(para, text, bold=False, italic=False, sz=8, color=None):
     run = para.add_run(text)
-    run.bold   = bold
-    run.italic = italic
-    run.font.size  = Pt(size)
-    run.font.color.rgb = color or RGBColor(0x11, 0x11, 0x11)
+    run.bold = bold; run.italic = italic
+    run.font.size      = Pt(sz)
+    run.font.color.rgb = color or RGBColor(0x11,0x11,0x11)
     return run
 
-def page_break(doc):
-    para = doc.add_paragraph()
-    run  = para.add_run()
-    run.add_break(__import__("docx.enum.text", fromlist=["WD_BREAK"]).WD_BREAK.PAGE)
-    para_fmt(para)
+def fmt(para, align=WD_ALIGN_PARAGRAPH.LEFT, sb=0, sa=0):
+    pf = para.paragraph_format
+    pf.alignment    = align
+    pf.space_before = Pt(sb)
+    pf.space_after  = Pt(sa)
+    pf.line_spacing_rule = WD_LINE_SPACING.MULTIPLE
+    pf.line_spacing      = Pt(11)
 
-def set_col_width(table, col_idx, width_cm):
-    for row in table.rows:
-        row.cells[col_idx].width = Cm(width_cm)
+def merge_row(table, row_idx, text, bg, sz=7, color=BRNC, bold=True):
+    """Funde todas as células de uma linha e escreve texto."""
+    row   = table.rows[row_idx]
+    merged = row.cells[0]
+    for i in range(1, len(row.cells)):
+        merged = merged.merge(row.cells[i])
+    cell_bg(merged, bg)
+    cell_margins(merged, top=28, bottom=28, left=60, right=0)
+    pp = merged.paragraphs[0]
+    fmt(pp)
+    p(pp, text, bold=bold, sz=sz, color=color)
+    return merged
 
 # ── Documento ─────────────────────────────────────────────────────────────────
 doc = Document()
-
-# Margens estreitas
-for section in doc.sections:
-    section.page_width   = Cm(21)
-    section.page_height  = Cm(29.7)
-    section.left_margin  = Cm(1.8)
-    section.right_margin = Cm(1.8)
-    section.top_margin   = Cm(1.5)
-    section.bottom_margin = Cm(1.5)
-
-# Estilo Normal base
 style = doc.styles["Normal"]
 style.font.name = "Calibri"
-style.font.size = Pt(9)
+style.font.size = Pt(8)
+
+for sec in doc.sections:
+    sec.page_width    = Cm(21)
+    sec.page_height   = Cm(29.7)
+    sec.left_margin   = Cm(1.0)
+    sec.right_margin  = Cm(1.0)
+    sec.top_margin    = Cm(0.9)
+    sec.bottom_margin = Cm(0.9)
+    # Sem cabeçalho/rodapé de secção
+    sec.header_distance = Cm(0.5)
+    sec.footer_distance = Cm(0.5)
+
+# Área útil: 21 - 2 = 19cm de largura
+W = 19.0  # cm
 
 # ── Uma página por jogador ────────────────────────────────────────────────────
 for idx_p, nome in enumerate(participantes):
     preds = prognosticos.get(nome, {})
 
-    # ── Cabeçalho do documento ──────────────────────────────────────────────
-    title_para = doc.add_paragraph()
-    para_fmt(title_para, space_after=1)
-    run_trophy = title_para.add_run("🏆  ")
-    run_trophy.font.size = Pt(14)
-    add_run(title_para, "Predictor Parque Biológico — Mundial 2026",
-            bold=True, size=13, color=AZUL_ESCURO)
+    # ─────────────────────────────────────────────────────
+    # 1. TÍTULO + BANNER (tabela 1×2)
+    # ─────────────────────────────────────────────────────
+    hdr = doc.add_table(rows=2, cols=2)
+    hdr.style    = "Table Grid"
+    hdr.autofit  = False
+    hdr.alignment = WD_TABLE_ALIGNMENT.LEFT
 
-    sub_para = doc.add_paragraph()
-    para_fmt(sub_para, space_after=4)
-    add_run(sub_para, "Folha de Consentimento e Verificação de Prognósticos",
-            italic=True, size=9, color=CINZA_TEXTO)
+    # Linha 0: título do documento (span total)
+    r0 = hdr.rows[0]
+    title_cell = r0.cells[0].merge(r0.cells[1])
+    cell_bg(title_cell, AZUL)
+    cell_margins(title_cell, top=60, bottom=40, left=120, right=60)
+    tp = title_cell.paragraphs[0]
+    fmt(tp); p(tp, "🏆  Predictor Parque Biológico — Mundial 2026   ",
+               bold=True, sz=11, color=BRNC)
+    p(tp, "· Folha de Verificação de Prognósticos", sz=8, color=RGBColor(0xcc,0xdd,0xff))
 
-    # Linha separadora
-    sep = doc.add_paragraph()
-    para_fmt(sep, space_before=0, space_after=3)
-    sep_run = sep.add_run("─" * 100)
-    sep_run.font.size  = Pt(5)
-    sep_run.font.color.rgb = AZUL_ESCURO
+    # Linha 1: nome do jogador | data
+    r1 = hdr.rows[1]
+    r1.cells[0].width = Cm(W * 0.68)
+    r1.cells[1].width = Cm(W * 0.32)
+    cell_bg(r1.cells[0], RGBColor(0x0f, 0x28, 0x55))
+    cell_bg(r1.cells[1], RGBColor(0x0f, 0x28, 0x55))
+    cell_margins(r1.cells[0], top=50, bottom=50, left=120, right=60)
+    cell_margins(r1.cells[1], top=50, bottom=50, left=60, right=120)
 
-    # Banner com nome + data
-    banner = doc.add_table(rows=1, cols=2)
-    banner.style = "Table Grid"
-    banner.alignment = WD_TABLE_ALIGNMENT.LEFT
-    banner.autofit = False
-    banner.columns[0].width = Cm(11)
-    banner.columns[1].width = Cm(5.4)
+    np = r1.cells[0].paragraphs[0]; fmt(np)
+    p(np, "Jogador:  ", sz=8, color=RGBColor(0xaa,0xcc,0xff))
+    p(np, nome, bold=True, sz=12, color=AMAR)
 
-    cell_nome = banner.cell(0, 0)
-    cell_data = banner.cell(0, 1)
-    set_cell_bg(cell_nome, AZUL_ESCURO)
-    set_cell_bg(cell_data, AZUL_ESCURO)
+    dp = r1.cells[1].paragraphs[0]; fmt(dp, align=WD_ALIGN_PARAGRAPH.RIGHT)
+    p(dp, f"Data: {hoje}", sz=8, color=RGBColor(0xaa,0xcc,0xff))
 
-    p_nome = cell_nome.paragraphs[0]
-    para_fmt(p_nome, space_before=3, space_after=3)
-    add_run(p_nome, "Jogador:  ", size=9, color=BRANCO)
-    add_run(p_nome, nome, bold=True, size=12, color=AMARELO)
-
-    p_data = cell_data.paragraphs[0]
-    para_fmt(p_data, align=WD_ALIGN_PARAGRAPH.RIGHT, space_before=5, space_after=5)
-    add_run(p_data, f"Data: {hoje}", size=8, color=BRANCO)
-
-    doc.add_paragraph()  # espaço
-
-    # ── Instrução ───────────────────────────────────────────────────────────
-    inst_para = doc.add_paragraph()
-    para_fmt(inst_para, space_before=0, space_after=6)
-    add_run(inst_para, "Instruções: ", bold=True, size=8, color=AZUL_ESCURO)
-    add_run(inst_para,
-            "Compare os prognósticos abaixo com a fotocópia da folha original. "
+    # ─────────────────────────────────────────────────────
+    # 2. INSTRUÇÃO (1 linha)
+    # ─────────────────────────────────────────────────────
+    inst = doc.add_paragraph()
+    fmt(inst, sb=3, sa=2)
+    para_shd(inst, RGBColor(0xfe, 0xf9, 0xe7))
+    p(inst, "⚠ ", sz=7.5, color=RGBColor(0xb7, 0x7d, 0x00))
+    p(inst, "Instruções: ", bold=True, sz=7.5, color=AZUL)
+    p(inst, "Compare os prognósticos abaixo com a fotocópia da folha original. "
             "Registe na secção de observações qualquer resultado que não coincida. "
-            "Assine no final para confirmar a validação.",
-            size=8, color=CINZA_TEXTO)
+            "Assine no final para confirmar.", sz=7.5, color=CZ2)
 
-    # ── Título da secção grupos ──────────────────────────────────────────────
-    gs_title = doc.add_paragraph()
-    para_fmt(gs_title, space_before=2, space_after=4)
-    add_run(gs_title, "⚽  FASE DE GRUPOS — Prognósticos registados na Base de Dados",
-            bold=True, size=9.5, color=AZUL_ESCURO)
+    # ─────────────────────────────────────────────────────
+    # 3. TÍTULO FASE DE GRUPOS
+    # ─────────────────────────────────────────────────────
+    gs_hdr = doc.add_paragraph()
+    fmt(gs_hdr, sb=3, sa=1)
+    p(gs_hdr, "⚽  FASE DE GRUPOS — Prognósticos registados na Base de Dados",
+      bold=True, sz=8, color=AZUL)
 
-    # ── Tabela de grupos: 6 grupos por linha (2 colunas de 6) ───────────────
-    # Tabela exterior: 1 linha × 2 células
+    # ─────────────────────────────────────────────────────
+    # 4. TABELA DE GRUPOS (2 colunas × 6 grupos)
+    # ─────────────────────────────────────────────────────
+    # Tabela exterior sem bordas
     outer = doc.add_table(rows=1, cols=2)
-    outer.style = "Table Grid"
-    outer.alignment = WD_TABLE_ALIGNMENT.LEFT
+    outer.style   = "Table Grid"
     outer.autofit = False
-    outer.columns[0].width = Cm(8.2)
-    outer.columns[1].width = Cm(8.2)
+    outer.alignment = WD_TABLE_ALIGNMENT.LEFT
 
-    # Remover bordas da tabela exterior
-    for cell in outer.rows[0].cells:
-        set_cell_border(cell, sides=("top","bottom","left","right"), size=0, color="FFFFFF")
+    COL_W = W / 2  # 9.5cm por coluna
+    outer.columns[0].width = Cm(COL_W)
+    outer.columns[1].width = Cm(COL_W)
+    for oc in outer.rows[0].cells:
+        cell_no_border(oc)
+        cell_margins(oc, top=0, bottom=0, left=0, right=20)
+        oc.vertical_alignment = WD_ALIGN_VERTICAL.TOP
 
-    metade = [grupos_order[:6], grupos_order[6:]]
-    for col_idx, grp_list in enumerate(metade):
-        cell = outer.rows[0].cells[col_idx]
-        cell.vertical_alignment = WD_ALIGN_VERTICAL.TOP
+    # Larguras colunas internas: Cód | Casa | Fora | Prev.
+    GCW = [0.55, 3.65, 3.65, 0.95]  # total ≈ 8.8 (< 9.5)
 
-        for grupo in grp_list:
-            jogos_grupo = [j for j in jogos if j["grupo"] == grupo]
+    metades = [grupos_order[:6], grupos_order[6:]]
 
-            # Título do grupo
-            gp = cell.add_paragraph()
-            para_fmt(gp, space_before=4, space_after=1)
-            add_run(gp, f"  Grupo {grupo}", bold=True, size=8, color=BRANCO)
-            # Fundo azul escuro via tabela interior de 1 célula
-            # (mais fácil: usar parágrafo com shading — trick via XML)
-            pPr = gp._p.get_or_add_pPr()
-            shd = OxmlElement("w:shd")
-            shd.set(qn("w:val"),   "clear")
-            shd.set(qn("w:color"), "auto")
-            shd.set(qn("w:fill"),  rgb_hex(AZUL_ESCURO))
-            pPr.append(shd)
+    for ci, grp_list in enumerate(metades):
+        ocell = outer.rows[0].cells[ci]
 
-            # Tabela de jogos
-            gt = cell.add_table(rows=1 + len(jogos_grupo), cols=4)
-            gt.style = "Table Grid"
+        for gi, grupo in enumerate(grp_list):
+            jgs = [j for j in jogos if j["grupo"] == grupo]
+            n_rows = 1 + 1 + len(jgs)  # título + cabeçalho + jogos
+
+            gt = ocell.add_table(rows=n_rows, cols=4)
+            gt.style   = "Table Grid"
             gt.autofit = False
+            for row in gt.rows:
+                for c_idx, w in enumerate(GCW):
+                    row.cells[c_idx].width = Cm(w)
 
-            # Larguras das colunas
-            widths = [0.55, 2.9, 2.9, 0.85]
-            for ci, w in enumerate(widths):
-                for row in gt.rows:
-                    row.cells[ci].width = Cm(w)
+            # Fila 0: título do grupo (merged)
+            title_merged = gt.rows[0].cells[0]
+            for x in range(1, 4):
+                title_merged = title_merged.merge(gt.rows[0].cells[x])
+            cell_bg(title_merged, AZUL)
+            cell_margins(title_merged, top=22, bottom=22, left=60, right=0)
+            gtp = title_merged.paragraphs[0]; fmt(gtp)
+            p(gtp, f"GRUPO {grupo}", bold=True, sz=6.5, color=BRNC)
 
-            # Cabeçalho
-            hdrs = ["Cód", "Casa", "Fora", "Prev."]
-            for ci, hdr in enumerate(hdrs):
-                hcell = gt.rows[0].cells[ci]
-                set_cell_bg(hcell, AZUL_CLARO)
-                hp = hcell.paragraphs[0]
-                para_fmt(hp, space_before=1, space_after=1)
-                add_run(hp, hdr, bold=True, size=7, color=AZUL_ESCURO)
+            # Fila 1: cabeçalhos das colunas
+            for x, hd in enumerate(["Cód", "Casa", "Fora", "Prev."]):
+                hcell = gt.rows[1].cells[x]
+                cell_bg(hcell, AZUL_L)
+                cell_margins(hcell, top=18, bottom=18, left=50, right=10)
+                hp = hcell.paragraphs[0]; fmt(hp)
+                p(hp, hd, bold=True, sz=6, color=AZUL)
 
-            # Linhas de jogos
-            for ri, jogo in enumerate(jogos_grupo):
-                row = gt.rows[ri + 1]
-                pred = preds.get(jogo["codigo"])
+            # Filas 2+: jogos
+            for ri, jogo in enumerate(jgs):
+                pred     = preds.get(jogo["codigo"])
                 pred_str = f"{pred['casa']}–{pred['fora']}" if pred else "—"
+                row_bg   = CZ1 if ri % 2 == 0 else BRNC
 
-                valores = [jogo["codigo"], jogo["casa"], jogo["fora"], pred_str]
-                colors  = [AZUL_ESCURO, None, None, VERMELHO]
-                bolds   = [True, False, False, True]
-                bg      = CINZA_CLARO if ri % 2 == 0 else BRANCO
+                vals  = [jogo["codigo"], jogo["casa"], jogo["fora"], pred_str]
+                bolds = [True, False, False, True]
+                cols  = [AZUL, RGBColor(0x22,0x22,0x22), RGBColor(0x22,0x22,0x22), VERM]
 
-                for ci, (val, cor, b) in enumerate(zip(valores, colors, bolds)):
-                    c = row.cells[ci]
-                    set_cell_bg(c, bg)
-                    p = c.paragraphs[0]
-                    para_fmt(p, space_before=1, space_after=1)
-                    add_run(p, val, bold=b, size=7.5, color=cor or RGBColor(0x22,0x22,0x22))
+                for x, (val, bd, cl) in enumerate(zip(vals, bolds, cols)):
+                    gc = gt.rows[ri + 2].cells[x]
+                    cell_bg(gc, row_bg)
+                    cell_margins(gc, top=16, bottom=16, left=50, right=10)
+                    gp2 = gc.paragraphs[0]; fmt(gp2)
+                    p(gp2, val, bold=bd, sz=6.5, color=cl)
 
-            # Espaço entre grupos
-            cell.add_paragraph()
+            # Pequeno espaço após cada grupo (excepto o último)
+            if gi < len(grp_list) - 1:
+                sp = ocell.add_paragraph()
+                fmt(sp, sb=1, sa=0)
 
-    doc.add_paragraph()  # espaço após tabela
+    # ─────────────────────────────────────────────────────
+    # 5. OBSERVAÇÕES
+    # ─────────────────────────────────────────────────────
+    obs_hdr = doc.add_paragraph()
+    fmt(obs_hdr, sb=4, sa=1)
+    p(obs_hdr, "📋  OBSERVAÇÕES — Resultados que não coincidem com a folha original",
+      bold=True, sz=8, color=AZUL)
 
-    # ── Observações ─────────────────────────────────────────────────────────
-    obs_title = doc.add_paragraph()
-    para_fmt(obs_title, space_before=4, space_after=4)
-    add_run(obs_title, "📋  OBSERVAÇÕES — Resultados que não coincidem com a folha original",
-            bold=True, size=9.5, color=AZUL_ESCURO)
+    N_OBS = 5
+    obs_t = doc.add_table(rows=N_OBS + 1, cols=4)
+    obs_t.style   = "Table Grid"
+    obs_t.autofit = False
+    obs_t.alignment = WD_TABLE_ALIGNMENT.LEFT
 
-    obs_table = doc.add_table(rows=9, cols=4)
-    obs_table.style = "Table Grid"
-    obs_table.alignment = WD_TABLE_ALIGNMENT.LEFT
-    obs_table.autofit = False
+    OW = [2.5, 4.0, 4.0, 8.5]  # total 19cm
+    for row in obs_t.rows:
+        for x, w in enumerate(OW):
+            row.cells[x].width = Cm(w)
 
-    col_widths = [2.2, 3.5, 3.5, 7.2]  # total ~16.4cm
-    for ci, w in enumerate(col_widths):
-        for row in obs_table.rows:
-            row.cells[ci].width = Cm(w)
+    for x, hd in enumerate(["Jogo (código)", "Prognóstico na folha", "Prognóstico na BD", "Nota / Decisão tomada"]):
+        hcell = obs_t.rows[0].cells[x]
+        cell_bg(hcell, AZUL)
+        cell_margins(hcell, top=30, bottom=30, left=60, right=10)
+        hp = hcell.paragraphs[0]; fmt(hp)
+        p(hp, hd, bold=True, sz=7, color=BRNC)
 
-    # Cabeçalho obs
-    obs_hdrs = ["Jogo (código)", "Prognóstico na folha", "Prognóstico na BD", "Nota / Decisão tomada"]
-    for ci, hdr in enumerate(obs_hdrs):
-        c = obs_table.rows[0].cells[ci]
-        set_cell_bg(c, AZUL_ESCURO)
-        p = c.paragraphs[0]
-        para_fmt(p, space_before=2, space_after=2)
-        add_run(p, hdr, bold=True, size=7.5, color=BRANCO)
+    for ri in range(1, N_OBS + 1):
+        bg = CZ1 if ri % 2 == 0 else BRNC
+        for x in range(4):
+            gc = obs_t.rows[ri].cells[x]
+            cell_bg(gc, bg)
+            cell_margins(gc, top=42, bottom=42, left=60, right=10)
+            obs_t.rows[ri].cells[x].paragraphs[0].add_run("")
 
-    # Linhas em branco
-    for ri in range(1, 9):
-        bg = CINZA_CLARO if ri % 2 == 0 else BRANCO
-        for ci in range(4):
-            c = obs_table.rows[ri].cells[ci]
-            set_cell_bg(c, bg)
-            p = c.paragraphs[0]
-            para_fmt(p, space_before=5, space_after=5)
-            p.add_run("")  # célula vazia
+    # ─────────────────────────────────────────────────────
+    # 6. DECLARAÇÃO + ASSINATURA
+    # ─────────────────────────────────────────────────────
+    decl_hdr = doc.add_paragraph()
+    fmt(decl_hdr, sb=4, sa=1)
+    p(decl_hdr, "📝  DECLARAÇÃO DE CONSENTIMENTO",
+      bold=True, sz=8, color=AZUL)
 
-    doc.add_paragraph()
+    # Caixa da declaração
+    db = doc.add_table(rows=1, cols=1)
+    db.style   = "Table Grid"
+    db.autofit = False
+    db.columns[0].width = Cm(W)
+    cell_bg(db.rows[0].cells[0], RGBColor(0xee, 0xf4, 0xfb))
+    cell_margins(db.rows[0].cells[0], top=50, bottom=50, left=100, right=100)
 
-    # ── Declaração de consentimento ──────────────────────────────────────────
-    decl_title = doc.add_paragraph()
-    para_fmt(decl_title, space_before=4, space_after=3)
-    add_run(decl_title, "📝  DECLARAÇÃO DE CONSENTIMENTO",
-            bold=True, size=9.5, color=AZUL_ESCURO)
+    dp = db.rows[0].cells[0].paragraphs[0]; fmt(dp)
+    p(dp, f"Eu, ", sz=8)
+    p(dp, nome, bold=True, sz=8)
+    p(dp, ", declaro que revi os prognósticos acima e confirmo que são os mesmos que preenchi na "
+          "folha original, com exceção das discrepâncias registadas nas observações. "
+          "Aceito que os valores na Base de Dados sejam utilizados para a classificação final do Predictor.", sz=8)
 
-    decl_box = doc.add_table(rows=1, cols=1)
-    decl_box.style = "Table Grid"
-    decl_box.autofit = False
-    decl_box.columns[0].width = Cm(16.4)
-    set_cell_bg(decl_box.rows[0].cells[0], RGBColor(0xf0, 0xf4, 0xfa))
+    # Assinatura + data (tabela sem bordas, 2 colunas)
+    sig = doc.add_table(rows=2, cols=2)
+    sig.style   = "Table Grid"
+    sig.autofit = False
+    sig.columns[0].width = Cm(W * 0.62)
+    sig.columns[1].width = Cm(W * 0.38)
+    for ri in range(2):
+        for ci in range(2):
+            cell_no_border(sig.rows[ri].cells[ci])
 
-    decl_cell = decl_box.rows[0].cells[0]
-    decl_p = decl_cell.paragraphs[0]
-    para_fmt(decl_p, space_before=5, space_after=5)
-    add_run(decl_p, f"Eu, ", size=9)
-    add_run(decl_p, nome, bold=True, size=9)
-    add_run(decl_p,
-            ", declaro que revi os prognósticos acima listados e confirmo que são os mesmos "
-            "que preenchi na folha original, com exceção das discrepâncias registadas nas observações acima. "
-            "Aceito que os valores na Base de Dados sejam os utilizados para efeitos de classificação final do Predictor.",
-            size=9)
+    # Linha de assinatura
+    sp0 = sig.rows[0].cells[0].paragraphs[0]
+    fmt(sp0, sb=18, sa=0)
+    p(sp0, "_" * 58, sz=8.5)
 
-    doc.add_paragraph()
+    dp0 = sig.rows[0].cells[1].paragraphs[0]
+    fmt(dp0, sb=18, sa=0)
+    p(dp0, "___ / ___ / 2026", sz=8.5)
 
-    # Linha de assinatura + data
-    sign_table = doc.add_table(rows=2, cols=2)
-    sign_table.style = "Table Grid"
-    sign_table.alignment = WD_TABLE_ALIGNMENT.LEFT
-    sign_table.autofit = False
-    sign_table.columns[0].width = Cm(10)
-    sign_table.columns[1].width = Cm(6.4)
+    # Labels
+    sp1 = sig.rows[1].cells[0].paragraphs[0]
+    fmt(sp1, sb=1, sa=0)
+    p(sp1, f"Assinatura de {nome}", italic=True, sz=7.5, color=CZ2)
 
-    for r in range(2):
-        for c in range(2):
-            set_cell_border(sign_table.rows[r].cells[c],
-                            sides=("top","bottom","left","right"), size=0, color="FFFFFF")
+    dp1 = sig.rows[1].cells[1].paragraphs[0]
+    fmt(dp1, sb=1, sa=0)
+    p(dp1, "Data", italic=True, sz=7.5, color=CZ2)
 
-    # Linha 0: linhas de assinatura
-    p_sign = sign_table.rows[0].cells[0].paragraphs[0]
-    para_fmt(p_sign, space_before=20, space_after=2)
-    add_run(p_sign, "_" * 55, size=9)
+    # ─────────────────────────────────────────────────────
+    # 7. RODAPÉ
+    # ─────────────────────────────────────────────────────
+    foot = doc.add_paragraph()
+    fmt(foot, align=WD_ALIGN_PARAGRAPH.CENTER, sb=4, sa=0)
+    p(foot, f"Predictor Parque Biológico — Mundial 2026  ·  {nome}  ·  {hoje}  ·  "
+            f"Pág. {idx_p+1}/{len(participantes)}",
+      sz=6.5, color=RGBColor(0xaa,0xaa,0xaa))
 
-    p_date_line = sign_table.rows[0].cells[1].paragraphs[0]
-    para_fmt(p_date_line, space_before=20, space_after=2)
-    add_run(p_date_line, "_" * 30, size=9)
-
-    # Linha 1: labels
-    p_sign_lbl = sign_table.rows[1].cells[0].paragraphs[0]
-    para_fmt(p_sign_lbl, space_before=1, space_after=4)
-    add_run(p_sign_lbl, f"Assinatura de {nome}", italic=True, size=8, color=CINZA_TEXTO)
-
-    p_date_lbl = sign_table.rows[1].cells[1].paragraphs[0]
-    para_fmt(p_date_lbl, space_before=1, space_after=4)
-    add_run(p_date_lbl, "Data: ___ / ___ / 2026", italic=True, size=8, color=CINZA_TEXTO)
-
-    # Rodapé da página
-    doc.add_paragraph()
-    footer_p = doc.add_paragraph()
-    para_fmt(footer_p, align=WD_ALIGN_PARAGRAPH.CENTER, space_before=4, space_after=0)
-    add_run(footer_p,
-            f"Predictor Parque Biológico — Mundial 2026  ·  Jogador: {nome}  ·  {hoje}  ·  "
-            f"Pág. {idx_p + 1} de {len(participantes)}",
-            size=7, color=RGBColor(0xaa, 0xaa, 0xaa))
-
-    # Quebra de página (excepto último)
+    # Quebra de página (excepto no último jogador)
     if idx_p < len(participantes) - 1:
-        page_break(doc)
+        br = doc.add_paragraph()
+        fmt(br)
+        br.add_run().add_break(
+            __import__("docx.enum.text", fromlist=["WD_BREAK"]).WD_BREAK.PAGE
+        )
 
 # ── Guardar ───────────────────────────────────────────────────────────────────
-out = "/Users/joaogarcia/Projects/predictor-mundial-2026/Consentimento_Predictor_Mundial_2026.docx"
-doc.save(out)
-print(f"✅ Documento criado: {out}")
-print(f"   {len(participantes)} páginas — uma por jogador")
+OUT = "/Users/joaogarcia/Projects/predictor-mundial-2026/Consentimento_Predictor_Mundial_2026.docx"
+doc.save(OUT)
+print(f"✅  {OUT}")
+print(f"    {len(participantes)} páginas · uma por jogador")
