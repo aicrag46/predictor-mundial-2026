@@ -235,7 +235,11 @@ body {
   padding: 5px 7px; border: 1px solid rgba(30,45,69,.6);
   text-align: center; font-size: .82rem; white-space: nowrap;
 }
-.revisao-table tr:hover td { filter: brightness(1.08); }
+.revisao-table tr:hover td { filter: brightness(1.12); }
+.revisao-table td.tipo-exato {
+  box-shadow: inset 0 0 0 1.5px rgba(74,222,128,.55), 0 0 6px rgba(74,222,128,.25);
+  z-index: 1; position: relative;
+}
 
 /* Nome do jogador: texto vertical nos headers */
 .p-header {
@@ -255,11 +259,23 @@ body {
 .prog-val  { display: block; font-weight: 700; font-size: .8rem; }
 .pts-small { font-size: .62rem; opacity: .8; margin-top: 1px; display: block; }
 
-/* Tipo cores */
-.tipo-exato    { background: #dcfce7; color: #14532d; }
-.tipo-ve       { background: #dbeafe; color: #1e3a8a; }
-.tipo-golos    { background: #fef9c3; color: #713f12; }
-.tipo-nao      { background: #fee2e2; color: #7f1d1d; }
+/* Tipo cores — vívidas para tema escuro */
+.tipo-exato {
+  background: linear-gradient(105deg, #14532d 0%, #16a34a 42%, #4ade80 52%, #16a34a 62%, #14532d 100%);
+  background-size: 250% 100%;
+  animation: exato-shine 2.4s linear infinite;
+  color: #fff;
+  font-weight: 900;
+  text-shadow: 0 1px 2px rgba(0,0,0,.4);
+}
+@keyframes exato-shine {
+  0%   { background-position: 200% center; }
+  100% { background-position: -200% center; }
+}
+
+.tipo-ve       { background: #1d4ed8; color: #e0eaff; font-weight: 700; }
+.tipo-golos    { background: #b45309; color: #fef3c7; font-weight: 700; }
+.tipo-nao      { background: #991b1b; color: #fee2e2; font-weight: 600; }
 .tipo-pendente { background: var(--bg2); color: var(--muted); }
 
 .revisao-legenda {
@@ -588,10 +604,16 @@ body {
   display: inline-block; padding: 2px 8px; border-radius: 8px;
   font-size: .66rem; font-weight: 800; white-space: nowrap;
 }
-.tipo-pill.tipo-exato    { background: #dcfce7; color: #14532d; }
-.tipo-pill.tipo-ve       { background: #dbeafe; color: #1e3a8a; }
-.tipo-pill.tipo-golos    { background: #fef9c3; color: #713f12; }
-.tipo-pill.tipo-nao      { background: #fee2e2; color: #7f1d1d; }
+.tipo-pill.tipo-exato {
+  background: linear-gradient(105deg, #14532d 0%, #16a34a 42%, #4ade80 52%, #16a34a 62%, #14532d 100%);
+  background-size: 250% 100%;
+  animation: exato-shine 2.4s linear infinite;
+  color: #fff;
+  text-shadow: 0 1px 2px rgba(0,0,0,.4);
+}
+.tipo-pill.tipo-ve       { background: #1d4ed8; color: #e0eaff; }
+.tipo-pill.tipo-golos    { background: #b45309; color: #fef3c7; }
+.tipo-pill.tipo-nao      { background: #991b1b; color: #fee2e2; }
 .tipo-pill.tipo-pend,
 .tipo-pill.tipo-pendente { background: var(--bg3); color: var(--muted); }
 
