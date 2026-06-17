@@ -1,0 +1,341 @@
+<!DOCTYPE html>
+<html lang="pt">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Previsões de Vítor Fernandes — Predictor Mundial 2026</title>
+  <style>
+  *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+  :root {
+    --bg:    #080f1e;
+    --bg2:   #0d1a35;
+    --bg3:   #112244;
+    --card:  #0f1f3d;
+    --border: rgba(255,255,255,.07);
+    --accent: #f59e0b;
+    --accent2:#fcd34d;
+    --text:  #e8edf5;
+    --muted: #7a90b0;
+    --radius: 12px;
+    --shadow: 0 4px 24px rgba(0,0,0,.4);
+  }
+  html { font-size: 15px; }
+  body { background: var(--bg); color: var(--text); font-family: "Segoe UI", system-ui, sans-serif;
+         min-height: 100vh; padding-bottom: 60px; }
+
+  /* ── Header ── */
+  .hero {
+    background: linear-gradient(135deg, #0a1628 0%, #1a3a6e 60%, #0d1a35 100%);
+    padding: 36px 24px 28px;
+    text-align: center;
+    border-bottom: 1px solid rgba(245,158,11,.2);
+    position: relative; overflow: hidden;
+  }
+  .hero::before {
+    content: ""; position: absolute; inset: 0;
+    background: radial-gradient(ellipse at 50% -20%, rgba(245,158,11,.15) 0%, transparent 60%);
+  }
+  .hero-trophy { font-size: 3rem; display: block; margin-bottom: 8px; position: relative; }
+  .hero-title  { font-size: 1rem; font-weight: 700; color: var(--muted); letter-spacing: .12em;
+                 text-transform: uppercase; position: relative; }
+  .hero-name   { font-size: 2.2rem; font-weight: 900; color: var(--accent); line-height: 1.15;
+                 position: relative; margin: 6px 0 4px; text-shadow: 0 0 40px rgba(245,158,11,.3); }
+  .hero-sub    { font-size: .85rem; color: var(--muted); position: relative; }
+  .hero-stats  {
+    display: flex; gap: 12px; justify-content: center; flex-wrap: wrap;
+    margin-top: 18px; position: relative;
+  }
+  .stat-chip {
+    background: rgba(255,255,255,.06); border: 1px solid rgba(255,255,255,.1);
+    border-radius: 20px; padding: 5px 14px; font-size: .78rem; font-weight: 600;
+  }
+  .stat-chip span { color: var(--accent); font-weight: 800; margin-right: 4px; }
+
+  /* ── Sticky filter bar ── */
+  .filter-bar {
+    position: sticky; top: 0; z-index: 100;
+    background: rgba(8,15,30,.96); backdrop-filter: blur(12px);
+    border-bottom: 1px solid var(--border);
+    padding: 12px 20px; display: flex; gap: 10px; align-items: center;
+    flex-wrap: wrap;
+  }
+  .search-wrap { position: relative; flex: 1; min-width: 160px; max-width: 260px; }
+  .search-wrap input {
+    width: 100%; background: var(--bg3); border: 1px solid var(--border);
+    color: var(--text); padding: 7px 12px 7px 34px; border-radius: 8px;
+    font-size: .82rem; outline: none;
+    transition: border-color .2s;
+  }
+  .search-wrap input:focus { border-color: var(--accent); }
+  .search-icon { position: absolute; left: 10px; top: 50%; transform: translateY(-50%);
+                 font-size: .8rem; opacity: .5; pointer-events: none; }
+  .filter-chips { display: flex; gap: 6px; flex-wrap: wrap; }
+  .chip {
+    border: 1px solid var(--border); background: transparent;
+    color: var(--muted); padding: 5px 12px; border-radius: 20px;
+    cursor: pointer; font-size: .75rem; font-weight: 600;
+    transition: all .18s; white-space: nowrap;
+  }
+  .chip:hover  { border-color: var(--accent); color: var(--accent); }
+  .chip.active { background: var(--accent); border-color: var(--accent);
+                 color: #0a0f1e; }
+  .filter-sep  { width: 1px; height: 24px; background: var(--border); flex-shrink: 0; }
+
+  /* ── Conteúdo ── */
+  .content { max-width: 980px; margin: 0 auto; padding: 24px 16px; }
+
+  /* ── Grupo de data ── */
+  .date-group { margin-bottom: 28px; }
+  .date-label {
+    display: flex; align-items: center; gap: 10px;
+    font-size: .78rem; font-weight: 700; color: var(--muted);
+    text-transform: uppercase; letter-spacing: .08em;
+    margin-bottom: 12px;
+  }
+  .date-label::after { content: ""; flex: 1; height: 1px; background: var(--border); }
+
+  /* ── Cards ── */
+  .cards-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fill, minmax(290px, 1fr));
+    gap: 12px;
+  }
+  .game-card {
+    background: var(--card);
+    border: 1px solid var(--border);
+    border-radius: var(--radius);
+    padding: 16px;
+    transition: transform .18s, border-color .18s, box-shadow .18s;
+    cursor: default;
+  }
+  .game-card:hover {
+    transform: translateY(-2px);
+    border-color: rgba(245,158,11,.3);
+    box-shadow: 0 8px 32px rgba(0,0,0,.4);
+  }
+  .card-top { display: flex; align-items: center; justify-content: space-between; margin-bottom: 14px; }
+  .card-meta { display: flex; gap: 6px; align-items: center; }
+  .grupo-badge {
+    font-size: .65rem; font-weight: 800; padding: 3px 8px; border-radius: 6px;
+    letter-spacing: .05em; text-transform: uppercase;
+  }
+  .jornada-badge {
+    font-size: .65rem; color: var(--muted); font-weight: 600;
+    background: var(--bg3); padding: 3px 8px; border-radius: 6px;
+  }
+  .card-time { font-size: .72rem; color: var(--muted); }
+
+  /* Teams */
+  .teams { display: flex; align-items: center; gap: 8px; justify-content: space-between; }
+  .team  { display: flex; flex-direction: column; align-items: center; gap: 4px; flex: 1; }
+  .team-flag { font-size: 2rem; line-height: 1; }
+  .team-name { font-size: .72rem; font-weight: 600; color: var(--text);
+               text-align: center; max-width: 90px; line-height: 1.2; }
+  .vs { font-size: .8rem; font-weight: 800; color: var(--muted); flex-shrink: 0; }
+
+  /* Prediction */
+  .prediction {
+    margin-top: 14px;
+    background: linear-gradient(135deg, rgba(245,158,11,.08), rgba(245,158,11,.03));
+    border: 1px solid rgba(245,158,11,.2);
+    border-radius: 10px;
+    padding: 10px 14px;
+    display: flex; align-items: center; justify-content: space-between;
+  }
+  .pred-label { font-size: .65rem; font-weight: 700; color: var(--accent);
+                text-transform: uppercase; letter-spacing: .08em; }
+  .pred-score {
+    font-size: 1.5rem; font-weight: 900; color: var(--accent2);
+    letter-spacing: .04em; text-shadow: 0 0 20px rgba(245,158,11,.4);
+  }
+  .pred-score.empty { font-size: .85rem; color: var(--muted); font-weight: 600; }
+  .pred-city { font-size: .65rem; color: var(--muted); text-align: right; line-height: 1.3; }
+
+  /* Cores por grupo */
+  .g-A { background: rgba(239,68,68,.15);  color: #fca5a5; border-color: rgba(239,68,68,.3); }
+  .g-B { background: rgba(249,115,22,.15); color: #fdba74; border-color: rgba(249,115,22,.3); }
+  .g-C { background: rgba(234,179,8,.15);  color: #fde047; border-color: rgba(234,179,8,.3); }
+  .g-D { background: rgba(34,197,94,.15);  color: #86efac; border-color: rgba(34,197,94,.3); }
+  .g-E { background: rgba(6,182,212,.15);  color: #67e8f9; border-color: rgba(6,182,212,.3); }
+  .g-F { background: rgba(99,102,241,.15); color: #a5b4fc; border-color: rgba(99,102,241,.3); }
+  .g-G { background: rgba(168,85,247,.15); color: #d8b4fe; border-color: rgba(168,85,247,.3); }
+  .g-H { background: rgba(236,72,153,.15); color: #f9a8d4; border-color: rgba(236,72,153,.3); }
+  .g-I { background: rgba(20,184,166,.15); color: #5eead4; border-color: rgba(20,184,166,.3); }
+  .g-J { background: rgba(245,158,11,.15); color: #fcd34d; border-color: rgba(245,158,11,.3); }
+  .g-K { background: rgba(59,130,246,.15); color: #93c5fd; border-color: rgba(59,130,246,.3); }
+  .g-L { background: rgba(16,185,129,.15); color: #6ee7b7; border-color: rgba(16,185,129,.3); }
+
+  /* No results */
+  .no-results { text-align: center; padding: 60px 20px; color: var(--muted); }
+  .no-results-icon { font-size: 3rem; margin-bottom: 12px; }
+
+  /* Footer */
+  .footer {
+    text-align: center; padding: 24px; color: var(--muted); font-size: .75rem;
+    border-top: 1px solid var(--border); margin-top: 40px;
+  }
+
+  @media (max-width: 600px) {
+    .hero-name { font-size: 1.7rem; }
+    .cards-grid { grid-template-columns: 1fr; }
+  }
+</style>
+</head>
+<body>
+
+<!-- HERO -->
+<div class="hero">
+  <span class="hero-trophy">🏆</span>
+  <div class="hero-title">Predictor Parque Biológico · Mundial 2026</div>
+  <div class="hero-name">Vítor Fernandes</div>
+  <div class="hero-sub">As tuas previsões para os 72 jogos da fase de grupos</div>
+  <div class="hero-stats">
+    <div class="stat-chip"><span>72</span>previsões registadas</div>
+    <div class="stat-chip"><span>3</span>jornadas</div>
+    <div class="stat-chip"><span>12</span>grupos</div>
+  </div>
+</div>
+
+<!-- FILTER BAR -->
+<div class="filter-bar">
+  <div class="search-wrap">
+    <span class="search-icon">🔍</span>
+    <input type="text" id="searchInput" placeholder="Pesquisar equipa ou jogo…" oninput="applyFilters()">
+  </div>
+  <div class="filter-sep"></div>
+  <div class="filter-chips" id="filterChips">
+    <button class="chip active" data-filter="all"        onclick="setFilter('all')">Todos</button>
+    <button class="chip"        data-filter="j1"         onclick="setFilter('j1')">Jornada 1</button>
+    <button class="chip"        data-filter="j2"         onclick="setFilter('j2')">Jornada 2</button>
+    <button class="chip"        data-filter="j3"         onclick="setFilter('j3')">Jornada 3</button>
+    <div class="filter-sep"></div>
+    <button class="chip" data-filter="gA" onclick="setFilter('gA')">Gr. A</button><button class="chip" data-filter="gB" onclick="setFilter('gB')">Gr. B</button><button class="chip" data-filter="gC" onclick="setFilter('gC')">Gr. C</button><button class="chip" data-filter="gD" onclick="setFilter('gD')">Gr. D</button><button class="chip" data-filter="gE" onclick="setFilter('gE')">Gr. E</button><button class="chip" data-filter="gF" onclick="setFilter('gF')">Gr. F</button><button class="chip" data-filter="gG" onclick="setFilter('gG')">Gr. G</button><button class="chip" data-filter="gH" onclick="setFilter('gH')">Gr. H</button><button class="chip" data-filter="gI" onclick="setFilter('gI')">Gr. I</button><button class="chip" data-filter="gJ" onclick="setFilter('gJ')">Gr. J</button><button class="chip" data-filter="gK" onclick="setFilter('gK')">Gr. K</button><button class="chip" data-filter="gL" onclick="setFilter('gL')">Gr. L</button>
+  </div>
+</div>
+
+<!-- CONTENT -->
+<div class="content" id="content"></div>
+
+<div class="footer">
+  Predictor Parque Biológico — Mundial 2026 &nbsp;·&nbsp; Previsões de <strong>Vítor Fernandes</strong>
+  &nbsp;·&nbsp; Documento gerado a 17/06/2026
+</div>
+
+<script>
+const JOGOS = [{"codigo":"A1","grupo":"A","casa":"México","fora":"África do Sul","casaFlag":"🇲🇽","foraFlag":"🇿🇦","data":"2026-06-11","hora":"00:00","cidade":"Cidade do México","jornada":1,"pred":"2-1"},{"codigo":"A2","grupo":"A","casa":"Coreia do Sul","fora":"Chéquia","casaFlag":"🇰🇷","foraFlag":"🇨🇿","data":"2026-06-12","hora":"04:00","cidade":"Guadalajara","jornada":1,"pred":"1-1"},{"codigo":"A3","grupo":"A","casa":"Chéquia","fora":"África do Sul","casaFlag":"🇨🇿","foraFlag":"🇿🇦","data":"2026-06-19","hora":"17:00","cidade":"Atlanta","jornada":2,"pred":"2-1"},{"codigo":"A4","grupo":"A","casa":"México","fora":"Coreia do Sul","casaFlag":"🇲🇽","foraFlag":"🇰🇷","data":"2026-06-19","hora":"20:00","cidade":"Guadalajara","jornada":2,"pred":"1-2"},{"codigo":"A5","grupo":"A","casa":"Chéquia","fora":"México","casaFlag":"🇨🇿","foraFlag":"🇲🇽","data":"2026-06-25","hora":"21:00","cidade":"Cidade do México","jornada":3,"pred":"1-2"},{"codigo":"A6","grupo":"A","casa":"África do Sul","fora":"Coreia do Sul","casaFlag":"🇿🇦","foraFlag":"🇰🇷","data":"2026-06-25","hora":"21:00","cidade":"Monterrey","jornada":3,"pred":"2-2"},{"codigo":"B1","grupo":"B","casa":"Canadá","fora":"Bósnia e Herzegovina","casaFlag":"🇨🇦","foraFlag":"🇧🇦","data":"2026-06-13","hora":"00:00","cidade":"Toronto","jornada":1,"pred":"1-1"},{"codigo":"B2","grupo":"B","casa":"Catar","fora":"Suíça","casaFlag":"🇶🇦","foraFlag":"🇨🇭","data":"2026-06-14","hora":"00:00","cidade":"São Francisco","jornada":1,"pred":"0-2"},{"codigo":"B3","grupo":"B","casa":"Suíça","fora":"Bósnia e Herzegovina","casaFlag":"🇨🇭","foraFlag":"🇧🇦","data":"2026-06-19","hora":"20:00","cidade":"Los Angeles","jornada":2,"pred":"2-1"},{"codigo":"B4","grupo":"B","casa":"Canadá","fora":"Catar","casaFlag":"🇨🇦","foraFlag":"🇶🇦","data":"2026-06-19","hora":"23:00","cidade":"Vancouver","jornada":2,"pred":"2-0"},{"codigo":"B5","grupo":"B","casa":"Suíça","fora":"Canadá","casaFlag":"🇨🇭","foraFlag":"🇨🇦","data":"2026-06-25","hora":"00:00","cidade":"Vancouver","jornada":3,"pred":"2-1"},{"codigo":"B6","grupo":"B","casa":"Bósnia e Herzegovina","fora":"Catar","casaFlag":"🇧🇦","foraFlag":"🇶🇦","data":"2026-06-25","hora":"00:00","cidade":"Seattle","jornada":3,"pred":"1-1"},{"codigo":"C1","grupo":"C","casa":"Brasil","fora":"Marrocos","casaFlag":"🇧🇷","foraFlag":"🇲🇦","data":"2026-06-14","hora":"03:00","cidade":"Nova Jérsia","jornada":1,"pred":"3-2"},{"codigo":"C2","grupo":"C","casa":"Haiti","fora":"Escócia","casaFlag":"🇭🇹","foraFlag":"🏴󠁧󠁢󠁳󠁣󠁴󠁿","data":"2026-06-14","hora":"22:00","cidade":"Boston","jornada":1,"pred":"1-3"},{"codigo":"C3","grupo":"C","casa":"Escócia","fora":"Marrocos","casaFlag":"🏴󠁧󠁢󠁳󠁣󠁴󠁿","foraFlag":"🇲🇦","data":"2026-06-20","hora":"20:00","cidade":"Boston","jornada":2,"pred":"1-2"},{"codigo":"C4","grupo":"C","casa":"Brasil","fora":"Haiti","casaFlag":"🇧🇷","foraFlag":"🇭🇹","data":"2026-06-20","hora":"23:00","cidade":"Houston","jornada":2,"pred":"3-0"},{"codigo":"C5","grupo":"C","casa":"Escócia","fora":"Brasil","casaFlag":"🏴󠁧󠁢󠁳󠁣󠁴󠁿","foraFlag":"🇧🇷","data":"2026-06-26","hora":"00:00","cidade":"Los Angeles","jornada":3,"pred":"1-2"},{"codigo":"C6","grupo":"C","casa":"Marrocos","fora":"Haiti","casaFlag":"🇲🇦","foraFlag":"🇭🇹","data":"2026-06-26","hora":"00:00","cidade":"Atlanta","jornada":3,"pred":"2-1"},{"codigo":"D1","grupo":"D","casa":"Estados Unidos","fora":"Paraguai","casaFlag":"🇺🇸","foraFlag":"🇵🇾","data":"2026-06-13","hora":"03:00","cidade":"Los Angeles","jornada":1,"pred":"2-0"},{"codigo":"D2","grupo":"D","casa":"Austrália","fora":"Turquia","casaFlag":"🇦🇺","foraFlag":"🇹🇷","data":"2026-06-15","hora":"01:00","cidade":"Houston","jornada":1,"pred":"1-2"},{"codigo":"D3","grupo":"D","casa":"Estados Unidos","fora":"Austrália","casaFlag":"🇺🇸","foraFlag":"🇦🇺","data":"2026-06-21","hora":"17:00","cidade":"Dallas","jornada":2,"pred":"2-0"},{"codigo":"D4","grupo":"D","casa":"Turquia","fora":"Paraguai","casaFlag":"🇹🇷","foraFlag":"🇵🇾","data":"2026-06-21","hora":"20:00","cidade":"Kansas City","jornada":2,"pred":"2-1"},{"codigo":"D5","grupo":"D","casa":"Turquia","fora":"Estados Unidos","casaFlag":"🇹🇷","foraFlag":"🇺🇸","data":"2026-06-26","hora":"02:00","cidade":"Nova Jérsia","jornada":3,"pred":"2-2"},{"codigo":"D6","grupo":"D","casa":"Paraguai","fora":"Austrália","casaFlag":"🇵🇾","foraFlag":"🇦🇺","data":"2026-06-26","hora":"02:00","cidade":"Miami","jornada":3,"pred":"1-1"},{"codigo":"E1","grupo":"E","casa":"Alemanha","fora":"Curaçau","casaFlag":"🇩🇪","foraFlag":"🇨🇼","data":"2026-06-15","hora":"19:00","cidade":"Dallas","jornada":1,"pred":"4-0"},{"codigo":"E2","grupo":"E","casa":"Costa do Marfim","fora":"Equador","casaFlag":"🇨🇮","foraFlag":"🇪🇨","data":"2026-06-15","hora":"22:00","cidade":"Filadélfia","jornada":1,"pred":"2-1"},{"codigo":"E3","grupo":"E","casa":"Alemanha","fora":"Costa do Marfim","casaFlag":"🇩🇪","foraFlag":"🇨🇮","data":"2026-06-21","hora":"20:00","cidade":"Seattle","jornada":2,"pred":"3-1"},{"codigo":"E4","grupo":"E","casa":"Equador","fora":"Curaçau","casaFlag":"🇪🇨","foraFlag":"🇨🇼","data":"2026-06-21","hora":"23:00","cidade":"Miami","jornada":2,"pred":"2-0"},{"codigo":"E5","grupo":"E","casa":"Equador","fora":"Alemanha","casaFlag":"🇪🇨","foraFlag":"🇩🇪","data":"2026-06-26","hora":"21:00","cidade":"Kansas City","jornada":3,"pred":"1-2"},{"codigo":"E6","grupo":"E","casa":"Curaçau","fora":"Costa do Marfim","casaFlag":"🇨🇼","foraFlag":"🇨🇮","data":"2026-06-26","hora":"21:00","cidade":"Boston","jornada":3,"pred":"0-2"},{"codigo":"F1","grupo":"F","casa":"Holanda","fora":"Japão","casaFlag":"🇳🇱","foraFlag":"🇯🇵","data":"2026-06-16","hora":"00:00","cidade":"Monterrey","jornada":1,"pred":"2-1"},{"codigo":"F2","grupo":"F","casa":"Suécia","fora":"Tunísia","casaFlag":"🇸🇪","foraFlag":"🇹🇳","data":"2026-06-16","hora":"02:00","cidade":"Monterrey","jornada":1,"pred":"3-1"},{"codigo":"F3","grupo":"F","casa":"Holanda","fora":"Suécia","casaFlag":"🇳🇱","foraFlag":"🇸🇪","data":"2026-06-22","hora":"00:00","cidade":"Los Angeles","jornada":2,"pred":"2-2"},{"codigo":"F4","grupo":"F","casa":"Tunísia","fora":"Japão","casaFlag":"🇹🇳","foraFlag":"🇯🇵","data":"2026-06-22","hora":"03:00","cidade":"Dallas","jornada":2,"pred":"1-2"},{"codigo":"F5","grupo":"F","casa":"Japão","fora":"Suécia","casaFlag":"🇯🇵","foraFlag":"🇸🇪","data":"2026-06-27","hora":"00:00","cidade":"Houston","jornada":3,"pred":"2-2"},{"codigo":"F6","grupo":"F","casa":"Tunísia","fora":"Holanda","casaFlag":"🇹🇳","foraFlag":"🇳🇱","data":"2026-06-27","hora":"00:00","cidade":"São Francisco","jornada":3,"pred":"1-3"},{"codigo":"G1","grupo":"G","casa":"Bélgica","fora":"Egito","casaFlag":"🇧🇪","foraFlag":"🇪🇬","data":"2026-06-16","hora":"20:00","cidade":"Atlanta","jornada":1,"pred":"2-1"},{"codigo":"G2","grupo":"G","casa":"Irão","fora":"Nova Zelândia","casaFlag":"🇮🇷","foraFlag":"🇳🇿","data":"2026-06-16","hora":"23:00","cidade":"Seattle","jornada":1,"pred":"1-1"},{"codigo":"G3","grupo":"G","casa":"Bélgica","fora":"Irão","casaFlag":"🇧🇪","foraFlag":"🇮🇷","data":"2026-06-22","hora":"20:00","cidade":"Nova Jérsia","jornada":2,"pred":"3-0"},{"codigo":"G4","grupo":"G","casa":"Nova Zelândia","fora":"Egito","casaFlag":"🇳🇿","foraFlag":"🇪🇬","data":"2026-06-22","hora":"23:00","cidade":"Seattle","jornada":2,"pred":"1-2"},{"codigo":"G5","grupo":"G","casa":"Egito","fora":"Irão","casaFlag":"🇪🇬","foraFlag":"🇮🇷","data":"2026-06-27","hora":"02:00","cidade":"Dallas","jornada":3,"pred":"3-0"},{"codigo":"G6","grupo":"G","casa":"Nova Zelândia","fora":"Bélgica","casaFlag":"🇳🇿","foraFlag":"🇧🇪","data":"2026-06-27","hora":"02:00","cidade":"Seattle","jornada":3,"pred":"1-4"},{"codigo":"H1","grupo":"H","casa":"Espanha","fora":"Cabo Verde","casaFlag":"🇪🇸","foraFlag":"🇨🇻","data":"2026-06-17","hora":"01:00","cidade":"Los Angeles","jornada":1,"pred":"3-0"},{"codigo":"H2","grupo":"H","casa":"Arábia Saudita","fora":"Uruguai","casaFlag":"🇸🇦","foraFlag":"🇺🇾","data":"2026-06-17","hora":"20:00","cidade":"Miami","jornada":1,"pred":"1-2"},{"codigo":"H3","grupo":"H","casa":"Espanha","fora":"Arábia Saudita","casaFlag":"🇪🇸","foraFlag":"🇸🇦","data":"2026-06-23","hora":"00:00","cidade":"Kansas City","jornada":2,"pred":"2-1"},{"codigo":"H4","grupo":"H","casa":"Uruguai","fora":"Cabo Verde","casaFlag":"🇺🇾","foraFlag":"🇨🇻","data":"2026-06-23","hora":"03:00","cidade":"São Francisco","jornada":2,"pred":"3-1"},{"codigo":"H5","grupo":"H","casa":"Cabo Verde","fora":"Arábia Saudita","casaFlag":"🇨🇻","foraFlag":"🇸🇦","data":"2026-06-27","hora":"21:00","cidade":"Houston","jornada":3,"pred":"1-1"},{"codigo":"H6","grupo":"H","casa":"Uruguai","fora":"Espanha","casaFlag":"🇺🇾","foraFlag":"🇪🇸","data":"2026-06-27","hora":"21:00","cidade":"Guadalajara","jornada":3,"pred":"1-2"},{"codigo":"I1","grupo":"I","casa":"França","fora":"Senegal","casaFlag":"🇫🇷","foraFlag":"🇸🇳","data":"2026-06-17","hora":"00:00","cidade":"Nova Jérsia","jornada":1,"pred":"2-1"},{"codigo":"I2","grupo":"I","casa":"Iraque","fora":"Noruega","casaFlag":"🇮🇶","foraFlag":"🇳🇴","data":"2026-06-17","hora":"03:00","cidade":"Boston","jornada":1,"pred":"0-2"},{"codigo":"I3","grupo":"I","casa":"França","fora":"Iraque","casaFlag":"🇫🇷","foraFlag":"🇮🇶","data":"2026-06-23","hora":"20:00","cidade":"Houston","jornada":2,"pred":"4-0"},{"codigo":"I4","grupo":"I","casa":"Noruega","fora":"Senegal","casaFlag":"🇳🇴","foraFlag":"🇸🇳","data":"2026-06-23","hora":"23:00","cidade":"Atlanta","jornada":2,"pred":"2-2"},{"codigo":"I5","grupo":"I","casa":"Noruega","fora":"França","casaFlag":"🇳🇴","foraFlag":"🇫🇷","data":"2026-06-28","hora":"00:00","cidade":"Los Angeles","jornada":3,"pred":"1-3"},{"codigo":"I6","grupo":"I","casa":"Senegal","fora":"Iraque","casaFlag":"🇸🇳","foraFlag":"🇮🇶","data":"2026-06-28","hora":"00:00","cidade":"Toronto","jornada":3,"pred":"2-0"},{"codigo":"J1","grupo":"J","casa":"Argentina","fora":"Argélia","casaFlag":"🇦🇷","foraFlag":"🇩🇿","data":"2026-06-17","hora":"22:00","cidade":"Kansas City","jornada":1,"pred":"2-0"},{"codigo":"J2","grupo":"J","casa":"Áustria","fora":"Jordânia","casaFlag":"🇦🇹","foraFlag":"🇯🇴","data":"2026-06-18","hora":"01:00","cidade":"São Francisco","jornada":1,"pred":"2-1"},{"codigo":"J3","grupo":"J","casa":"Argentina","fora":"Áustria","casaFlag":"🇦🇷","foraFlag":"🇦🇹","data":"2026-06-24","hora":"00:00","cidade":"Filadélfia","jornada":2,"pred":"3-0"},{"codigo":"J4","grupo":"J","casa":"Jordânia","fora":"Argélia","casaFlag":"🇯🇴","foraFlag":"🇩🇿","data":"2026-06-24","hora":"03:00","cidade":"Miami","jornada":2,"pred":"1-1"},{"codigo":"J5","grupo":"J","casa":"Argélia","fora":"Áustria","casaFlag":"🇩🇿","foraFlag":"🇦🇹","data":"2026-06-28","hora":"02:00","cidade":"Kansas City","jornada":3,"pred":"1-2"},{"codigo":"J6","grupo":"J","casa":"Jordânia","fora":"Argentina","casaFlag":"🇯🇴","foraFlag":"🇦🇷","data":"2026-06-28","hora":"02:00","cidade":"Dallas","jornada":3,"pred":"0-4"},{"codigo":"K1","grupo":"K","casa":"Portugal","fora":"RD Congo","casaFlag":"🇵🇹","foraFlag":"🇨🇩","data":"2026-06-18","hora":"00:00","cidade":"Houston","jornada":1,"pred":"3-0"},{"codigo":"K2","grupo":"K","casa":"Uzbequistão","fora":"Colômbia","casaFlag":"🇺🇿","foraFlag":"🇨🇴","data":"2026-06-18","hora":"03:00","cidade":"Dallas","jornada":1,"pred":"1-2"},{"codigo":"K3","grupo":"K","casa":"Portugal","fora":"Uzbequistão","casaFlag":"🇵🇹","foraFlag":"🇺🇿","data":"2026-06-24","hora":"20:00","cidade":"Boston","jornada":2,"pred":"3-0"},{"codigo":"K4","grupo":"K","casa":"Colômbia","fora":"RD Congo","casaFlag":"🇨🇴","foraFlag":"🇨🇩","data":"2026-06-24","hora":"23:00","cidade":"Kansas City","jornada":2,"pred":"2-0"},{"codigo":"K5","grupo":"K","casa":"Colômbia","fora":"Portugal","casaFlag":"🇨🇴","foraFlag":"🇵🇹","data":"2026-06-28","hora":"21:00","cidade":"Miami","jornada":3,"pred":"1-2"},{"codigo":"K6","grupo":"K","casa":"RD Congo","fora":"Uzbequistão","casaFlag":"🇨🇩","foraFlag":"🇺🇿","data":"2026-06-28","hora":"21:00","cidade":"Atlanta","jornada":3,"pred":"1-1"},{"codigo":"L1","grupo":"L","casa":"Inglaterra","fora":"Croácia","casaFlag":"🏴󠁧󠁢󠁥󠁮󠁧󠁿","foraFlag":"🇭🇷","data":"2026-06-18","hora":"20:00","cidade":"Filadélfia","jornada":1,"pred":"2-1"},{"codigo":"L2","grupo":"L","casa":"Gana","fora":"Panamá","casaFlag":"🇬🇭","foraFlag":"🇵🇦","data":"2026-06-18","hora":"23:00","cidade":"Toronto","jornada":1,"pred":"2-0"},{"codigo":"L3","grupo":"L","casa":"Inglaterra","fora":"Gana","casaFlag":"🏴󠁧󠁢󠁥󠁮󠁧󠁿","foraFlag":"🇬🇭","data":"2026-06-25","hora":"00:00","cidade":"Dallas","jornada":2,"pred":"3-1"},{"codigo":"L4","grupo":"L","casa":"Panamá","fora":"Croácia","casaFlag":"🇵🇦","foraFlag":"🇭🇷","data":"2026-06-25","hora":"03:00","cidade":"Filadélfia","jornada":2,"pred":"1-3"},{"codigo":"L5","grupo":"L","casa":"Panamá","fora":"Inglaterra","casaFlag":"🇵🇦","foraFlag":"🏴󠁧󠁢󠁥󠁮󠁧󠁿","data":"2026-06-28","hora":"02:00","cidade":"Nova Jérsia","jornada":3,"pred":"0-4"},{"codigo":"L6","grupo":"L","casa":"Croácia","fora":"Gana","casaFlag":"🇭🇷","foraFlag":"🇬🇭","data":"2026-06-28","hora":"02:00","cidade":"Filadélfia","jornada":3,"pred":"1-0"}];
+
+let activeFilter = "all";
+
+function setFilter(f) {
+  activeFilter = f;
+  document.querySelectorAll(".chip").forEach(c => {
+    c.classList.toggle("active", c.dataset.filter === f);
+  });
+  applyFilters();
+}
+
+function applyFilters() {
+  const q = document.getElementById("searchInput").value.trim().toLowerCase();
+
+  const filtered = JOGOS.filter(j => {
+    // Filtro de texto
+    const txt = (j.casa + j.fora + j.codigo + j.grupo).toLowerCase();
+    if (q && !txt.includes(q)) return false;
+
+    // Filtro activo
+    if (activeFilter === "all") return true;
+    if (activeFilter === "j1")  return j.jornada === 1;
+    if (activeFilter === "j2")  return j.jornada === 2;
+    if (activeFilter === "j3")  return j.jornada === 3;
+    if (activeFilter.startsWith("g")) return j.grupo === activeFilter.slice(1);
+    return true;
+  });
+
+  render(filtered);
+}
+
+function render(jogos) {
+  const content = document.getElementById("content");
+
+  if (!jogos.length) {
+    content.innerHTML = `
+      <div class="no-results">
+        <div class="no-results-icon">🔎</div>
+        <div>Nenhuma previsão encontrada</div>
+      </div>`;
+    return;
+  }
+
+  // Agrupar por data
+  const byDate = {};
+  jogos.forEach(j => {
+    if (!byDate[j.data]) byDate[j.data] = [];
+    byDate[j.data].push(j);
+  });
+
+  const sortedDates = Object.keys(byDate).sort();
+  let html = "";
+
+  sortedDates.forEach(data => {
+    const label = fmtData(data);
+    const cards = byDate[data].map(j => renderCard(j)).join("");
+    html += `
+      <div class="date-group" data-date="${data}">
+        <div class="date-label">📅 ${label}</div>
+        <div class="cards-grid">${cards}</div>
+      </div>`;
+  });
+
+  content.innerHTML = html;
+}
+
+function renderCard(j) {
+  const predHTML = j.pred
+    ? `<div class="pred-score">${j.pred}</div>`
+    : `<div class="pred-score empty">Sem previsão</div>`;
+
+  return `
+    <div class="game-card">
+      <div class="card-top">
+        <div class="card-meta">
+          <span class="grupo-badge g-${j.grupo}">Grupo ${j.grupo}</span>
+          <span class="jornada-badge">J${j.jornada}</span>
+          <span style="font-size:.65rem;color:var(--muted);font-weight:700">${j.codigo}</span>
+        </div>
+        <div class="card-time">🕐 ${j.hora}</div>
+      </div>
+
+      <div class="teams">
+        <div class="team">
+          <div class="team-flag">${j.casaFlag}</div>
+          <div class="team-name">${j.casa}</div>
+        </div>
+        <div class="vs">vs</div>
+        <div class="team">
+          <div class="team-flag">${j.foraFlag}</div>
+          <div class="team-name">${j.fora}</div>
+        </div>
+      </div>
+
+      <div class="prediction">
+        <div>
+          <div class="pred-label">🎯 A tua previsão</div>
+          ${predHTML}
+        </div>
+        <div class="pred-city">📍 ${j.cidade}</div>
+      </div>
+    </div>`;
+}
+
+function fmtData(d) {
+  const dt = new Date(d + "T12:00:00");
+  const dias  = ["Dom","Seg","Ter","Qua","Qui","Sex","Sáb"];
+  const meses = ["Jan","Fev","Mar","Abr","Mai","Jun","Jul","Ago","Set","Out","Nov","Dez"];
+  return dias[dt.getDay()] + " " + dt.getDate() + " " + meses[dt.getMonth()];
+}
+
+// Render inicial
+render(JOGOS);
+</script>
+</body>
+</html>
