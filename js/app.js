@@ -1255,6 +1255,284 @@ function exKO(titulo, predScore, predApurado, realScore, realApurado, desc, pts)
   </div>`;
 }
 
+// ─── DOCUMENTO DE CONSENTIMENTO (print) ──────────────────────────────────────
+function gerarConsentimento() {
+  const today = new Date().toLocaleDateString("pt-PT", { day: "2-digit", month: "long", year: "numeric" });
+  const grupos = [...new Set(DADOS.jogos.map(j => j.grupo))].sort();
+  const koPredsAll = getKOPredsAll();
+  const gsOverrides = getGSOverrides();
+
+  // Construir uma página por participante
+  const pages = DADOS.participantes.map((nome, pi) => {
+
+    // ── Tabela de Fase de Grupos: dois blocos lado a lado ──────────────────────
+    const metade1 = grupos.slice(0, 6);
+    const metade2 = grupos.slice(6);
+
+    function grupoTable(grps) {
+      return grps.map(grupo => {
+        const jogos = DADOS.jogos.filter(j => j.grupo === grupo);
+        const rows = jogos.map(j => {
+          const pred = getGSPredFor(pi, j.codigo);
+          const predStr = pred ? `${pred.casa}–${pred.fora}` : "—";
+          return `<tr>
+            <td class="cod">${j.codigo}</td>
+            <td class="eq">${j.casa}</td>
+            <td class="eq">${j.fora}</td>
+            <td class="prd">${predStr}</td>
+          </tr>`;
+        }).join("");
+        return `<table class="gt">
+          <thead><tr><th colspan="4">Grupo ${grupo}</th></tr>
+            <tr class="sub"><th>Cód</th><th>Casa</th><th>Fora</th><th>Prev.</th></tr>
+          </thead>
+          <tbody>${rows}</tbody>
+        </table>`;
+      }).join("");
+    }
+
+    // ── Tabela KO (se existirem previsões) ────────────────────────────────────
+      const koP = koPredsAll[pi] || {};
+    const koKeys = Object.keys(koP);
+    let koSection = "";
+    if (koKeys.length > 0) {
+      const roundNames = { r32:"Round of 32 (16 avos)", r16:"Oitavos de Final", qf:"Quartos de Final", sf:"Meias-Final", tp:"3.º Lugar", f:"Final" };
+      const mm = getMM();
+      const koRows = MM_ROUNDS.map(round => {
+        const games = mm[round.id] || [];
+        const rows = games.map((game, idx) => {
+          const key = `${round.id}:${idx}`;
+          const pred = koP[key];
+          if (!pred && !game.e1) return "";
+          const e1 = game.e1 || "TBD";
+          const e2 = game.e2 || "TBD";
+          const predScore = pred ? `${pred.gc}–${pred.gf}` : "—";
+          const predQual = pred?.qualifier || "—";
+          return `<tr>
+            <td class="ko-eq">${e1} × ${e2}</td>
+            <td class="prd">${predScore}</td>
+            <td class="prd">${predQual}</td>
+          </tr>`;
+        }).filter(Boolean).join("");
+        if (!rows) return "";
+        return `<tr class="ko-hdr"><td colspan="3">${roundNames[round.id] || round.name}</td></tr>${rows}`;
+      }).filter(Boolean).join("");
+
+      if (koRows) {
+        koSection = `
+        <div class="section-title">⚔️ Mata-Mata — Previsões</div>
+        <table class="ko-table">
+          <thead><tr><th>Jogo</th><th>Resultado 90'</th><th>Apurado</th></tr></thead>
+          <tbody>${koRows}</tbody>
+        </table>`;
+      }
+    }
+
+    // ── Linhas de observações ─────────────────────────────────────────────────
+    const obsLines = Array.from({ length: 8 }, (_, i) => `
+      <tr>
+        <td class="obs-jogo"><span class="obs-label">Jogo</span> ________</td>
+        <td class="obs-folha"><span class="obs-label">Na folha:</span> ________</td>
+        <td class="obs-bd"><span class="obs-label">Na BD:</span> ________</td>
+        <td class="obs-note">Nota: ____________________________</td>
+      </tr>`).join("");
+
+    return `
+    <div class="page">
+
+      <!-- Cabeçalho -->
+      <div class="doc-header">
+        <div class="doc-logo">🏆</div>
+        <div class="doc-title">
+          <div class="doc-main-title">Predictor Parque Biológico — Mundial 2026</div>
+          <div class="doc-sub-title">Folha de Consentimento e Verificação de Prognósticos</div>
+        </div>
+      </div>
+
+      <div class="player-banner">
+        <div class="player-name">Jogador: <strong>${nome}</strong></div>
+        <div class="player-date">Data: ${today}</div>
+      </div>
+
+      <!-- Instruções -->
+      <div class="instrucao">
+        <strong>Instruções:</strong> Compare os prognósticos abaixo com a fotocópia da folha original.
+        Registe na secção de observações qualquer resultado que não coincida. Assine no final para confirmar.
+      </div>
+
+      <!-- Prognósticos Fase de Grupos -->
+      <div class="section-title">⚽ Fase de Grupos — Prognósticos na Base de Dados</div>
+      <div class="grupos-grid">
+        <div class="grupos-col">${grupoTable(metade1)}</div>
+        <div class="grupos-col">${grupoTable(metade2)}</div>
+      </div>
+
+      ${koSection}
+
+      <!-- Observações -->
+      <div class="section-title obs-title">📋 Observações — Resultados que não coincidem</div>
+      <table class="obs-table">
+        <thead>
+          <tr>
+            <th style="width:16%">Jogo (código)</th>
+            <th style="width:22%">Prognóstico na folha</th>
+            <th style="width:20%">Prognóstico na BD</th>
+            <th>Nota / Decisão tomada</th>
+          </tr>
+        </thead>
+        <tbody>${obsLines}</tbody>
+      </table>
+
+      <!-- Declaração -->
+      <div class="declaracao">
+        <div class="decl-title">📝 Declaração de Consentimento</div>
+        <div class="decl-text">
+          Eu, <strong>${nome}</strong>, declaro que revi os prognósticos acima listados e confirmo que são os mesmos
+          que preenchi na folha original, com exceção das discrepâncias registadas nas observações acima.
+          Aceito que os valores na Base de Dados sejam os utilizados para efeitos de classificação final do Predictor.
+        </div>
+        <div class="sign-row">
+          <div class="sign-block">
+            <div class="sign-line"></div>
+            <div class="sign-label">Assinatura de <strong>${nome}</strong></div>
+          </div>
+          <div class="sign-block sign-block-sm">
+            <div class="sign-line"></div>
+            <div class="sign-label">Data: ___ / ___ / 2026</div>
+          </div>
+        </div>
+      </div>
+
+      <div class="doc-footer">
+        Predictor Parque Biológico — Mundial 2026 &nbsp;·&nbsp; Jogador: ${nome} &nbsp;·&nbsp; ${today}
+        &nbsp;·&nbsp; Página ${pi + 1} de ${DADOS.participantes.length}
+      </div>
+    </div>`;
+  });
+
+  // ── CSS ───────────────────────────────────────────────────────────────────────
+  const css = `
+    *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+    body { font-family: "Segoe UI", Arial, sans-serif; font-size: 8.5pt; color: #111; background: #fff; }
+
+    .page {
+      width: 210mm; min-height: 297mm; padding: 12mm 14mm 10mm;
+      display: flex; flex-direction: column; gap: 7px;
+      page-break-after: always;
+    }
+    .page:last-child { page-break-after: auto; }
+
+    /* Header */
+    .doc-header { display: flex; align-items: center; gap: 10px; border-bottom: 2.5px solid #1a3a6e; padding-bottom: 6px; }
+    .doc-logo { font-size: 22pt; line-height: 1; }
+    .doc-main-title { font-size: 11.5pt; font-weight: 800; color: #1a3a6e; }
+    .doc-sub-title { font-size: 8pt; color: #555; margin-top: 2px; }
+
+    .player-banner {
+      display: flex; justify-content: space-between; align-items: center;
+      background: #1a3a6e; color: #fff; padding: 6px 12px; border-radius: 5px;
+    }
+    .player-name { font-size: 10.5pt; }
+    .player-name strong { font-size: 13pt; }
+    .player-date { font-size: 7.5pt; opacity: .8; }
+
+    .instrucao {
+      background: #fef9e7; border: 1px solid #f0c040; border-radius: 4px;
+      padding: 5px 10px; font-size: 7.5pt; line-height: 1.5; color: #555;
+    }
+
+    /* Grupos */
+    .section-title {
+      font-size: 8.5pt; font-weight: 700; color: #1a3a6e;
+      border-bottom: 1px solid #c8d6e5; padding-bottom: 3px; margin-top: 2px;
+    }
+    .grupos-grid { display: flex; gap: 8px; }
+    .grupos-col { flex: 1; display: flex; flex-direction: column; gap: 5px; }
+
+    .gt { width: 100%; border-collapse: collapse; font-size: 7.5pt; }
+    .gt thead tr:first-child th {
+      background: #1a3a6e; color: #fff; font-size: 7pt; text-align: left;
+      padding: 2px 5px; letter-spacing: .03em;
+    }
+    .gt thead tr.sub th {
+      background: #e8eef5; color: #444; font-size: 6.5pt; text-align: left;
+      padding: 2px 5px; border-bottom: 1px solid #c8d6e5;
+    }
+    .gt tbody td { padding: 2px 5px; border-bottom: 1px solid #e8eef5; }
+    .gt tbody tr:nth-child(odd) td { background: #f8fafc; }
+    .cod { width: 22px; font-weight: 700; color: #1a3a6e; white-space: nowrap; }
+    .eq  { color: #222; }
+    .prd { font-weight: 800; color: #c0392b; white-space: nowrap; text-align: center; width: 32px; }
+
+    /* KO */
+    .ko-table { width: 100%; border-collapse: collapse; font-size: 7.5pt; }
+    .ko-table th { background: #e8eef5; padding: 3px 7px; text-align: left; font-size: 7pt; }
+    .ko-table td { padding: 2px 7px; border-bottom: 1px solid #e8eef5; }
+    .ko-hdr td { background: #1a3a6e; color: #fff; font-size: 7pt; padding: 2px 7px; font-weight: 700; }
+    .ko-eq { color: #222; }
+
+    /* Observações */
+    .obs-title { margin-top: 3px; }
+    .obs-table { width: 100%; border-collapse: collapse; font-size: 7.5pt; }
+    .obs-table th {
+      background: #1a3a6e; color: #fff; padding: 3px 7px;
+      font-size: 7pt; text-align: left;
+    }
+    .obs-table td { padding: 5px 7px; border-bottom: 1px solid #ddd; height: 18px; }
+    .obs-table tbody tr:nth-child(odd) td { background: #fafafa; }
+    .obs-label { font-size: 6.5pt; color: #888; }
+
+    /* Declaração */
+    .declaracao {
+      border: 1.5px solid #1a3a6e; border-radius: 6px;
+      padding: 10px 14px; display: flex; flex-direction: column; gap: 8px;
+      margin-top: 3px;
+    }
+    .decl-title { font-size: 9pt; font-weight: 700; color: #1a3a6e; }
+    .decl-text { font-size: 7.5pt; line-height: 1.7; color: #333; }
+    .sign-row { display: flex; gap: 20px; margin-top: 4px; }
+    .sign-block { flex: 1; display: flex; flex-direction: column; gap: 4px; }
+    .sign-block-sm { flex: 0 0 160px; }
+    .sign-line { border-bottom: 1.5px solid #222; height: 28px; }
+    .sign-label { font-size: 7pt; color: #666; text-align: center; }
+
+    /* Footer */
+    .doc-footer {
+      margin-top: auto; padding-top: 6px; border-top: 1px solid #c8d6e5;
+      font-size: 6.5pt; color: #aaa; text-align: center;
+    }
+
+    @media print {
+      body { margin: 0; }
+      .page { margin: 0; padding: 10mm 13mm 9mm; }
+      @page { size: A4 portrait; margin: 0; }
+    }
+  `;
+
+  // ── Abrir nova janela ─────────────────────────────────────────────────────────
+  const w = window.open("", "_blank", "width=900,height=700");
+  w.document.write(`<!DOCTYPE html>
+<html lang="pt">
+<head>
+  <meta charset="UTF-8">
+  <title>Consentimento — Predictor Mundial 2026</title>
+  <style>${css}</style>
+</head>
+<body>
+  <div style="position:fixed;top:0;left:0;right:0;background:#1a3a6e;color:#fff;padding:8px 16px;z-index:999;display:flex;align-items:center;justify-content:space-between;font-family:Arial,sans-serif;font-size:9pt;">
+    <span>🖨️ Predictor Mundial 2026 — Folhas de Consentimento</span>
+    <span style="display:flex;gap:10px;">
+      <button onclick="window.print()" style="background:#f5a623;color:#0a0f1e;border:none;padding:6px 16px;border-radius:5px;font-weight:800;cursor:pointer;font-size:9pt;">🖨️ Imprimir / Guardar PDF</button>
+      <button onclick="window.close()" style="background:#444;color:#fff;border:none;padding:6px 12px;border-radius:5px;cursor:pointer;font-size:9pt;">✕ Fechar</button>
+    </span>
+  </div>
+  <div style="height:38px;"></div>
+  ${pages.join("\n")}
+</body>
+</html>`);
+  w.document.close();
+}
+
 // ─── RESET ────────────────────────────────────────────────────────────────────
 function resetResultados() {
   if (!confirm("Apagar todos os resultados da fase de grupos? Esta ação não pode ser desfeita.")) return;

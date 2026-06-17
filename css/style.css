@@ -54,6 +54,13 @@ body {
 }
 .btn-reset:hover { background: var(--danger); color: #fff; border-color: var(--danger); }
 
+.btn-consent {
+  background: transparent; border: 1px solid rgba(245,158,11,.5); color: #fbbf24;
+  padding: 6px 13px; border-radius: 7px; cursor: pointer; font-size: .78rem;
+  font-weight: 600; transition: all .2s;
+}
+.btn-consent:hover { background: #f59e0b; color: #0a0f1e; border-color: #f59e0b; }
+
 /* ─── TABS ───────────────────────────────────────────────────────────────────── */
 .tabs-nav {
   display: flex; background: var(--bg2);
