@@ -136,15 +136,16 @@ artigos = [
     ("Artigo 8.º",  "Classificação Geral"),
     ("Artigo 9.º",  "Critérios de Desempate"),
     ("Artigo 10.º", "Prémio e Penalização — O Jantar"),
-    ("Artigo 11.º", "Obrigações do Último Classificado"),
+    ("Artigo 11.º", "Obrigações dos Últimos 5 Classificados"),
     ("Artigo 12.º", "Ausência ao Jantar"),
-    ("Artigo 13.º", "Reclamações e Resolução de Disputas"),
-    ("Artigo 14.º", "Base de Dados e Verificação dos Prognósticos"),
-    ("Artigo 15.º", "Alteração de Prognósticos"),
-    ("Artigo 16.º", "Jogos Cancelados, Adiados ou com Resultado Anulado"),
-    ("Artigo 17.º", "Conduta e Fair-Play"),
-    ("Artigo 18.º", "Privacidade e Uso dos Dados"),
-    ("Artigo 19.º", "Disposições Finais"),
+    ("Artigo 13.º", "Suspense — Revelação dos Resultados no Jantar"),
+    ("Artigo 14.º", "Reclamações e Resolução de Disputas"),
+    ("Artigo 15.º", "Base de Dados e Verificação dos Prognósticos"),
+    ("Artigo 16.º", "Alteração de Prognósticos"),
+    ("Artigo 17.º", "Jogos Cancelados, Adiados ou com Resultado Anulado"),
+    ("Artigo 18.º", "Conduta e Fair-Play"),
+    ("Artigo 19.º", "Privacidade e Uso dos Dados"),
+    ("Artigo 20.º", "Disposições Finais"),
 ]
 for art, titulo in artigos:
     ip = doc.add_paragraph()
@@ -313,9 +314,15 @@ body(doc, "3.1  Cada participante preencheu previamente uma folha física com os
 body(doc, "3.2  Os prognósticos da fase de grupos foram registados na Base de Dados (BD) digital "
      "do Predictor antes do início do Campeonato do Mundo. Esta BD é a fonte oficial e definitiva "
      "de toda a pontuação.")
-body(doc, "3.3  Para os jogos do mata-mata, os participantes registam os seus prognósticos através "
-     "da aplicação digital do Predictor, disponível localmente.")
-body(doc, "3.4  A validade dos prognósticos está condicionada à verificação descrita no Artigo 14.º.")
+body(doc, "3.3  Para os jogos do mata-mata, os prognósticos são recolhidos digitalmente. "
+     "O organizador envia a cada participante, por mensagem digital (WhatsApp ou equivalente), "
+     "os jogos de cada fase eliminatória antes do seu início. Cada participante responde "
+     "com os seus prognósticos (resultado aos 90 minutos e equipa apurada) para cada jogo. "
+     "O organizador regista as respostas na aplicação do Predictor.")
+body(doc, "3.4  O envio dos prognósticos do mata-mata deve ser feito dentro do prazo "
+     "comunicado pelo organizador para cada fase. Respostas fora do prazo equivalem a "
+     "prognóstico em branco (0 pontos) para os jogos em causa.")
+body(doc, "3.5  A validade dos prognósticos está condicionada à verificação descrita no Artigo 14.º.")
 nota(doc, "Os prognósticos entregues em folha física têm precedência em caso de discrepância "
      "com a BD, desde que a situação seja reportada e devidamente documentada antes do apuramento "
      "final da classificação.")
@@ -442,69 +449,111 @@ nota(doc, "O desempate por sorteio (critério 6) é o único critério que envol
 
 # ──────────────────────────────────────────────────────────────────────────────
 art_title(doc, "Artigo 10.º", "Prémio e Penalização — O Jantar")
-body(doc, "10.1  O prémio simbólico do Predictor é o reconhecimento público do 1.º classificado. "
-     "A verdadeira aposta é a penalização do último classificado.")
-body(doc, "10.2  O participante que terminar em ÚLTIMO LUGAR (10.ª posição) na classificação final "
-     "é obrigado a pagar o jantar de grupo — um jantar a ser organizado e realizado após o "
-     "encerramento do Campeonato do Mundo 2026.")
-body(doc, "10.3  O jantar inclui:", sb=4)
-bullet(doc, "Refeição completa para todos os 10 participantes (entrada, prato principal e sobremesa).")
-bullet(doc, "Bebidas não alcoólicas incluídas.")
-bullet(doc, "Bebidas alcoólicas pagas individualmente por cada participante.")
-bullet(doc, "O restaurante é escolhido por votação simples (maioria) dos participantes, "
-       "excluindo o último classificado, que não tem direito de voto na escolha do local.")
-body(doc, "10.4  O último classificado paga o jantar na totalidade, sem divisão de custos. "
-     "Não existe teto máximo de despesa estabelecido, sendo assumido que o grupo escolherá "
-     "um restaurante razoável e adequado às circunstâncias.", sb=4)
-body(doc, "10.5  O 1.º classificado tem direito de escolher a data do jantar, "
-     "em coordenação com a disponibilidade geral do grupo.")
+body(doc, "10.1  O prémio do Predictor é o reconhecimento público dos 5 melhores classificados "
+     "e, sobretudo, o jantar pago pelos 5 piores. A competição divide-se entre vencedores e pagadores.")
+body(doc, "10.2  Sistema de pagamento do jantar:", sb=4)
+bullet(doc, "Os 5 participantes classificados nas posições 6.ª a 10.ª (os últimos 5) pagam o jantar.")
+bullet(doc, "Os 5 participantes classificados nas posições 1.ª a 5.ª (os primeiros 5) jantam gratuitamente.")
+bullet(doc, "O custo total do jantar é dividido em partes iguais pelos 5 últimos classificados.")
+body(doc, "10.3  O jantar inclui, por cada participante:", sb=4)
+bullet(doc, "Entrada.")
+bullet(doc, "Prato principal.")
+bullet(doc, "Bebidas (água, refrigerantes, vinho ou cerveja — incluídas na refeição).")
+bullet(doc, "Sobremesa.")
+body(doc, "10.4  Bebidas adicionais ou fora do menu combinado são pagas individualmente, "
+     "pelos vencedores ou pelos pagadores, consoante quem as consuma.", sb=4)
+body(doc, "10.5  O restaurante é escolhido por votação simples (maioria) dos 5 primeiros classificados. "
+     "Os 5 últimos classificados não têm direito de voto na escolha do local.")
+body(doc, "10.6  O 1.º classificado tem direito de escolher a data do jantar, "
+     "em coordenação com a disponibilidade geral do grupo.", sb=4)
+body(doc, "10.7  Cada um dos 5 últimos classificados paga a sua quota-parte no próprio dia do jantar, "
+     "antes de sair do restaurante. Não são aceites transferências diferidas salvo acordo "
+     "expresso dos 5 primeiros classificados.")
 
 exemplo(doc, "Cenário do Jantar", [
-    ("Situação:", "João Silva termina em 10.º lugar com 85 pontos."),
-    ("Consequência:", "João Silva paga o jantar completo para os 10 participantes."),
-    ("Escolha do restaurante:", "Votação dos 9 participantes restantes (João não vota)."),
+    ("1.º ao 5.º lugar:", "André, João Garcia, Hélio, Miguel, Luis — jantam de graça."),
+    ("6.º ao 10.º lugar:", "Vítor, Paulo, Ricardo, Rúben, José — pagam o jantar."),
+    ("Divisão do custo:", "Conta total ÷ 5 = quota de cada um dos últimos 5."),
+    ("Escolha do restaurante:", "Votação dos 5 primeiros (os últimos não votam)."),
     ("Data:", "Decidida pelo 1.º classificado, com consulta geral."),
 ])
 
 # ──────────────────────────────────────────────────────────────────────────────
-art_title(doc, "Artigo 11.º", "Obrigações do Último Classificado")
-body(doc, "11.1  O último classificado assume as seguintes obrigações específicas:")
+art_title(doc, "Artigo 11.º", "Obrigações dos Últimos 5 Classificados")
+body(doc, "11.1  Cada um dos 5 últimos classificados (posições 6.ª a 10.ª) assume as seguintes obrigações:")
 bullet(doc, "Confirmar a disponibilidade para o jantar nas primeiras 48 horas após a Final do Mundial.")
-bullet(doc, "Acordar o restaurante escolhido pelo grupo sem objeções.")
-bullet(doc, "Pagar a conta integralmente, incluindo todas as despesas da refeição.")
+bullet(doc, "Aceitar o restaurante escolhido pelos 5 primeiros sem objeções.")
+bullet(doc, "Pagar a sua quota-parte da conta no próprio dia do jantar.")
 bullet(doc, "Não impor restrições orçamentais ao grupo na escolha do restaurante — dentro do razoável.")
 bullet(doc, "Comparecer ao jantar (ver Artigo 12.º sobre ausência).")
-body(doc, "11.2  O último classificado tem pleno direito de participar no jantar e desfrutar da "
+body(doc, "11.2  Os últimos 5 classificados têm pleno direito de participar no jantar e desfrutar da "
      "noite como qualquer outro convidado. A penalização é financeira, não social.", sb=4)
-body(doc, "11.3  O pagamento deve ser efetuado no próprio dia do jantar, antes de sair do "
-     "restaurante, diretamente ao estabelecimento. Não são aceites transferências diferidas "
-     "salvo acordo expresso de todos os participantes.")
+body(doc, "11.3  Em caso de desistência de algum dos 5 primeiros (que jantam de graça), "
+     "a sua vaga não é transferível nem gera redução no valor pago pelos últimos 5.")
 
 # ──────────────────────────────────────────────────────────────────────────────
 art_title(doc, "Artigo 12.º", "Ausência ao Jantar")
-body(doc, "12.1  A presença no jantar é altamente encorajada para todos os participantes, "
-     "mas voluntária para os classificados do 1.º ao 9.º lugar.")
-body(doc, "12.2  Para o ÚLTIMO CLASSIFICADO, o jantar é obrigatório sob pena das "
-     "sanções previstas neste artigo.")
-body(doc, "12.3  Se o último classificado não comparecer ao jantar SEM justificação válida "
-     "(ver n.º 12.4), aplica-se a seguinte penalização alternativa:", sb=4)
-bullet(doc, "Pagamento por transferência bancária do valor total do jantar ao 1.º classificado, "
+body(doc, "12.1  A presença no jantar é voluntária para os 5 primeiros classificados. "
+     "Se algum dos 5 primeiros não puder comparecer, a sua quota é simplesmente não paga — "
+     "os últimos 5 não ficam beneficiados por isso.")
+body(doc, "12.2  Para os 5 ÚLTIMOS CLASSIFICADOS, a presença é obrigatória sob pena das "
+     "sanções previstas neste artigo.", sb=4)
+body(doc, "12.3  Se algum dos 5 últimos não comparecer SEM justificação válida "
+     "(ver n.º 12.5), aplica-se:", sb=4)
+bullet(doc, "Pagamento por transferência bancária da sua quota-parte ao 1.º classificado, "
        "que redistribui ao grupo consoante os custos reais.")
-bullet(doc, "Publicação de mensagem de rendição no grupo de WhatsApp do grupo, "
-       "reconhecendo a derrota de forma explícita.")
-bullet(doc, "Organização de um segundo jantar em data futura, a ser definida pelo grupo.")
-body(doc, "12.4  Constituem justificações válidas para ausência:", sb=4)
+bullet(doc, "Publicação de mensagem de rendição no grupo de WhatsApp, "
+       "reconhecendo publicamente a derrota.")
+bullet(doc, "Obrigação de organizar um segundo jantar em data futura, a definir pelo grupo.")
+body(doc, "12.4  Se vários dos 5 últimos faltarem sem justificação, cada um enfrenta "
+     "as penalizações acima de forma individual e cumulativa.", sb=4)
+body(doc, "12.5  Constituem justificações válidas para ausência:", sb=4)
 bullet(doc, "Doença grave devidamente documentada (declaração médica).")
 bullet(doc, "Emergência familiar de primeiro grau.")
 bullet(doc, "Ausência do país por motivos profissionais inadiáveis.")
-bullet(doc, "Qualquer outro motivo aceite por unanimidade dos restantes participantes.")
-body(doc, "12.5  Em caso de ausência justificada, o jantar é remarcado para data conveniente "
-     "para a maioria. O último classificado continua obrigado a pagar.", sb=4)
+bullet(doc, "Qualquer outro motivo aceite por unanimidade dos 5 primeiros classificados.")
+body(doc, "12.6  Em caso de ausência justificada de qualquer dos 5 últimos, "
+     "o jantar é remarcado para data conveniente para a maioria. "
+     "A obrigação de pagamento mantém-se.", sb=4)
 nota(doc, "«Não me apetece sair» e «tenho muito trabalho» não constituem justificações válidas. "
-     "O regulamento é claro: o jantar é uma obrigação assumida no momento da inscrição.")
+     "O jantar é uma obrigação assumida no momento da inscrição e aceite neste regulamento.")
 
 # ──────────────────────────────────────────────────────────────────────────────
-art_title(doc, "Artigo 13.º", "Reclamações e Resolução de Disputas")
+art_title(doc, "Artigo 13.º", "Suspense — Revelação dos Resultados no Jantar")
+body(doc, "13.1  Um dos momentos centrais do Predictor é a revelação pública e dramática da "
+     "classificação final e dos prognósticos individuais de cada participante. "
+     "Para preservar o suspense e maximizar o entretenimento no jantar, aplicam-se as "
+     "seguintes regras de confidencialidade.")
+body(doc, "13.2  Até ao momento da revelação no jantar:", sb=4)
+bullet(doc, "Nenhum participante conhece os prognósticos detalhados dos outros participantes.")
+bullet(doc, "O organizador não divulga a classificação provisória nem os pontos individuais "
+       "de cada participante a terceiros.")
+bullet(doc, "A aplicação do Predictor pode ser consultada pelo organizador, "
+       "mas os dados não são partilhados publicamente antes do jantar.")
+body(doc, "13.3  A revelação dos resultados é feita a meio do jantar, num momento cerimonial "
+     "organizado pelo 1.º classificado ou pelo organizador, da seguinte forma sugerida:", sb=4)
+numbered(doc, "1", "Anúncio da pontuação total de cada participante, do 10.º para o 1.º lugar.")
+numbered(doc, "2", "Revelação dos prognósticos mais marcantes (mais exatos, mais errados, mais ousados).")
+numbered(doc, "3", "Entrega simbólica do troféu ou reconhecimento ao 1.º classificado.")
+numbered(doc, "4", "Momento de 'shame' saudável dos 5 últimos classificados, que nessa altura já sabem quem paga.")
+body(doc, "13.4  A ordem e o formato da revelação podem ser adaptados pelo organizador "
+     "consoante o ambiente e dinâmica do grupo no jantar.", sb=4)
+body(doc, "13.5  É expressamente proibido divulgar a classificação final ou os prognósticos "
+     "detalhados de outros participantes antes do jantar, seja por WhatsApp, redes sociais "
+     "ou qualquer outro meio. Quem o fizer estraga o suspense e merece olhares de reprovação geral.")
+nota(doc, "O suspense é parte integrante da experiência. Saber que pode estar nos últimos 5 "
+     "mas não saber ao certo até ao jantar torna a noite muito mais especial. "
+     "Respeitem o processo.")
+
+exemplo(doc, "Momento da Revelação no Jantar", [
+    ("A meio do jantar:", "O organizador abre o portátil/telemóvel com a aplicação do Predictor."),
+    ("Anúncio dramático:", "«Em 10.º lugar, com X pontos... [pausa]... FULANO!»"),
+    ("Reação esperada:", "Gargalhadas, espanto, reclamações amigáveis, alívio dos vencedores."),
+    ("Clímax:", "Revelação do 1.º classificado e dos prognósticos mais certeiros."),
+])
+
+# ──────────────────────────────────────────────────────────────────────────────
+art_title(doc, "Artigo 14.º", "Reclamações e Resolução de Disputas")
 body(doc, "13.1  Qualquer participante que discorde de uma pontuação atribuída, de um resultado "
      "introduzido, ou de qualquer decisão operacional do Predictor, pode apresentar reclamação "
      "formal nos termos deste artigo.")
@@ -547,7 +596,7 @@ exemplo(doc, "Reclamação Inválida", [
 ])
 
 # ──────────────────────────────────────────────────────────────────────────────
-art_title(doc, "Artigo 14.º", "Base de Dados e Verificação dos Prognósticos")
+art_title(doc, "Artigo 15.º", "Base de Dados e Verificação dos Prognósticos")
 body(doc, "14.1  A Base de Dados (BD) digital do Predictor é a fonte oficial de todos os "
      "prognósticos e resultados. É gerida pelo organizador e acessível a todos os participantes "
      "através da aplicação local.")
@@ -559,14 +608,14 @@ body(doc, "14.3  Se um participante detetar discrepâncias entre a sua folha ori
 body(doc, "14.4  A folha original entregue na inscrição tem precedência sobre a BD em caso "
      "de discrepância comprovada. O participante deve apresentar a folha original ou cópia "
      "legível como evidência.")
-body(doc, "14.5  Os prognósticos do mata-mata são registados diretamente na aplicação pelo "
-     "participante. Não existe folha física para o mata-mata. O registo na aplicação é "
-     "definitivo e irrevogável após o início do jogo a que se referem.", sb=4)
+body(doc, "15.5  Os prognósticos do mata-mata são enviados digitalmente pelo participante "
+     "ao organizador (conforme Artigo 3.º) e registados na aplicação. "
+     "O registo é definitivo e irrevogável após o início do jogo a que se referem.", sb=4)
 nota(doc, "A BD é apenas tão boa quanto os dados introduzidos. Qualquer discrepância deve ser "
      "reportada imediatamente. Após o prazo de reclamação, os dados da BD são definitivos.")
 
 # ──────────────────────────────────────────────────────────────────────────────
-art_title(doc, "Artigo 15.º", "Alteração de Prognósticos")
+art_title(doc, "Artigo 16.º", "Alteração de Prognósticos")
 body(doc, "15.1  Os prognósticos da fase de grupos são registados antes do início do torneio "
      "e são imutáveis após o arranque da competição, salvo no âmbito do processo de verificação "
      "descrito no Artigo 14.º.")
@@ -581,7 +630,7 @@ nota(doc, "«Não consegui registar a tempo» não é justificação para altera
      "atempadamente. A gestão do tempo é parte integrante da competição.")
 
 # ──────────────────────────────────────────────────────────────────────────────
-art_title(doc, "Artigo 16.º", "Jogos Cancelados, Adiados ou com Resultado Anulado")
+art_title(doc, "Artigo 17.º", "Jogos Cancelados, Adiados ou com Resultado Anulado")
 body(doc, "16.1  Se um jogo for adiado mas realizado dentro do calendário oficial da FIFA, "
      "o resultado é introduzido na data efetiva do jogo. Os prognósticos mantêm-se válidos.")
 body(doc, "16.2  Se um jogo for cancelado definitivamente pela FIFA ou equivalente, "
@@ -596,7 +645,7 @@ nota(doc, "O Predictor segue o resultado oficial final reconhecido pela FIFA, "
      "independentemente das circunstâncias que levaram a esse resultado.")
 
 # ──────────────────────────────────────────────────────────────────────────────
-art_title(doc, "Artigo 17.º", "Conduta e Fair-Play")
+art_title(doc, "Artigo 18.º", "Conduta e Fair-Play")
 body(doc, "17.1  Todos os participantes comprometem-se a participar com espírito de fair-play, "
      "honestidade e boa disposição.")
 body(doc, "17.2  São consideradas infrações graves:")
@@ -613,7 +662,7 @@ body(doc, "17.4  A desqualificação não isenta o participante da obrigação d
      "caso tenha terminado em último lugar antes da desqualificação.", sb=4)
 
 # ──────────────────────────────────────────────────────────────────────────────
-art_title(doc, "Artigo 18.º", "Privacidade e Uso dos Dados")
+art_title(doc, "Artigo 19.º", "Privacidade e Uso dos Dados")
 body(doc, "18.1  Os dados pessoais dos participantes (nome e prognósticos) são utilizados "
      "exclusivamente no âmbito do Predictor, para efeitos de pontuação, classificação e "
      "geração de documentos de verificação.")
@@ -628,7 +677,7 @@ body(doc, "18.4  Os prognósticos de cada participante não são divulgados a ou
      "A divulgação pode ser feita no final do torneio, com consentimento de todos.")
 
 # ──────────────────────────────────────────────────────────────────────────────
-art_title(doc, "Artigo 19.º", "Disposições Finais")
+art_title(doc, "Artigo 20.º", "Disposições Finais")
 body(doc, "19.1  O presente regulamento entra em vigor no momento da inscrição do participante "
      "e mantém-se válido até ao encerramento completo do Predictor, incluindo a realização do jantar.")
 body(doc, "19.2  O organizador reserva-se o direito de clarificar, interpretar e, em casos "
