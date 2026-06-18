@@ -253,7 +253,7 @@ function renderResultados(resultados) {
           value="${val}" data-codigo="${j.codigo}" maxlength="7" /></td>
         <td class="res-estado-cell">
           ${liveBadge}
-          <span class="estado-badge ${ft ? "estado-ft" : "estado-pendente"}">${ft ? "✅ FT" : "⏳ PEND."}</span>
+          <span class="estado-badge ${ft ? "estado-ft" : "estado-pendente"}">${ft ? "FT" : "Pend."}</span>
           ${ft ? `<button class="btn-wa-jogo" onclick="showWAModal('${j.codigo}')" title="Resumo WhatsApp">💬</button>` : ""}
         </td>
       </tr>`;

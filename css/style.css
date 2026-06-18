@@ -404,13 +404,15 @@ body {
 @keyframes shake { 0%,100%{transform:translateX(0)} 25%{transform:translateX(-6px)} 75%{transform:translateX(6px)} }
 
 .estado-badge {
-  display: inline-flex; align-items: center; gap: 4px;
-  padding: 4px 10px; border-radius: 999px; font-size: .68rem; font-weight: 800;
+  display: inline-flex; align-items: center; justify-content: center;
+  gap: 4px; white-space: nowrap; flex-shrink: 0;
+  padding: 5px 10px; border-radius: 999px; font-size: .68rem; font-weight: 800;
+  line-height: 1;
 }
 .estado-ft       { background: var(--emerald-dim); color: var(--emerald); border: 1px solid rgba(52,211,153,.25); }
 .estado-pendente { background: var(--glass); color: var(--muted); border: 1px solid var(--glass-border); }
 
-.res-estado-cell { display: flex; align-items: center; gap: 8px; }
+.res-estado-cell { display: flex; align-items: center; gap: 8px; flex-wrap: nowrap; }
 .btn-wa-jogo {
   background: linear-gradient(135deg, #25d366, #128c7e);
   border: none; color: #fff; width: 34px; height: 34px; border-radius: 50%;
@@ -444,12 +446,12 @@ body {
 .cls-table td:nth-child(2) { text-align: left; font-weight: 600; }
 .cls-table tr:last-child td { border-bottom: none; }
 .cls-table tr:hover td { background: var(--glass-hover); }
+.cls-table tr:hover td.pts-col { color: var(--gold); }
 
 .pos-col { font-size: 1.1rem; font-weight: 900; width: 52px; color: var(--muted); }
 .pts-col {
   font-family: var(--mono); font-size: 1.2rem; font-weight: 800;
-  background: linear-gradient(135deg, var(--gold), #fde68a);
-  -webkit-background-clip: text; -webkit-text-fill-color: transparent; background-clip: text;
+  color: var(--gold);
 }
 
 .cls-table tr.pos-1 { background: linear-gradient(90deg, rgba(255,215,0,.12), transparent); }
