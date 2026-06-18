@@ -533,7 +533,10 @@ function renderWhatsapp(resultados) {
       </div>
       <div class="wa-preview">${waPreview(msgCls)}</div>
       <textarea class="wa-textarea" id="wa-geral" readonly>${msgCls}</textarea>
-      <button class="btn-copy" onclick="copyWA('wa-geral')">📋 Copiar para WhatsApp</button>
+      <div class="wa-modal-actions">
+        <button class="btn-copy" onclick="copyWA('wa-geral')">📋 Copiar</button>
+        <button class="btn-wa-send" onclick="window.open('https://wa.me/?text='+encodeURIComponent(document.getElementById('wa-geral').value),'_blank')">💬 Abrir no WhatsApp</button>
+      </div>
     </div>
   </div>`;
 }
@@ -564,8 +567,14 @@ function copyWAModal() {
   const btn = document.getElementById("wa-modal-copy-btn");
   navigator.clipboard.writeText(ta.value).then(() => {
     btn.textContent = "✅ Copiado!";
-    setTimeout(() => { btn.textContent = "📋 Copiar para WhatsApp"; }, 2500);
+    setTimeout(() => { btn.textContent = "📋 Copiar"; }, 2500);
   }).catch(() => { ta.select(); document.execCommand("copy"); });
+}
+
+function sendWAModal() {
+  const text = document.getElementById("wa-modal-textarea").value;
+  const url  = "https://wa.me/?text=" + encodeURIComponent(text);
+  window.open(url, "_blank");
 }
 
 // Render a WhatsApp-like preview of the message
@@ -1571,6 +1580,8 @@ function showApp() {
   }
   getResultados();
   switchTab("resultados");
+  // Arrancar sincronização automática de resultados (a cada 5 min)
+  apiStartAutoSync(5 * 60 * 1000);
 }
 
 // ─── INIT ─────────────────────────────────────────────────────────────────────

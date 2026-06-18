@@ -447,12 +447,24 @@ body {
   font-family: "SF Mono","Fira Code","Consolas", monospace;
   font-size: .72rem; line-height: 1.55; resize: vertical;
 }
+.wa-modal-actions {
+  display: flex; gap: 10px; margin-top: 4px;
+}
+.wa-modal-actions .btn-copy,
+.wa-modal-actions .btn-wa-send { flex: 1; text-align: center; }
 .btn-copy {
+  background: #128c7e; color: #fff; border: none; padding: 11px 18px;
+  border-radius: 8px; font-weight: 700; cursor: pointer; font-size: .88rem;
+  transition: all .2s; box-shadow: 0 2px 8px rgba(18,140,126,.3);
+}
+.btn-copy:hover { background: #075e54; box-shadow: 0 4px 14px rgba(18,140,126,.5); }
+.btn-wa-send {
   background: #25d366; color: #fff; border: none; padding: 11px 18px;
   border-radius: 8px; font-weight: 700; cursor: pointer; font-size: .88rem;
   transition: all .2s; box-shadow: 0 2px 8px rgba(37,211,102,.3);
+  display: inline-flex; align-items: center; justify-content: center; gap: 6px;
 }
-.btn-copy:hover { background: #1db954; box-shadow: 0 4px 14px rgba(37,211,102,.5); }
+.btn-wa-send:hover { background: #1db954; box-shadow: 0 4px 14px rgba(37,211,102,.5); transform: translateY(-1px); }
 .wa-empty {
   text-align: center; padding: 48px 20px; color: var(--muted);
   background: var(--bg2); border-radius: var(--radius);
@@ -758,6 +770,22 @@ body {
 }
 .login-btn:disabled { opacity: .5; cursor: not-allowed; }
 .login-note { font-size: .72rem; color: #8899aa; margin-top: 14px; }
+
+/* ─── SYNC BUTTON & STATUS ──────────────────────────────────────────────────── */
+.btn-sync {
+  background: rgba(59,130,246,.12); border: 1px solid rgba(59,130,246,.25);
+  color: #93c5fd; padding: 6px 12px; border-radius: 8px; cursor: pointer;
+  font-size: .78rem; font-weight: 700; transition: all .2s;
+}
+.btn-sync:hover { background: rgba(59,130,246,.25); }
+.api-status {
+  font-size: .72rem; font-weight: 600; padding: 5px 10px; border-radius: 6px;
+  max-width: 280px; white-space: nowrap; overflow: hidden; text-overflow: ellipsis;
+}
+.api-status-ok      { background: rgba(16,185,129,.1); color: #6ee7b7; border: 1px solid rgba(16,185,129,.2); }
+.api-status-syncing { background: rgba(59,130,246,.1);  color: #93c5fd;  border: 1px solid rgba(59,130,246,.2); }
+.api-status-warn    { background: rgba(245,158,11,.1);  color: #fcd34d;  border: 1px solid rgba(245,158,11,.2); }
+.api-status-error   { background: rgba(239,68,68,.1);   color: #fca5a5;  border: 1px solid rgba(239,68,68,.2); }
 
 /* ─── HEADER USER / LOGOUT ──────────────────────────────────────────────────── */
 .header-user {
