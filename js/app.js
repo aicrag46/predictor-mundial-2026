@@ -415,11 +415,11 @@ function renderRevisao(resultados) {
   </div>`;
 
   html += `<div class="revisao-legenda revisao-legenda-top">
-    <span class="tipo-pill tipo-exato">Exato · 5p</span>
-    <span class="tipo-pill tipo-ve">VE · 2p</span>
-    <span class="tipo-pill tipo-golos">Golos · 1p</span>
-    <span class="tipo-pill tipo-nao">Nada · 0p</span>
-    <span class="tipo-pill tipo-pendente">Pendente</span>
+    <span class="rev-leg rev-leg-exato">Exato · 5p</span>
+    <span class="rev-leg rev-leg-ve">VE · 2p</span>
+    <span class="rev-leg rev-leg-golos">Golos · 1p</span>
+    <span class="rev-leg rev-leg-nao">Nada · 0p</span>
+    <span class="rev-leg rev-leg-pend">Pendente</span>
   </div>`;
 
   html += `<div class="revisao-scroll"><table class="revisao-table">
@@ -459,14 +459,8 @@ function renderRevisao(resultados) {
         continue;
       }
       const tipo = getTipo(pred.casa, pred.fora, r?.gc, r?.gf);
-      const pts  = getPontos(tipo);
       const res  = `${pred.casa}-${pred.fora}`;
-      html += `<td class="rev-cell ${TIPO_CSS[tipo]}">
-        <span class="rev-pred">${res}</span>
-        ${r
-          ? `<span class="rev-meta"><span class="tipo-pill ${TIPO_CSS[tipo]}">${tipoAbr(tipo)}</span><span class="rev-pts">${pts}p</span></span>`
-          : `<span class="rev-meta rev-meta-pend">—</span>`}
-      </td>`;
+      html += `<td class="rev-cell ${TIPO_CSS[tipo]}" title="${tipoAbr(tipo)}">${res}</td>`;
     }
     html += `</tr>`;
   }
