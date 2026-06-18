@@ -663,8 +663,8 @@ body {
 .pts-col { font-family: var(--mono); font-size: 1.2rem; font-weight: 800; color: var(--gold); }
 
 .cls-table tr.pos-1 { background: rgba(184, 134, 11, 0.12); }
-.cls-table tr.pos-2 { background: #f8fafc; }
-.cls-table tr.pos-3 { background: #fff7ed; }
+.cls-table tr.pos-2 { background: rgba(148, 163, 184, 0.08); }
+.cls-table tr.pos-3 { background: rgba(180, 83, 9, 0.1); }
 .cls-table tr.paga-nao { border-left: 3px solid var(--emerald); }
 .cls-table tr.paga-sim  { border-left: 3px solid var(--danger); }
 

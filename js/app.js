@@ -347,33 +347,6 @@ function onResultadoChange(inp) {
 }
 
 // ─── TAB: CLASSIFICAÇÃO ──────────────────────────────────────────────────────
-function renderPodiumCard(s, pos) {
-  const medal = pos === 1 ? "🥇" : pos === 2 ? "🥈" : "🥉";
-  const short = s.nome.split(" ")[0];
-  return `<div class="podium-card ${s.paga ? "paga-sim" : "paga-nao"}">
-    <div class="podium-medal">${medal}</div>
-    <div class="podium-name" title="${s.nome}">${short}</div>
-    <div class="podium-pts">${s.pts}<span>pts</span></div>
-    <div class="podium-detail">✅ ${s.exatos} · ⚽ ${s.ve} · 🎯 ${s.golos}</div>
-    <span class="jantar-badge ${s.paga ? "paga" : "nao-paga"}">${s.paga ? "🍽️ PAGA" : "🎉 LIVRE"}</span>
-  </div>`;
-}
-
-function renderClsRow(s) {
-  return `<div class="cls-row ${s.paga ? "paga-sim" : "paga-nao"}">
-    <span class="cls-row-pos">${s.pos}</span>
-    <span class="cls-row-name">${s.nome}</span>
-    <span class="cls-row-stats">
-      <span title="Exatos">✅ ${s.exatos}</span>
-      <span title="VE">⚽ ${s.ve}</span>
-      <span title="Golos">🎯 ${s.golos}</span>
-      <span title="Não pontuou">❌ ${s.naoPontua}</span>
-    </span>
-    <span class="cls-row-pts">${s.pts}</span>
-    <span class="jantar-badge ${s.paga ? "paga" : "nao-paga"}">${s.paga ? "🍽️ PAGA" : "🎉 LIVRE"}</span>
-  </div>`;
-}
-
 function renderClassificacao(resultados) {
   const cls = calcClassificacao(resultados);
   const jogados = DADOS.jogos.filter(j => resultados[j.codigo]).length;
@@ -387,18 +360,25 @@ function renderClassificacao(resultados) {
   </div>`;
   html += renderProgressBar(jogados, DADOS.jogos.length, "⚽ Progresso da competição");
 
-  if (cls.length >= 3) {
-    html += `<div class="podium">
-      <div class="podium-slot podium-2">${renderPodiumCard(cls[1], 2)}</div>
-      <div class="podium-slot podium-1">${renderPodiumCard(cls[0], 1)}</div>
-      <div class="podium-slot podium-3">${renderPodiumCard(cls[2], 3)}</div>
-    </div>`;
+  html += `<div class="preds-section"><div class="preds-gs-scroll">
+    <table class="preds-table cls-table">
+      <thead><tr>
+        <th>#</th><th>Participante</th>
+        <th>Pts</th><th>✅</th><th>⚽</th><th>🎯</th><th>❌</th><th>Jantar</th>
+      </tr></thead><tbody>`;
+
+  for (const s of cls) {
+    const posLabel = s.pos === 1 ? "🥇" : s.pos === 2 ? "🥈" : s.pos === 3 ? "🥉" : s.pos;
+    html += `<tr class="pos-${s.pos <= 3 ? s.pos : ""} ${s.paga ? "paga-sim" : "paga-nao"}">
+      <td class="pos-col">${posLabel}</td>
+      <td class="nome-col"><strong>${s.nome}</strong></td>
+      <td class="pts-col"><strong>${s.pts}</strong></td>
+      <td>${s.exatos}</td><td>${s.ve}</td><td>${s.golos}</td><td>${s.naoPontua}</td>
+      <td><span class="jantar-badge ${s.paga ? "paga" : "nao-paga"}">${s.paga ? "🍽️ PAGA" : "🎉 LIVRE"}</span></td>
+    </tr>`;
   }
 
-  html += `<div class="cls-list">`;
-  const rest = cls.length >= 3 ? cls.slice(3) : cls;
-  for (const s of rest) html += renderClsRow(s);
-  html += `</div>`;
+  html += `</tbody></table></div></div>`;
 
   html += `<div class="cls-legenda">
     <span class="legenda-item paga-nao-ex">Top 5 — Não paga jantar</span>
