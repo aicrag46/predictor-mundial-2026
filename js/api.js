@@ -13,6 +13,7 @@ const API_TEAM_MAP = {
   "Canada":                  "Canadá",
   "Bosnia and Herzegovina":  "Bósnia e Herzegovina",
   "Bosnia & Herzegovina":    "Bósnia e Herzegovina",
+  "Bosnia-H.":               "Bósnia e Herzegovina",
   "Qatar":                   "Catar",
   "Switzerland":             "Suíça",
   "Brazil":                  "Brasil",
@@ -92,24 +93,20 @@ let _apiSyncing  = false;
 let _apiInterval = null;
 
 // ─── Buscar e aplicar resultados ──────────────────────────────────────────────
+const API_PROXY_URL = "/.netlify/functions/football-results";
+
 async function apiFetch() {
-  const token = (typeof FOOTBALL_DATA_TOKEN !== "undefined") ? FOOTBALL_DATA_TOKEN : null;
-  if (!token || token.includes("XXXXX")) {
-    showApiStatus("⚠️ Token não configurado", "warn");
-    return 0;
-  }
   if (_apiSyncing) return 0;
   _apiSyncing = true;
   showApiStatus("🔄 A sincronizar…", "syncing");
 
   try {
-    const res = await fetch(
-      "https://api.football-data.org/v4/competitions/WC/matches?status=FINISHED",
-      { headers: { "X-Auth-Token": token } }
-    );
+    const res = await fetch(API_PROXY_URL);
     if (!res.ok) {
       const txt = await res.text();
-      throw new Error(`HTTP ${res.status}: ${txt.slice(0, 120)}`);
+      let msg = txt.slice(0, 120);
+      try { msg = JSON.parse(txt).error || msg; } catch {}
+      throw new Error(`HTTP ${res.status}: ${msg}`);
     }
     const json = await res.json();
     const matches = json.matches || [];
@@ -155,7 +152,10 @@ async function apiFetch() {
     return updated;
   } catch (e) {
     console.error("[API] Erro:", e);
-    showApiStatus("❌ Erro: " + e.message.slice(0, 80), "error");
+    const hint = location.protocol === "file:"
+      ? "Abre via Netlify ou localhost (não file://)"
+      : e.message.slice(0, 80);
+    showApiStatus("❌ Erro: " + hint, "error");
     return 0;
   } finally {
     _apiSyncing = false;
