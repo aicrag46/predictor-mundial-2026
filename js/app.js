@@ -20,14 +20,10 @@ const FLAGS = {
 };
 const fl = t => (FLAGS[t] || "🏳") + " " + t;
 
-// ─── RESULTADOS (localStorage) ───────────────────────────────────────────────
-const LS_KEY = "predictor_resultados_2026";
-
+// ─── RESULTADOS ──────────────────────────────────────────────────────────────
 function getResultados() {
-  try {
-    const r = localStorage.getItem(LS_KEY);
-    if (r) return JSON.parse(r);
-  } catch {}
+  const r = dbGet(DB_KEYS.RESULTADOS);
+  if (r) return r;
   const init = {};
   let ts0 = Date.now() - DADOS.jogos.length * 1000;
   for (const j of DADOS.jogos) {
@@ -38,7 +34,7 @@ function getResultados() {
   saveResultados(init);
   return init;
 }
-function saveResultados(r) { localStorage.setItem(LS_KEY, JSON.stringify(r)); }
+function saveResultados(r) { dbSet(DB_KEYS.RESULTADOS, r); }
 
 // ─── SCORING FASE DE GRUPOS (não cumulativo) ─────────────────────────────────
 function vit(a, b) { return a > b ? "c" : b > a ? "f" : "e"; }
@@ -159,7 +155,6 @@ const TIPO_CSS = {
 };
 
 // ─── MATA-MATA ───────────────────────────────────────────────────────────────
-const LS_MM_KEY = "predictor_matamata_2026";
 const MM_ROUNDS = [
   { id: "r32", name: "Round of 32",      count: 16, abbr: "R32" },
   { id: "r16", name: "Oitavos de Final", count: 8,  abbr: "R16" },
@@ -171,10 +166,8 @@ const MM_ROUNDS = [
 const MM_SEQ = ["r32", "r16", "qf", "sf", "f"]; // main bracket (tp is parallel)
 
 function getMataMata() {
-  try {
-    const s = localStorage.getItem(LS_MM_KEY);
-    if (s) return JSON.parse(s);
-  } catch {}
+  const s = dbGet(DB_KEYS.MATAMATA);
+  if (s) return s;
   return initMataMata();
 }
 function initMataMata() {
@@ -187,7 +180,7 @@ function initMataMata() {
   saveMataMata(mm);
   return mm;
 }
-function saveMataMata(mm) { localStorage.setItem(LS_MM_KEY, JSON.stringify(mm)); }
+function saveMataMata(mm) { dbSet(DB_KEYS.MATAMATA, mm); }
 
 function mmWinner(game) {
   if (game.gc === null || game.gf === null) return null;
@@ -801,21 +794,18 @@ function onMMPen(btn) {
 
 function resetMataMata() {
   if (!confirm("Apagar todos os dados do Mata-Mata?")) return;
-  localStorage.removeItem(LS_MM_KEY);
+  dbRemove(DB_KEYS.MATAMATA);
   mmActiveRound = "r32";
   renderMataMata(initMataMata());
 }
 
 // ─── PREVISÕES ────────────────────────────────────────────────────────────────
-const LS_GS_OV_KEY = "preds_gs_overrides_2026";
-const LS_KO_PK_KEY = "preds_ko_2026";
 
 // ── GS overrides ──────────────────────────────────────────────────────────────
 function getGSOverrides() {
-  try { const s = localStorage.getItem(LS_GS_OV_KEY); if (s) return JSON.parse(s); } catch {}
-  return {};
+  return dbGet(DB_KEYS.GS_OVERRIDES) || {};
 }
-function saveGSOverrides(o) { localStorage.setItem(LS_GS_OV_KEY, JSON.stringify(o)); }
+function saveGSOverrides(o) { dbSet(DB_KEYS.GS_OVERRIDES, o); }
 
 function getGSPredFor(pi, codigo) {
   const ov = getGSOverrides();
@@ -826,10 +816,9 @@ function getGSPredFor(pi, codigo) {
 
 // ── KO predictions ────────────────────────────────────────────────────────────
 function getKOPredsAll() {
-  try { const s = localStorage.getItem(LS_KO_PK_KEY); if (s) return JSON.parse(s); } catch {}
-  return {};
+  return dbGet(DB_KEYS.KO_PREDS) || {};
 }
-function saveKOPredsAll(p) { localStorage.setItem(LS_KO_PK_KEY, JSON.stringify(p)); }
+function saveKOPredsAll(p) { dbSet(DB_KEYS.KO_PREDS, p); }
 
 function getKOPredFor(pi, roundId, idx) {
   return getKOPredsAll()[pi]?.[`${roundId}:${idx}`] || null;
@@ -1536,12 +1525,78 @@ function gerarConsentimento() {
 // ─── RESET ────────────────────────────────────────────────────────────────────
 function resetResultados() {
   if (!confirm("Apagar todos os resultados da fase de grupos? Esta ação não pode ser desfeita.")) return;
-  localStorage.removeItem(LS_KEY);
+  dbRemove(DB_KEYS.RESULTADOS);
   renderTab(activeTab);
 }
 
-// ─── INIT ─────────────────────────────────────────────────────────────────────
-document.addEventListener("DOMContentLoaded", () => {
+// ─── LOGIN UI ────────────────────────────────────────────────────────────────
+async function doLogin() {
+  const email = document.getElementById("login-email").value.trim();
+  const pass  = document.getElementById("login-password").value;
+  const btn   = document.getElementById("login-btn");
+  const err   = document.getElementById("login-error");
+  err.style.display = "none";
+  btn.textContent = "A entrar…";
+  btn.disabled = true;
+  try {
+    await dbLogin(email, pass);
+    await dbLoadAll();
+    showApp();
+  } catch (e) {
+    err.textContent = "❌ " + (e.message || "Credenciais inválidas");
+    err.style.display = "block";
+    btn.textContent = "Entrar";
+    btn.disabled = false;
+  }
+}
+
+async function doLogout() {
+  if (!confirm("Sair da sessão?")) return;
+  await dbLogout();
+  document.getElementById("login-overlay").style.display = "flex";
+  document.getElementById("login-password").value = "";
+  document.getElementById("login-note").textContent = "Sessão terminada.";
+  document.getElementById("header-user").style.display = "none";
+  document.getElementById("btn-logout").style.display = "none";
+}
+
+function showApp() {
+  document.getElementById("login-overlay").style.display = "none";
+  const u = dbCurrentUser();
+  if (u) {
+    const el = document.getElementById("header-user");
+    el.textContent = "👤 " + (u.email || "").split("@")[0];
+    el.style.display = "inline-flex";
+    document.getElementById("btn-logout").style.display = "inline-flex";
+  }
   getResultados();
   switchTab("resultados");
+}
+
+// ─── INIT ─────────────────────────────────────────────────────────────────────
+document.addEventListener("DOMContentLoaded", async () => {
+  const overlay = document.getElementById("login-overlay");
+  const note    = document.getElementById("login-note");
+
+  if (!dbIsConfigured()) {
+    // Supabase não configurado → modo local (funciona como antes)
+    note.textContent = "⚠️ Modo local (Supabase não configurado)";
+    overlay.style.display = "none";
+    getResultados();
+    switchTab("resultados");
+    return;
+  }
+
+  note.textContent = "A verificar sessão…";
+  const user = await dbInit();
+  if (user) {
+    // Sessão ativa → carregar dados e arrancar
+    await dbLoadAll();
+    showApp();
+  } else {
+    // Sem sessão → mostrar ecrã de login
+    note.textContent = "Introduz as tuas credenciais para aceder.";
+    document.getElementById("login-btn").disabled = false;
+    document.getElementById("login-btn").textContent = "Entrar";
+  }
 });

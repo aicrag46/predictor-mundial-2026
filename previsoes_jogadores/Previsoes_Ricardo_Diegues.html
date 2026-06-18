@@ -5,320 +5,159 @@
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 <title>⚽ Previsões de Ricardo Diegues · Mundial 2026</title>
 <style>
-/* ── Reset & Root ───────────────────────────────────── */
 *,*::before,*::after{box-sizing:border-box;margin:0;padding:0}
 :root{
-  --navy:#03092b; --navy2:#060f2e; --navy3:#0a1640;
-  --gold:#c9a84c; --gold2:#f0c96a; --gold3:#fff3b0;
-  --red:#c8102e;  --blue:#003DA5;
-  --text:#e8eef8; --muted:#7a90b8; --border:rgba(255,255,255,.07);
+  --navy:#03092b;--navy2:#060f2e;--navy3:#0a1640;
+  --gold:#c9a84c;--gold2:#f0c96a;--gold3:#fff3b0;
+  --red:#c8102e;--blue:#003DA5;
+  --text:#e8eef8;--muted:#7a90b8;--border:rgba(255,255,255,.07);
   --radius:14px;
 }
 html{scroll-behavior:smooth}
 body{background:var(--navy);color:var(--text);
   font-family:"Segoe UI",system-ui,-apple-system,sans-serif;
-  min-height:100vh; overflow-x:hidden;}
-
-/* ── Decoração de fundo ─────────────────────────────── */
+  min-height:100vh;overflow-x:hidden;}
 body::before{
   content:"";position:fixed;inset:0;z-index:0;pointer-events:none;
   background:
-    radial-gradient(ellipse 80% 50% at 50% -10%, rgba(0,61,165,.35) 0%, transparent 60%),
-    radial-gradient(ellipse 60% 40% at 80% 80%,  rgba(200,16,46,.12) 0%, transparent 55%),
-    radial-gradient(ellipse 50% 30% at 10% 60%,  rgba(201,168,76,.08) 0%, transparent 50%);
+    radial-gradient(ellipse 80% 50% at 50% -10%,rgba(0,61,165,.35) 0%,transparent 60%),
+    radial-gradient(ellipse 60% 40% at 80% 80%,rgba(200,16,46,.12) 0%,transparent 55%),
+    radial-gradient(ellipse 50% 30% at 10% 60%,rgba(201,168,76,.08) 0%,transparent 50%);
 }
-
-/* ── HERO ───────────────────────────────────────────── */
-.hero{
-  position:relative;z-index:1;
-  padding:0 20px;
-  background:linear-gradient(180deg,
-    rgba(0,30,90,.95) 0%,
-    rgba(3,9,43,.98) 100%);
-  border-bottom:1px solid rgba(201,168,76,.25);
-  overflow:hidden;
-}
-/* Linhas decorativas no hero */
-.hero::before{
-  content:"";position:absolute;inset:0;pointer-events:none;
-  background:
-    repeating-linear-gradient(90deg,
-      transparent,transparent 60px,
-      rgba(255,255,255,.018) 60px,rgba(255,255,255,.018) 61px),
-    repeating-linear-gradient(0deg,
-      transparent,transparent 60px,
-      rgba(255,255,255,.018) 60px,rgba(255,255,255,.018) 61px);
-}
-
+/* HERO */
+.hero{position:relative;z-index:1;padding:0 20px;
+  background:linear-gradient(180deg,rgba(0,30,90,.95) 0%,rgba(3,9,43,.98) 100%);
+  border-bottom:1px solid rgba(201,168,76,.25);overflow:hidden;}
+.hero::before{content:"";position:absolute;inset:0;pointer-events:none;
+  background:repeating-linear-gradient(90deg,transparent,transparent 60px,rgba(255,255,255,.018) 60px,rgba(255,255,255,.018) 61px),
+    repeating-linear-gradient(0deg,transparent,transparent 60px,rgba(255,255,255,.018) 60px,rgba(255,255,255,.018) 61px);}
 .hero-inner{max-width:720px;margin:0 auto;padding:40px 0 36px;text-align:center;position:relative;}
-
-/* Badge topo */
-.wc-badge{
-  display:inline-flex;align-items:center;gap:8px;
+.wc-badge{display:inline-flex;align-items:center;gap:8px;
   background:rgba(201,168,76,.12);border:1px solid rgba(201,168,76,.3);
   padding:6px 16px;border-radius:20px;font-size:.72rem;font-weight:700;
-  color:var(--gold2);letter-spacing:.1em;text-transform:uppercase;
-  margin-bottom:20px;
-}
-
-/* Troféu animado */
+  color:var(--gold2);letter-spacing:.1em;text-transform:uppercase;margin-bottom:20px;}
 .trophy-wrap{font-size:4rem;line-height:1;margin-bottom:8px;
   animation:float 3s ease-in-out infinite;}
 @keyframes float{0%,100%{transform:translateY(0)}50%{transform:translateY(-8px)}}
-
-/* Nome */
 .hero-event{font-size:.85rem;font-weight:700;color:var(--muted);
   letter-spacing:.15em;text-transform:uppercase;margin-bottom:6px;}
-.hero-name{
-  font-size:clamp(2rem,7vw,3.2rem);font-weight:900;
+.hero-name{font-size:clamp(2rem,7vw,3.2rem);font-weight:900;
   background:linear-gradient(135deg,var(--gold) 0%,var(--gold2) 50%,var(--gold3) 100%);
-  -webkit-background-clip:text;-webkit-text-fill-color:transparent;
-  background-clip:text;line-height:1.1;margin-bottom:4px;
-  filter:drop-shadow(0 2px 16px rgba(201,168,76,.4));
-}
+  -webkit-background-clip:text;-webkit-text-fill-color:transparent;background-clip:text;
+  line-height:1.1;margin-bottom:4px;filter:drop-shadow(0 2px 16px rgba(201,168,76,.4));}
 .hero-doc{font-size:.82rem;color:var(--muted);margin-bottom:24px;}
-
-/* Divisor */
-.hero-divider{
-  display:flex;align-items:center;gap:12px;margin:0 auto 24px;max-width:400px;
-}
-.hero-divider::before,.hero-divider::after{
-  content:"";flex:1;height:1px;
-  background:linear-gradient(90deg,transparent,rgba(201,168,76,.4),transparent);
-}
-.hero-divider-icon{font-size:1.1rem;flex-shrink:0;}
-
-/* Stats */
+.hero-divider{display:flex;align-items:center;gap:12px;margin:0 auto 24px;max-width:400px;}
+.hero-divider::before,.hero-divider::after{content:"";flex:1;height:1px;
+  background:linear-gradient(90deg,transparent,rgba(201,168,76,.4),transparent);}
 .hero-stats{display:flex;gap:10px;justify-content:center;flex-wrap:wrap;}
-.stat-pill{
-  background:rgba(255,255,255,.04);
-  border:1px solid rgba(255,255,255,.09);
-  border-radius:24px;padding:8px 18px;
-  display:flex;flex-direction:column;align-items:center;gap:2px;
-  min-width:80px;
-}
+.stat-pill{background:rgba(255,255,255,.04);border:1px solid rgba(255,255,255,.09);
+  border-radius:24px;padding:8px 18px;display:flex;flex-direction:column;align-items:center;gap:2px;min-width:80px;}
 .stat-pill-val{font-size:1.4rem;font-weight:900;color:var(--gold2);line-height:1;}
 .stat-pill-lbl{font-size:.62rem;color:var(--muted);text-transform:uppercase;letter-spacing:.07em;}
-
-/* Hosts */
 .hosts{display:flex;justify-content:center;gap:14px;margin-top:20px;
-  font-size:.7rem;color:var(--muted);align-items:center;}
+  font-size:.7rem;color:var(--muted);align-items:center;flex-wrap:wrap;}
 .host-flag{font-size:1.4rem;}
 .host-sep{opacity:.3;}
-
-/* ── AVISO / INFO ───────────────────────────────────── */
-.info-bar{
-  position:relative;z-index:1;
-  background:rgba(0,61,165,.15);
+/* INFO BAR */
+.info-bar{position:relative;z-index:1;background:rgba(0,61,165,.15);
   border-bottom:1px solid rgba(0,61,165,.3);
-  padding:10px 20px;text-align:center;
-  font-size:.78rem;color:rgba(147,197,253,.9);
-}
+  padding:10px 20px;text-align:center;font-size:.78rem;color:rgba(147,197,253,.9);}
 .info-bar strong{color:#93c5fd;}
-
-/* ── STICKY FILTER BAR ──────────────────────────────── */
-.filter-bar{
-  position:sticky;top:0;z-index:100;
-  background:rgba(3,9,43,.97);
-  backdrop-filter:blur(16px);-webkit-backdrop-filter:blur(16px);
+/* FILTER */
+.filter-bar{position:sticky;top:0;z-index:100;
+  background:rgba(3,9,43,.97);backdrop-filter:blur(16px);-webkit-backdrop-filter:blur(16px);
   border-bottom:1px solid rgba(201,168,76,.15);
-  padding:10px 16px;
-  display:flex;gap:10px;align-items:center;flex-wrap:wrap;
-}
+  padding:10px 16px;display:flex;gap:10px;align-items:center;flex-wrap:wrap;}
 .search-wrap{position:relative;flex:1;min-width:150px;max-width:240px;}
-.search-icon{position:absolute;left:10px;top:50%;transform:translateY(-50%);
-  font-size:.75rem;opacity:.45;pointer-events:none;}
-.search-wrap input{
-  width:100%;background:rgba(255,255,255,.05);
-  border:1px solid rgba(255,255,255,.1);
-  color:var(--text);padding:7px 10px 7px 32px;
-  border-radius:8px;font-size:.8rem;outline:none;
-  transition:border-color .2s,background .2s;
-}
+.search-icon{position:absolute;left:10px;top:50%;transform:translateY(-50%);font-size:.75rem;opacity:.45;pointer-events:none;}
+.search-wrap input{width:100%;background:rgba(255,255,255,.05);border:1px solid rgba(255,255,255,.1);
+  color:var(--text);padding:7px 10px 7px 32px;border-radius:8px;font-size:.8rem;outline:none;transition:border-color .2s;}
 .search-wrap input::placeholder{color:var(--muted);}
-.search-wrap input:focus{border-color:var(--gold);background:rgba(201,168,76,.06);}
-
+.search-wrap input:focus{border-color:var(--gold);}
 .filter-chips{display:flex;gap:5px;flex-wrap:wrap;}
 .fsep{width:1px;height:22px;background:var(--border);flex-shrink:0;align-self:center;}
-.chip{
-  border:1px solid rgba(255,255,255,.1);background:transparent;
-  color:var(--muted);padding:5px 12px;border-radius:20px;
-  cursor:pointer;font-size:.72rem;font-weight:600;
-  transition:all .17s;white-space:nowrap;
-}
+.chip{border:1px solid rgba(255,255,255,.1);background:transparent;color:var(--muted);
+  padding:5px 12px;border-radius:20px;cursor:pointer;font-size:.72rem;font-weight:600;transition:all .17s;white-space:nowrap;}
 .chip:hover{border-color:var(--gold);color:var(--gold);}
 .chip.active{background:var(--gold);border-color:var(--gold);color:#03092b;}
-
-/* ── CONTENT ────────────────────────────────────────── */
+/* CONTENT */
 .content{max-width:960px;margin:0 auto;padding:24px 16px 60px;position:relative;z-index:1;}
-
-/* ── DATE GROUP ─────────────────────────────────────── */
-.date-group{margin-bottom:32px;}
-.date-label{
-  display:flex;align-items:center;gap:10px;
-  margin-bottom:14px;
-}
-.date-label-text{
-  font-size:.78rem;font-weight:800;color:var(--gold);
-  text-transform:uppercase;letter-spacing:.1em;white-space:nowrap;
-}
-.date-label-line{flex:1;height:1px;
-  background:linear-gradient(90deg,rgba(201,168,76,.3),transparent);}
-.date-label-count{font-size:.7rem;color:var(--muted);white-space:nowrap;}
-
-/* ── CARDS GRID ─────────────────────────────────────── */
-.cards-grid{
-  display:grid;
-  grid-template-columns:repeat(auto-fill,minmax(280px,1fr));
-  gap:12px;
-}
-
-/* ── CARD ───────────────────────────────────────────── */
-.game-card{
-  background:linear-gradient(145deg,rgba(10,22,64,.9),rgba(6,15,46,.95));
-  border:1px solid rgba(255,255,255,.07);
-  border-radius:var(--radius);
-  overflow:hidden;
-  transition:transform .2s,box-shadow .2s,border-color .2s;
-}
-.game-card:hover{
-  transform:translateY(-3px);
-  box-shadow:0 12px 40px rgba(0,0,0,.5),0 0 0 1px rgba(201,168,76,.2);
-  border-color:rgba(201,168,76,.25);
-}
-
-/* Topo colorido do card */
-.card-stripe{height:3px;width:100%;}
-
-/* Header do card */
-.card-head{
-  display:flex;align-items:center;justify-content:space-between;
-  padding:10px 14px 8px;
-}
-.card-badges{display:flex;gap:6px;align-items:center;}
-.grupo-badge{
-  font-size:.62rem;font-weight:800;padding:3px 9px;
-  border-radius:6px;letter-spacing:.04em;
-}
-.jornada-badge{
-  font-size:.6rem;color:var(--muted);font-weight:600;
-  background:rgba(255,255,255,.05);padding:3px 8px;border-radius:6px;
-}
-.card-codigo{font-size:.6rem;color:rgba(255,255,255,.3);font-weight:700;}
-.card-time{font-size:.68rem;color:var(--muted);display:flex;align-items:center;gap:4px;}
-
-/* Teams */
-.card-teams{
-  padding:14px 14px 12px;
-  display:grid;grid-template-columns:1fr auto 1fr;
-  align-items:center;gap:8px;
-}
-.team{text-align:center;}
-.team-flag{font-size:2.6rem;display:block;line-height:1.1;}
-.team-name{
-  font-size:.72rem;font-weight:600;color:var(--text);
-  margin-top:5px;line-height:1.25;
-}
-.vs-wrap{text-align:center;}
-.vs-text{
-  font-size:.75rem;font-weight:800;color:rgba(255,255,255,.25);
-  display:block;letter-spacing:.05em;
-}
-.vs-date-mini{font-size:.58rem;color:var(--muted);white-space:nowrap;margin-top:2px;}
-
-/* Prediction box */
-.pred-box{
-  margin:0 12px 12px;
-  border-radius:10px;
-  padding:11px 14px;
-  display:flex;align-items:center;justify-content:space-between;
-  border:1px solid rgba(201,168,76,.2);
-  background:linear-gradient(135deg,rgba(201,168,76,.08),rgba(201,168,76,.03));
-  position:relative;overflow:hidden;
-}
-.pred-box::before{
-  content:"";position:absolute;top:-50%;right:-30%;
-  width:120px;height:120px;border-radius:50%;
-  background:radial-gradient(circle,rgba(201,168,76,.08),transparent 70%);
-  pointer-events:none;
-}
-.pred-left{}
-.pred-tag{
-  font-size:.58rem;font-weight:800;color:var(--gold);
-  text-transform:uppercase;letter-spacing:.1em;margin-bottom:4px;
-}
-.pred-score{
-  font-size:1.8rem;font-weight:900;
-  background:linear-gradient(135deg,var(--gold),var(--gold2));
-  -webkit-background-clip:text;-webkit-text-fill-color:transparent;
-  background-clip:text;line-height:1;letter-spacing:.05em;
-}
-.pred-score.empty{
-  font-size:.82rem;color:var(--muted);font-weight:600;
-  -webkit-text-fill-color:var(--muted);background:none;
-}
-.pred-right{text-align:right;}
-.pred-city{
-  font-size:.62rem;color:var(--muted);
-  line-height:1.5;max-width:110px;text-align:right;
-}
-.pred-ball{font-size:1.3rem;opacity:.3;margin-bottom:2px;}
-
-/* Empty state */
-.no-results{
-  text-align:center;padding:80px 20px;color:var(--muted);
-}
-.no-results-icon{font-size:3.5rem;margin-bottom:16px;opacity:.5;}
-
-/* ── PONTUAÇÃO INFO BOX ─────────────────────────────── */
-.info-section{
-  max-width:960px;margin:0 auto 32px;padding:0 16px;
-  position:relative;z-index:1;
-}
-.info-box{
-  background:rgba(0,61,165,.1);
-  border:1px solid rgba(0,61,165,.25);
-  border-radius:var(--radius);
-  padding:18px 20px;
-  display:grid;
-  grid-template-columns:1fr 1fr;
-  gap:16px;
-}
+/* PONTUAÇÃO BOX */
+.info-section{max-width:960px;margin:0 auto 0;padding:20px 16px 0;position:relative;z-index:1;}
+.info-box{background:rgba(0,61,165,.1);border:1px solid rgba(0,61,165,.25);border-radius:var(--radius);
+  padding:18px 20px;display:grid;grid-template-columns:1fr 1fr;gap:16px;}
 @media(max-width:520px){.info-box{grid-template-columns:1fr;}}
-.info-title{
-  grid-column:1/-1;font-size:.8rem;font-weight:800;
-  color:#93c5fd;letter-spacing:.07em;text-transform:uppercase;
-  margin-bottom:4px;
-}
-.pts-row{display:flex;justify-content:space-between;align-items:center;
-  padding:5px 0;border-bottom:1px solid rgba(255,255,255,.05);}
+.info-title{grid-column:1/-1;font-size:.8rem;font-weight:800;color:#93c5fd;letter-spacing:.07em;text-transform:uppercase;margin-bottom:4px;}
+.pts-row{display:flex;justify-content:space-between;align-items:center;padding:5px 0;border-bottom:1px solid rgba(255,255,255,.05);}
 .pts-row:last-child{border-bottom:none;}
 .pts-label{font-size:.78rem;color:var(--muted);}
 .pts-val{font-size:.85rem;font-weight:800;color:var(--text);}
 .pts-val.gold{color:var(--gold2);}
-
-/* ── FOOTER ─────────────────────────────────────────── */
-.footer{
-  position:relative;z-index:1;
-  text-align:center;padding:24px 20px 32px;
-  border-top:1px solid var(--border);
-  color:var(--muted);font-size:.72rem;line-height:1.8;
-}
+/* DATE GROUP */
+.date-group{margin-bottom:32px;}
+.game-card.hidden{display:none;}
+.date-group.all-hidden{display:none;}
+.date-label{display:flex;align-items:center;gap:10px;margin-bottom:14px;}
+.date-label-icon{font-size:.9rem;}
+.date-label-text{font-size:.78rem;font-weight:800;color:var(--gold);text-transform:uppercase;letter-spacing:.1em;white-space:nowrap;}
+.date-label-line{flex:1;height:1px;background:linear-gradient(90deg,rgba(201,168,76,.3),transparent);}
+.date-label-count{font-size:.7rem;color:var(--muted);white-space:nowrap;}
+/* CARDS */
+.cards-grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(280px,1fr));gap:12px;}
+.game-card{background:linear-gradient(145deg,rgba(10,22,64,.9),rgba(6,15,46,.95));
+  border:1px solid rgba(255,255,255,.07);border-radius:var(--radius);overflow:hidden;
+  transition:transform .2s,box-shadow .2s,border-color .2s;}
+.game-card:hover{transform:translateY(-3px);
+  box-shadow:0 12px 40px rgba(0,0,0,.5),0 0 0 1px rgba(201,168,76,.2);
+  border-color:rgba(201,168,76,.25);}
+.card-stripe{height:3px;width:100%;}
+.card-head{display:flex;align-items:center;justify-content:space-between;padding:10px 14px 8px;}
+.card-badges{display:flex;gap:6px;align-items:center;}
+.grupo-badge{font-size:.62rem;font-weight:800;padding:3px 9px;border-radius:6px;letter-spacing:.04em;}
+.jornada-badge{font-size:.6rem;color:var(--muted);font-weight:600;background:rgba(255,255,255,.05);padding:3px 8px;border-radius:6px;}
+.card-codigo{font-size:.6rem;color:rgba(255,255,255,.3);font-weight:700;}
+.card-time{font-size:.68rem;color:var(--muted);}
+.card-time small{font-size:.55rem;opacity:.6;}
+.card-teams{padding:14px 14px 12px;display:grid;grid-template-columns:1fr auto 1fr;align-items:center;gap:8px;}
+.team{text-align:center;}
+.team-flag{font-size:2.6rem;display:block;line-height:1.1;}
+.team-name{font-size:.72rem;font-weight:600;color:var(--text);margin-top:5px;line-height:1.25;}
+.vs-wrap{text-align:center;}
+.vs-text{font-size:.75rem;font-weight:800;color:rgba(255,255,255,.25);display:block;letter-spacing:.05em;}
+.pred-box{margin:0 12px 12px;border-radius:10px;padding:11px 14px;
+  display:flex;align-items:center;justify-content:space-between;
+  border:1px solid rgba(201,168,76,.2);
+  background:linear-gradient(135deg,rgba(201,168,76,.08),rgba(201,168,76,.03));
+  position:relative;overflow:hidden;}
+.pred-box::before{content:"";position:absolute;top:-50%;right:-30%;width:120px;height:120px;border-radius:50%;
+  background:radial-gradient(circle,rgba(201,168,76,.08),transparent 70%);pointer-events:none;}
+.pred-tag{font-size:.58rem;font-weight:800;color:var(--gold);text-transform:uppercase;letter-spacing:.1em;margin-bottom:4px;}
+.pred-score{font-size:1.8rem;font-weight:900;
+  background:linear-gradient(135deg,var(--gold),var(--gold2));
+  -webkit-background-clip:text;-webkit-text-fill-color:transparent;background-clip:text;
+  line-height:1;letter-spacing:.05em;}
+.pred-score.empty{font-size:.82rem;color:var(--muted);font-weight:600;
+  -webkit-text-fill-color:var(--muted);background:none;}
+.pred-right{text-align:right;}
+.pred-city{font-size:.62rem;color:var(--muted);line-height:1.5;max-width:110px;text-align:right;}
+.pred-ball{font-size:1.3rem;opacity:.3;margin-bottom:2px;}
+/* NO RESULTS */
+.no-results{display:none;text-align:center;padding:60px 20px;color:var(--muted);}
+.no-results.visible{display:block;}
+.no-results-icon{font-size:3rem;margin-bottom:12px;}
+/* FOOTER */
+.footer{position:relative;z-index:1;text-align:center;padding:24px 20px 32px;
+  border-top:1px solid var(--border);color:var(--muted);font-size:.72rem;line-height:1.8;}
 .footer strong{color:var(--gold);}
 .footer-stars{font-size:1.1rem;margin-bottom:8px;opacity:.6;}
-
-/* ── RESPONSIVE ─────────────────────────────────────── */
 @media(max-width:600px){
-  .hero-inner{padding:28px 0 24px;}
   .hero-name{font-size:2rem;}
   .cards-grid{grid-template-columns:1fr;}
   .filter-bar{gap:7px;}
-}
-</style>
+}</style>
 </head>
 <body>
 
-<!-- HERO ─────────────────────────────────────────── -->
 <div class="hero">
   <div class="hero-inner">
     <div class="wc-badge">⚽ Predictor Parque Biológico · 2026</div>
@@ -326,49 +165,30 @@ body::before{
     <div class="hero-event">As minhas previsões · FIFA World Cup 2026™</div>
     <div class="hero-name">Ricardo Diegues</div>
     <div class="hero-doc">Documento pessoal e confidencial</div>
-
-    <div class="hero-divider">
-      <div class="hero-divider-icon">⚽</div>
-    </div>
-
+    <div class="hero-divider"><span>⚽</span></div>
     <div class="hero-stats">
-      <div class="stat-pill">
-        <span class="stat-pill-val">72</span>
-        <span class="stat-pill-lbl">Previsões</span>
-      </div>
-      <div class="stat-pill">
-        <span class="stat-pill-val">72</span>
-        <span class="stat-pill-lbl">Jogos</span>
-      </div>
-      <div class="stat-pill">
-        <span class="stat-pill-val">3</span>
-        <span class="stat-pill-lbl">Jornadas</span>
-      </div>
-      <div class="stat-pill">
-        <span class="stat-pill-val">12</span>
-        <span class="stat-pill-lbl">Grupos</span>
-      </div>
+      <div class="stat-pill"><span class="stat-pill-val">72</span><span class="stat-pill-lbl">Previsões</span></div>
+      <div class="stat-pill"><span class="stat-pill-val">72</span><span class="stat-pill-lbl">Jogos</span></div>
+      <div class="stat-pill"><span class="stat-pill-val">3</span><span class="stat-pill-lbl">Jornadas</span></div>
+      <div class="stat-pill"><span class="stat-pill-val">12</span><span class="stat-pill-lbl">Grupos</span></div>
     </div>
-
     <div class="hosts">
-      <span class="host-flag">🇺🇸</span> <span>Estados Unidos</span>
+      <span class="host-flag">🇺🇸</span><span>Estados Unidos</span>
       <span class="host-sep">·</span>
-      <span class="host-flag">🇨🇦</span> <span>Canadá</span>
+      <span class="host-flag">🇨🇦</span><span>Canadá</span>
       <span class="host-sep">·</span>
-      <span class="host-flag">🇲🇽</span> <span>México</span>
+      <span class="host-flag">🇲🇽</span><span>México</span>
       <span class="host-sep">·</span>
       <span>11 Jun – 19 Jul 2026</span>
     </div>
   </div>
 </div>
 
-<!-- INFO BAR -->
 <div class="info-bar">
   ℹ️ Este ficheiro contém <strong>exclusivamente as tuas previsões</strong>.
-  A pontuação e classificação são reveladas <strong>no jantar</strong>. 🍽️🤫
+  A classificação é revelada <strong>no jantar</strong>. 🍽️🤫
 </div>
 
-<!-- FILTER BAR -->
 <div class="filter-bar">
   <div class="search-wrap">
     <span class="search-icon">🔍</span>
@@ -376,17 +196,16 @@ body::before{
   </div>
   <div class="fsep"></div>
   <div class="filter-chips">
-    <button class="chip active" data-f="all" onclick="setFilter('all')">Todos</button>
-    <button class="chip" data-f="j1"  onclick="setFilter('j1')">Jornada 1</button>
-    <button class="chip" data-f="j2"  onclick="setFilter('j2')">Jornada 2</button>
-    <button class="chip" data-f="j3"  onclick="setFilter('j3')">Jornada 3</button>
+    <button class="chip active" data-f="all"  onclick="setFilter('all')">Todos</button>
+    <button class="chip"        data-f="j1"   onclick="setFilter('j1')">Jornada 1</button>
+    <button class="chip"        data-f="j2"   onclick="setFilter('j2')">Jornada 2</button>
+    <button class="chip"        data-f="j3"   onclick="setFilter('j3')">Jornada 3</button>
     <div class="fsep"></div>
-    <button class="chip" data-f="gA" onclick="setFilter('gA')" style="--gc:#ef4444">Gr.A</button><button class="chip" data-f="gB" onclick="setFilter('gB')" style="--gc:#f97316">Gr.B</button><button class="chip" data-f="gC" onclick="setFilter('gC')" style="--gc:#eab308">Gr.C</button><button class="chip" data-f="gD" onclick="setFilter('gD')" style="--gc:#22c55e">Gr.D</button><button class="chip" data-f="gE" onclick="setFilter('gE')" style="--gc:#06b6d4">Gr.E</button><button class="chip" data-f="gF" onclick="setFilter('gF')" style="--gc:#6366f1">Gr.F</button><button class="chip" data-f="gG" onclick="setFilter('gG')" style="--gc:#a855f7">Gr.G</button><button class="chip" data-f="gH" onclick="setFilter('gH')" style="--gc:#ec4899">Gr.H</button><button class="chip" data-f="gI" onclick="setFilter('gI')" style="--gc:#14b8a6">Gr.I</button><button class="chip" data-f="gJ" onclick="setFilter('gJ')" style="--gc:#f59e0b">Gr.J</button><button class="chip" data-f="gK" onclick="setFilter('gK')" style="--gc:#3b82f6">Gr.K</button><button class="chip" data-f="gL" onclick="setFilter('gL')" style="--gc:#10b981">Gr.L</button>
+    <button class="chip" data-f="gA" onclick="setFilter('gA')">Gr.A</button><button class="chip" data-f="gB" onclick="setFilter('gB')">Gr.B</button><button class="chip" data-f="gC" onclick="setFilter('gC')">Gr.C</button><button class="chip" data-f="gD" onclick="setFilter('gD')">Gr.D</button><button class="chip" data-f="gE" onclick="setFilter('gE')">Gr.E</button><button class="chip" data-f="gF" onclick="setFilter('gF')">Gr.F</button><button class="chip" data-f="gG" onclick="setFilter('gG')">Gr.G</button><button class="chip" data-f="gH" onclick="setFilter('gH')">Gr.H</button><button class="chip" data-f="gI" onclick="setFilter('gI')">Gr.I</button><button class="chip" data-f="gJ" onclick="setFilter('gJ')">Gr.J</button><button class="chip" data-f="gK" onclick="setFilter('gK')">Gr.K</button><button class="chip" data-f="gL" onclick="setFilter('gL')">Gr.L</button>
   </div>
 </div>
 
-<!-- PONTUAÇÃO INFO -->
-<div class="info-section" id="pontInfoSection">
+<div class="info-section">
   <div class="info-box">
     <div class="info-title">🎯 Como funciona a pontuação — Fase de Grupos</div>
     <div>
@@ -397,16 +216,3241 @@ body::before{
     </div>
     <div>
       <div class="pts-row"><span class="pts-label">⚠️ Pontos não acumulam</span><span class="pts-val" style="font-size:.72rem;color:var(--muted)">Melhor categoria</span></div>
-      <div class="pts-row"><span class="pts-label">🏆 Mata-Mata</span><span class="pts-val" style="font-size:.72rem;color:var(--muted)">Pontos progressivos</span></div>
-      <div class="pts-row"><span class="pts-label">🍽️ Jantar</span><span class="pts-val" style="font-size:.72rem;color:var(--muted)">Top 5 jantar de graça</span></div>
+      <div class="pts-row"><span class="pts-label">🍽️ Top 5</span><span class="pts-val" style="font-size:.72rem;color:var(--muted)">Jantam de graça</span></div>
+      <div class="pts-row"><span class="pts-label">💸 Bottom 5</span><span class="pts-val" style="font-size:.72rem;color:var(--muted)">Pagam o jantar</span></div>
     </div>
   </div>
 </div>
 
-<!-- CONTENT -->
-<div class="content" id="content"></div>
+<div class="content">
+  <div class="no-results" id="noResults">
+    <div class="no-results-icon">🔎</div>
+    <div>Nenhuma previsão encontrada</div>
+  </div>
 
-<!-- FOOTER -->
+<div class="date-group" data-date="2026-06-11">
+  <div class="date-label">
+    <span class="date-label-icon">📅</span>
+    <span class="date-label-text">Quinta, 11 de Junho de 2026</span>
+    <div class="date-label-line"></div>
+    <span class="date-label-count">1 jogo</span>
+  </div>
+  <div class="cards-grid">
+<div class="game-card"
+  data-grupo="A"
+  data-jornada="1"
+  data-search="méxico áfrica do sul a1 a">
+
+  <div class="card-stripe" style="background:linear-gradient(90deg,#ef4444,#ef444466)"></div>
+
+  <div class="card-head">
+    <div class="card-badges">
+      <span class="grupo-badge" style="background:#ef444422;color:#ef4444;border:1px solid #ef444444">Grupo A</span>
+      <span class="jornada-badge">Jornada 1</span>
+      <span class="card-codigo">A1</span>
+    </div>
+    <div class="card-time">🕐 00:00 <small>(Lisboa)</small></div>
+  </div>
+
+  <div class="card-teams">
+    <div class="team">
+      <span class="team-flag">🇲🇽</span>
+      <div class="team-name">México</div>
+    </div>
+    <div class="vs-wrap">
+      <span class="vs-text">VS</span>
+    </div>
+    <div class="team">
+      <span class="team-flag">🇿🇦</span>
+      <div class="team-name">África do Sul</div>
+    </div>
+  </div>
+
+  <div class="pred-box">
+    <div class="pred-left">
+      <div class="pred-tag">🎯 A minha previsão</div>
+      <div class="pred-score">1-0</div>
+    </div>
+    <div class="pred-right">
+      <div class="pred-ball">⚽</div>
+      <div class="pred-city">📍 Cidade do México</div>
+    </div>
+  </div>
+
+</div>
+  </div>
+</div>
+
+<div class="date-group" data-date="2026-06-12">
+  <div class="date-label">
+    <span class="date-label-icon">📅</span>
+    <span class="date-label-text">Sexta, 12 de Junho de 2026</span>
+    <div class="date-label-line"></div>
+    <span class="date-label-count">1 jogo</span>
+  </div>
+  <div class="cards-grid">
+<div class="game-card"
+  data-grupo="A"
+  data-jornada="1"
+  data-search="coreia do sul chéquia a2 a">
+
+  <div class="card-stripe" style="background:linear-gradient(90deg,#ef4444,#ef444466)"></div>
+
+  <div class="card-head">
+    <div class="card-badges">
+      <span class="grupo-badge" style="background:#ef444422;color:#ef4444;border:1px solid #ef444444">Grupo A</span>
+      <span class="jornada-badge">Jornada 1</span>
+      <span class="card-codigo">A2</span>
+    </div>
+    <div class="card-time">🕐 04:00 <small>(Lisboa)</small></div>
+  </div>
+
+  <div class="card-teams">
+    <div class="team">
+      <span class="team-flag">🇰🇷</span>
+      <div class="team-name">Coreia do Sul</div>
+    </div>
+    <div class="vs-wrap">
+      <span class="vs-text">VS</span>
+    </div>
+    <div class="team">
+      <span class="team-flag">🇨🇿</span>
+      <div class="team-name">Chéquia</div>
+    </div>
+  </div>
+
+  <div class="pred-box">
+    <div class="pred-left">
+      <div class="pred-tag">🎯 A minha previsão</div>
+      <div class="pred-score">2-1</div>
+    </div>
+    <div class="pred-right">
+      <div class="pred-ball">⚽</div>
+      <div class="pred-city">📍 Guadalajara</div>
+    </div>
+  </div>
+
+</div>
+  </div>
+</div>
+
+<div class="date-group" data-date="2026-06-13">
+  <div class="date-label">
+    <span class="date-label-icon">📅</span>
+    <span class="date-label-text">Sábado, 13 de Junho de 2026</span>
+    <div class="date-label-line"></div>
+    <span class="date-label-count">2 jogos</span>
+  </div>
+  <div class="cards-grid">
+<div class="game-card"
+  data-grupo="B"
+  data-jornada="1"
+  data-search="canadá bósnia e herzegovina b1 b">
+
+  <div class="card-stripe" style="background:linear-gradient(90deg,#f97316,#f9731666)"></div>
+
+  <div class="card-head">
+    <div class="card-badges">
+      <span class="grupo-badge" style="background:#f9731622;color:#f97316;border:1px solid #f9731644">Grupo B</span>
+      <span class="jornada-badge">Jornada 1</span>
+      <span class="card-codigo">B1</span>
+    </div>
+    <div class="card-time">🕐 00:00 <small>(Lisboa)</small></div>
+  </div>
+
+  <div class="card-teams">
+    <div class="team">
+      <span class="team-flag">🇨🇦</span>
+      <div class="team-name">Canadá</div>
+    </div>
+    <div class="vs-wrap">
+      <span class="vs-text">VS</span>
+    </div>
+    <div class="team">
+      <span class="team-flag">🇧🇦</span>
+      <div class="team-name">Bósnia e Herzegovina</div>
+    </div>
+  </div>
+
+  <div class="pred-box">
+    <div class="pred-left">
+      <div class="pred-tag">🎯 A minha previsão</div>
+      <div class="pred-score">2-1</div>
+    </div>
+    <div class="pred-right">
+      <div class="pred-ball">⚽</div>
+      <div class="pred-city">📍 Toronto</div>
+    </div>
+  </div>
+
+</div>
+<div class="game-card"
+  data-grupo="D"
+  data-jornada="1"
+  data-search="estados unidos paraguai d1 d">
+
+  <div class="card-stripe" style="background:linear-gradient(90deg,#22c55e,#22c55e66)"></div>
+
+  <div class="card-head">
+    <div class="card-badges">
+      <span class="grupo-badge" style="background:#22c55e22;color:#22c55e;border:1px solid #22c55e44">Grupo D</span>
+      <span class="jornada-badge">Jornada 1</span>
+      <span class="card-codigo">D1</span>
+    </div>
+    <div class="card-time">🕐 03:00 <small>(Lisboa)</small></div>
+  </div>
+
+  <div class="card-teams">
+    <div class="team">
+      <span class="team-flag">🇺🇸</span>
+      <div class="team-name">Estados Unidos</div>
+    </div>
+    <div class="vs-wrap">
+      <span class="vs-text">VS</span>
+    </div>
+    <div class="team">
+      <span class="team-flag">🇵🇾</span>
+      <div class="team-name">Paraguai</div>
+    </div>
+  </div>
+
+  <div class="pred-box">
+    <div class="pred-left">
+      <div class="pred-tag">🎯 A minha previsão</div>
+      <div class="pred-score">2-1</div>
+    </div>
+    <div class="pred-right">
+      <div class="pred-ball">⚽</div>
+      <div class="pred-city">📍 Los Angeles</div>
+    </div>
+  </div>
+
+</div>
+  </div>
+</div>
+
+<div class="date-group" data-date="2026-06-14">
+  <div class="date-label">
+    <span class="date-label-icon">📅</span>
+    <span class="date-label-text">Domingo, 14 de Junho de 2026</span>
+    <div class="date-label-line"></div>
+    <span class="date-label-count">3 jogos</span>
+  </div>
+  <div class="cards-grid">
+<div class="game-card"
+  data-grupo="B"
+  data-jornada="1"
+  data-search="catar suíça b2 b">
+
+  <div class="card-stripe" style="background:linear-gradient(90deg,#f97316,#f9731666)"></div>
+
+  <div class="card-head">
+    <div class="card-badges">
+      <span class="grupo-badge" style="background:#f9731622;color:#f97316;border:1px solid #f9731644">Grupo B</span>
+      <span class="jornada-badge">Jornada 1</span>
+      <span class="card-codigo">B2</span>
+    </div>
+    <div class="card-time">🕐 00:00 <small>(Lisboa)</small></div>
+  </div>
+
+  <div class="card-teams">
+    <div class="team">
+      <span class="team-flag">🇶🇦</span>
+      <div class="team-name">Catar</div>
+    </div>
+    <div class="vs-wrap">
+      <span class="vs-text">VS</span>
+    </div>
+    <div class="team">
+      <span class="team-flag">🇨🇭</span>
+      <div class="team-name">Suíça</div>
+    </div>
+  </div>
+
+  <div class="pred-box">
+    <div class="pred-left">
+      <div class="pred-tag">🎯 A minha previsão</div>
+      <div class="pred-score">0-1</div>
+    </div>
+    <div class="pred-right">
+      <div class="pred-ball">⚽</div>
+      <div class="pred-city">📍 São Francisco</div>
+    </div>
+  </div>
+
+</div>
+<div class="game-card"
+  data-grupo="C"
+  data-jornada="1"
+  data-search="brasil marrocos c1 c">
+
+  <div class="card-stripe" style="background:linear-gradient(90deg,#eab308,#eab30866)"></div>
+
+  <div class="card-head">
+    <div class="card-badges">
+      <span class="grupo-badge" style="background:#eab30822;color:#eab308;border:1px solid #eab30844">Grupo C</span>
+      <span class="jornada-badge">Jornada 1</span>
+      <span class="card-codigo">C1</span>
+    </div>
+    <div class="card-time">🕐 03:00 <small>(Lisboa)</small></div>
+  </div>
+
+  <div class="card-teams">
+    <div class="team">
+      <span class="team-flag">🇧🇷</span>
+      <div class="team-name">Brasil</div>
+    </div>
+    <div class="vs-wrap">
+      <span class="vs-text">VS</span>
+    </div>
+    <div class="team">
+      <span class="team-flag">🇲🇦</span>
+      <div class="team-name">Marrocos</div>
+    </div>
+  </div>
+
+  <div class="pred-box">
+    <div class="pred-left">
+      <div class="pred-tag">🎯 A minha previsão</div>
+      <div class="pred-score">3-1</div>
+    </div>
+    <div class="pred-right">
+      <div class="pred-ball">⚽</div>
+      <div class="pred-city">📍 Nova Jérsia</div>
+    </div>
+  </div>
+
+</div>
+<div class="game-card"
+  data-grupo="C"
+  data-jornada="1"
+  data-search="haiti escócia c2 c">
+
+  <div class="card-stripe" style="background:linear-gradient(90deg,#eab308,#eab30866)"></div>
+
+  <div class="card-head">
+    <div class="card-badges">
+      <span class="grupo-badge" style="background:#eab30822;color:#eab308;border:1px solid #eab30844">Grupo C</span>
+      <span class="jornada-badge">Jornada 1</span>
+      <span class="card-codigo">C2</span>
+    </div>
+    <div class="card-time">🕐 22:00 <small>(Lisboa)</small></div>
+  </div>
+
+  <div class="card-teams">
+    <div class="team">
+      <span class="team-flag">🇭🇹</span>
+      <div class="team-name">Haiti</div>
+    </div>
+    <div class="vs-wrap">
+      <span class="vs-text">VS</span>
+    </div>
+    <div class="team">
+      <span class="team-flag">🏴󠁧󠁢󠁳󠁣󠁴󠁿</span>
+      <div class="team-name">Escócia</div>
+    </div>
+  </div>
+
+  <div class="pred-box">
+    <div class="pred-left">
+      <div class="pred-tag">🎯 A minha previsão</div>
+      <div class="pred-score">0-1</div>
+    </div>
+    <div class="pred-right">
+      <div class="pred-ball">⚽</div>
+      <div class="pred-city">📍 Boston</div>
+    </div>
+  </div>
+
+</div>
+  </div>
+</div>
+
+<div class="date-group" data-date="2026-06-15">
+  <div class="date-label">
+    <span class="date-label-icon">📅</span>
+    <span class="date-label-text">Segunda, 15 de Junho de 2026</span>
+    <div class="date-label-line"></div>
+    <span class="date-label-count">3 jogos</span>
+  </div>
+  <div class="cards-grid">
+<div class="game-card"
+  data-grupo="D"
+  data-jornada="1"
+  data-search="austrália turquia d2 d">
+
+  <div class="card-stripe" style="background:linear-gradient(90deg,#22c55e,#22c55e66)"></div>
+
+  <div class="card-head">
+    <div class="card-badges">
+      <span class="grupo-badge" style="background:#22c55e22;color:#22c55e;border:1px solid #22c55e44">Grupo D</span>
+      <span class="jornada-badge">Jornada 1</span>
+      <span class="card-codigo">D2</span>
+    </div>
+    <div class="card-time">🕐 01:00 <small>(Lisboa)</small></div>
+  </div>
+
+  <div class="card-teams">
+    <div class="team">
+      <span class="team-flag">🇦🇺</span>
+      <div class="team-name">Austrália</div>
+    </div>
+    <div class="vs-wrap">
+      <span class="vs-text">VS</span>
+    </div>
+    <div class="team">
+      <span class="team-flag">🇹🇷</span>
+      <div class="team-name">Turquia</div>
+    </div>
+  </div>
+
+  <div class="pred-box">
+    <div class="pred-left">
+      <div class="pred-tag">🎯 A minha previsão</div>
+      <div class="pred-score">0-1</div>
+    </div>
+    <div class="pred-right">
+      <div class="pred-ball">⚽</div>
+      <div class="pred-city">📍 Houston</div>
+    </div>
+  </div>
+
+</div>
+<div class="game-card"
+  data-grupo="E"
+  data-jornada="1"
+  data-search="alemanha curaçau e1 e">
+
+  <div class="card-stripe" style="background:linear-gradient(90deg,#06b6d4,#06b6d466)"></div>
+
+  <div class="card-head">
+    <div class="card-badges">
+      <span class="grupo-badge" style="background:#06b6d422;color:#06b6d4;border:1px solid #06b6d444">Grupo E</span>
+      <span class="jornada-badge">Jornada 1</span>
+      <span class="card-codigo">E1</span>
+    </div>
+    <div class="card-time">🕐 19:00 <small>(Lisboa)</small></div>
+  </div>
+
+  <div class="card-teams">
+    <div class="team">
+      <span class="team-flag">🇩🇪</span>
+      <div class="team-name">Alemanha</div>
+    </div>
+    <div class="vs-wrap">
+      <span class="vs-text">VS</span>
+    </div>
+    <div class="team">
+      <span class="team-flag">🇨🇼</span>
+      <div class="team-name">Curaçau</div>
+    </div>
+  </div>
+
+  <div class="pred-box">
+    <div class="pred-left">
+      <div class="pred-tag">🎯 A minha previsão</div>
+      <div class="pred-score">4-0</div>
+    </div>
+    <div class="pred-right">
+      <div class="pred-ball">⚽</div>
+      <div class="pred-city">📍 Dallas</div>
+    </div>
+  </div>
+
+</div>
+<div class="game-card"
+  data-grupo="E"
+  data-jornada="1"
+  data-search="costa do marfim equador e2 e">
+
+  <div class="card-stripe" style="background:linear-gradient(90deg,#06b6d4,#06b6d466)"></div>
+
+  <div class="card-head">
+    <div class="card-badges">
+      <span class="grupo-badge" style="background:#06b6d422;color:#06b6d4;border:1px solid #06b6d444">Grupo E</span>
+      <span class="jornada-badge">Jornada 1</span>
+      <span class="card-codigo">E2</span>
+    </div>
+    <div class="card-time">🕐 22:00 <small>(Lisboa)</small></div>
+  </div>
+
+  <div class="card-teams">
+    <div class="team">
+      <span class="team-flag">🇨🇮</span>
+      <div class="team-name">Costa do Marfim</div>
+    </div>
+    <div class="vs-wrap">
+      <span class="vs-text">VS</span>
+    </div>
+    <div class="team">
+      <span class="team-flag">🇪🇨</span>
+      <div class="team-name">Equador</div>
+    </div>
+  </div>
+
+  <div class="pred-box">
+    <div class="pred-left">
+      <div class="pred-tag">🎯 A minha previsão</div>
+      <div class="pred-score">1-0</div>
+    </div>
+    <div class="pred-right">
+      <div class="pred-ball">⚽</div>
+      <div class="pred-city">📍 Filadélfia</div>
+    </div>
+  </div>
+
+</div>
+  </div>
+</div>
+
+<div class="date-group" data-date="2026-06-16">
+  <div class="date-label">
+    <span class="date-label-icon">📅</span>
+    <span class="date-label-text">Terça, 16 de Junho de 2026</span>
+    <div class="date-label-line"></div>
+    <span class="date-label-count">4 jogos</span>
+  </div>
+  <div class="cards-grid">
+<div class="game-card"
+  data-grupo="F"
+  data-jornada="1"
+  data-search="holanda japão f1 f">
+
+  <div class="card-stripe" style="background:linear-gradient(90deg,#6366f1,#6366f166)"></div>
+
+  <div class="card-head">
+    <div class="card-badges">
+      <span class="grupo-badge" style="background:#6366f122;color:#6366f1;border:1px solid #6366f144">Grupo F</span>
+      <span class="jornada-badge">Jornada 1</span>
+      <span class="card-codigo">F1</span>
+    </div>
+    <div class="card-time">🕐 00:00 <small>(Lisboa)</small></div>
+  </div>
+
+  <div class="card-teams">
+    <div class="team">
+      <span class="team-flag">🇳🇱</span>
+      <div class="team-name">Holanda</div>
+    </div>
+    <div class="vs-wrap">
+      <span class="vs-text">VS</span>
+    </div>
+    <div class="team">
+      <span class="team-flag">🇯🇵</span>
+      <div class="team-name">Japão</div>
+    </div>
+  </div>
+
+  <div class="pred-box">
+    <div class="pred-left">
+      <div class="pred-tag">🎯 A minha previsão</div>
+      <div class="pred-score">2-0</div>
+    </div>
+    <div class="pred-right">
+      <div class="pred-ball">⚽</div>
+      <div class="pred-city">📍 Monterrey</div>
+    </div>
+  </div>
+
+</div>
+<div class="game-card"
+  data-grupo="F"
+  data-jornada="1"
+  data-search="suécia tunísia f2 f">
+
+  <div class="card-stripe" style="background:linear-gradient(90deg,#6366f1,#6366f166)"></div>
+
+  <div class="card-head">
+    <div class="card-badges">
+      <span class="grupo-badge" style="background:#6366f122;color:#6366f1;border:1px solid #6366f144">Grupo F</span>
+      <span class="jornada-badge">Jornada 1</span>
+      <span class="card-codigo">F2</span>
+    </div>
+    <div class="card-time">🕐 02:00 <small>(Lisboa)</small></div>
+  </div>
+
+  <div class="card-teams">
+    <div class="team">
+      <span class="team-flag">🇸🇪</span>
+      <div class="team-name">Suécia</div>
+    </div>
+    <div class="vs-wrap">
+      <span class="vs-text">VS</span>
+    </div>
+    <div class="team">
+      <span class="team-flag">🇹🇳</span>
+      <div class="team-name">Tunísia</div>
+    </div>
+  </div>
+
+  <div class="pred-box">
+    <div class="pred-left">
+      <div class="pred-tag">🎯 A minha previsão</div>
+      <div class="pred-score">1-2</div>
+    </div>
+    <div class="pred-right">
+      <div class="pred-ball">⚽</div>
+      <div class="pred-city">📍 Monterrey</div>
+    </div>
+  </div>
+
+</div>
+<div class="game-card"
+  data-grupo="G"
+  data-jornada="1"
+  data-search="bélgica egito g1 g">
+
+  <div class="card-stripe" style="background:linear-gradient(90deg,#a855f7,#a855f766)"></div>
+
+  <div class="card-head">
+    <div class="card-badges">
+      <span class="grupo-badge" style="background:#a855f722;color:#a855f7;border:1px solid #a855f744">Grupo G</span>
+      <span class="jornada-badge">Jornada 1</span>
+      <span class="card-codigo">G1</span>
+    </div>
+    <div class="card-time">🕐 20:00 <small>(Lisboa)</small></div>
+  </div>
+
+  <div class="card-teams">
+    <div class="team">
+      <span class="team-flag">🇧🇪</span>
+      <div class="team-name">Bélgica</div>
+    </div>
+    <div class="vs-wrap">
+      <span class="vs-text">VS</span>
+    </div>
+    <div class="team">
+      <span class="team-flag">🇪🇬</span>
+      <div class="team-name">Egito</div>
+    </div>
+  </div>
+
+  <div class="pred-box">
+    <div class="pred-left">
+      <div class="pred-tag">🎯 A minha previsão</div>
+      <div class="pred-score">2-0</div>
+    </div>
+    <div class="pred-right">
+      <div class="pred-ball">⚽</div>
+      <div class="pred-city">📍 Atlanta</div>
+    </div>
+  </div>
+
+</div>
+<div class="game-card"
+  data-grupo="G"
+  data-jornada="1"
+  data-search="irão nova zelândia g2 g">
+
+  <div class="card-stripe" style="background:linear-gradient(90deg,#a855f7,#a855f766)"></div>
+
+  <div class="card-head">
+    <div class="card-badges">
+      <span class="grupo-badge" style="background:#a855f722;color:#a855f7;border:1px solid #a855f744">Grupo G</span>
+      <span class="jornada-badge">Jornada 1</span>
+      <span class="card-codigo">G2</span>
+    </div>
+    <div class="card-time">🕐 23:00 <small>(Lisboa)</small></div>
+  </div>
+
+  <div class="card-teams">
+    <div class="team">
+      <span class="team-flag">🇮🇷</span>
+      <div class="team-name">Irão</div>
+    </div>
+    <div class="vs-wrap">
+      <span class="vs-text">VS</span>
+    </div>
+    <div class="team">
+      <span class="team-flag">🇳🇿</span>
+      <div class="team-name">Nova Zelândia</div>
+    </div>
+  </div>
+
+  <div class="pred-box">
+    <div class="pred-left">
+      <div class="pred-tag">🎯 A minha previsão</div>
+      <div class="pred-score">1-2</div>
+    </div>
+    <div class="pred-right">
+      <div class="pred-ball">⚽</div>
+      <div class="pred-city">📍 Seattle</div>
+    </div>
+  </div>
+
+</div>
+  </div>
+</div>
+
+<div class="date-group" data-date="2026-06-17">
+  <div class="date-label">
+    <span class="date-label-icon">📅</span>
+    <span class="date-label-text">Quarta, 17 de Junho de 2026</span>
+    <div class="date-label-line"></div>
+    <span class="date-label-count">5 jogos</span>
+  </div>
+  <div class="cards-grid">
+<div class="game-card"
+  data-grupo="H"
+  data-jornada="1"
+  data-search="espanha cabo verde h1 h">
+
+  <div class="card-stripe" style="background:linear-gradient(90deg,#ec4899,#ec489966)"></div>
+
+  <div class="card-head">
+    <div class="card-badges">
+      <span class="grupo-badge" style="background:#ec489922;color:#ec4899;border:1px solid #ec489944">Grupo H</span>
+      <span class="jornada-badge">Jornada 1</span>
+      <span class="card-codigo">H1</span>
+    </div>
+    <div class="card-time">🕐 01:00 <small>(Lisboa)</small></div>
+  </div>
+
+  <div class="card-teams">
+    <div class="team">
+      <span class="team-flag">🇪🇸</span>
+      <div class="team-name">Espanha</div>
+    </div>
+    <div class="vs-wrap">
+      <span class="vs-text">VS</span>
+    </div>
+    <div class="team">
+      <span class="team-flag">🇨🇻</span>
+      <div class="team-name">Cabo Verde</div>
+    </div>
+  </div>
+
+  <div class="pred-box">
+    <div class="pred-left">
+      <div class="pred-tag">🎯 A minha previsão</div>
+      <div class="pred-score">2-1</div>
+    </div>
+    <div class="pred-right">
+      <div class="pred-ball">⚽</div>
+      <div class="pred-city">📍 Los Angeles</div>
+    </div>
+  </div>
+
+</div>
+<div class="game-card"
+  data-grupo="H"
+  data-jornada="1"
+  data-search="arábia saudita uruguai h2 h">
+
+  <div class="card-stripe" style="background:linear-gradient(90deg,#ec4899,#ec489966)"></div>
+
+  <div class="card-head">
+    <div class="card-badges">
+      <span class="grupo-badge" style="background:#ec489922;color:#ec4899;border:1px solid #ec489944">Grupo H</span>
+      <span class="jornada-badge">Jornada 1</span>
+      <span class="card-codigo">H2</span>
+    </div>
+    <div class="card-time">🕐 20:00 <small>(Lisboa)</small></div>
+  </div>
+
+  <div class="card-teams">
+    <div class="team">
+      <span class="team-flag">🇸🇦</span>
+      <div class="team-name">Arábia Saudita</div>
+    </div>
+    <div class="vs-wrap">
+      <span class="vs-text">VS</span>
+    </div>
+    <div class="team">
+      <span class="team-flag">🇺🇾</span>
+      <div class="team-name">Uruguai</div>
+    </div>
+  </div>
+
+  <div class="pred-box">
+    <div class="pred-left">
+      <div class="pred-tag">🎯 A minha previsão</div>
+      <div class="pred-score">0-2</div>
+    </div>
+    <div class="pred-right">
+      <div class="pred-ball">⚽</div>
+      <div class="pred-city">📍 Miami</div>
+    </div>
+  </div>
+
+</div>
+<div class="game-card"
+  data-grupo="I"
+  data-jornada="1"
+  data-search="frança senegal i1 i">
+
+  <div class="card-stripe" style="background:linear-gradient(90deg,#14b8a6,#14b8a666)"></div>
+
+  <div class="card-head">
+    <div class="card-badges">
+      <span class="grupo-badge" style="background:#14b8a622;color:#14b8a6;border:1px solid #14b8a644">Grupo I</span>
+      <span class="jornada-badge">Jornada 1</span>
+      <span class="card-codigo">I1</span>
+    </div>
+    <div class="card-time">🕐 00:00 <small>(Lisboa)</small></div>
+  </div>
+
+  <div class="card-teams">
+    <div class="team">
+      <span class="team-flag">🇫🇷</span>
+      <div class="team-name">França</div>
+    </div>
+    <div class="vs-wrap">
+      <span class="vs-text">VS</span>
+    </div>
+    <div class="team">
+      <span class="team-flag">🇸🇳</span>
+      <div class="team-name">Senegal</div>
+    </div>
+  </div>
+
+  <div class="pred-box">
+    <div class="pred-left">
+      <div class="pred-tag">🎯 A minha previsão</div>
+      <div class="pred-score">2-0</div>
+    </div>
+    <div class="pred-right">
+      <div class="pred-ball">⚽</div>
+      <div class="pred-city">📍 Nova Jérsia</div>
+    </div>
+  </div>
+
+</div>
+<div class="game-card"
+  data-grupo="I"
+  data-jornada="1"
+  data-search="iraque noruega i2 i">
+
+  <div class="card-stripe" style="background:linear-gradient(90deg,#14b8a6,#14b8a666)"></div>
+
+  <div class="card-head">
+    <div class="card-badges">
+      <span class="grupo-badge" style="background:#14b8a622;color:#14b8a6;border:1px solid #14b8a644">Grupo I</span>
+      <span class="jornada-badge">Jornada 1</span>
+      <span class="card-codigo">I2</span>
+    </div>
+    <div class="card-time">🕐 03:00 <small>(Lisboa)</small></div>
+  </div>
+
+  <div class="card-teams">
+    <div class="team">
+      <span class="team-flag">🇮🇶</span>
+      <div class="team-name">Iraque</div>
+    </div>
+    <div class="vs-wrap">
+      <span class="vs-text">VS</span>
+    </div>
+    <div class="team">
+      <span class="team-flag">🇳🇴</span>
+      <div class="team-name">Noruega</div>
+    </div>
+  </div>
+
+  <div class="pred-box">
+    <div class="pred-left">
+      <div class="pred-tag">🎯 A minha previsão</div>
+      <div class="pred-score">0-1</div>
+    </div>
+    <div class="pred-right">
+      <div class="pred-ball">⚽</div>
+      <div class="pred-city">📍 Boston</div>
+    </div>
+  </div>
+
+</div>
+<div class="game-card"
+  data-grupo="J"
+  data-jornada="1"
+  data-search="argentina argélia j1 j">
+
+  <div class="card-stripe" style="background:linear-gradient(90deg,#f59e0b,#f59e0b66)"></div>
+
+  <div class="card-head">
+    <div class="card-badges">
+      <span class="grupo-badge" style="background:#f59e0b22;color:#f59e0b;border:1px solid #f59e0b44">Grupo J</span>
+      <span class="jornada-badge">Jornada 1</span>
+      <span class="card-codigo">J1</span>
+    </div>
+    <div class="card-time">🕐 22:00 <small>(Lisboa)</small></div>
+  </div>
+
+  <div class="card-teams">
+    <div class="team">
+      <span class="team-flag">🇦🇷</span>
+      <div class="team-name">Argentina</div>
+    </div>
+    <div class="vs-wrap">
+      <span class="vs-text">VS</span>
+    </div>
+    <div class="team">
+      <span class="team-flag">🇩🇿</span>
+      <div class="team-name">Argélia</div>
+    </div>
+  </div>
+
+  <div class="pred-box">
+    <div class="pred-left">
+      <div class="pred-tag">🎯 A minha previsão</div>
+      <div class="pred-score">3-0</div>
+    </div>
+    <div class="pred-right">
+      <div class="pred-ball">⚽</div>
+      <div class="pred-city">📍 Kansas City</div>
+    </div>
+  </div>
+
+</div>
+  </div>
+</div>
+
+<div class="date-group" data-date="2026-06-18">
+  <div class="date-label">
+    <span class="date-label-icon">📅</span>
+    <span class="date-label-text">Quinta, 18 de Junho de 2026</span>
+    <div class="date-label-line"></div>
+    <span class="date-label-count">5 jogos</span>
+  </div>
+  <div class="cards-grid">
+<div class="game-card"
+  data-grupo="J"
+  data-jornada="1"
+  data-search="áustria jordânia j2 j">
+
+  <div class="card-stripe" style="background:linear-gradient(90deg,#f59e0b,#f59e0b66)"></div>
+
+  <div class="card-head">
+    <div class="card-badges">
+      <span class="grupo-badge" style="background:#f59e0b22;color:#f59e0b;border:1px solid #f59e0b44">Grupo J</span>
+      <span class="jornada-badge">Jornada 1</span>
+      <span class="card-codigo">J2</span>
+    </div>
+    <div class="card-time">🕐 01:00 <small>(Lisboa)</small></div>
+  </div>
+
+  <div class="card-teams">
+    <div class="team">
+      <span class="team-flag">🇦🇹</span>
+      <div class="team-name">Áustria</div>
+    </div>
+    <div class="vs-wrap">
+      <span class="vs-text">VS</span>
+    </div>
+    <div class="team">
+      <span class="team-flag">🇯🇴</span>
+      <div class="team-name">Jordânia</div>
+    </div>
+  </div>
+
+  <div class="pred-box">
+    <div class="pred-left">
+      <div class="pred-tag">🎯 A minha previsão</div>
+      <div class="pred-score">1-1</div>
+    </div>
+    <div class="pred-right">
+      <div class="pred-ball">⚽</div>
+      <div class="pred-city">📍 São Francisco</div>
+    </div>
+  </div>
+
+</div>
+<div class="game-card"
+  data-grupo="K"
+  data-jornada="1"
+  data-search="portugal rd congo k1 k">
+
+  <div class="card-stripe" style="background:linear-gradient(90deg,#3b82f6,#3b82f666)"></div>
+
+  <div class="card-head">
+    <div class="card-badges">
+      <span class="grupo-badge" style="background:#3b82f622;color:#3b82f6;border:1px solid #3b82f644">Grupo K</span>
+      <span class="jornada-badge">Jornada 1</span>
+      <span class="card-codigo">K1</span>
+    </div>
+    <div class="card-time">🕐 00:00 <small>(Lisboa)</small></div>
+  </div>
+
+  <div class="card-teams">
+    <div class="team">
+      <span class="team-flag">🇵🇹</span>
+      <div class="team-name">Portugal</div>
+    </div>
+    <div class="vs-wrap">
+      <span class="vs-text">VS</span>
+    </div>
+    <div class="team">
+      <span class="team-flag">🇨🇩</span>
+      <div class="team-name">RD Congo</div>
+    </div>
+  </div>
+
+  <div class="pred-box">
+    <div class="pred-left">
+      <div class="pred-tag">🎯 A minha previsão</div>
+      <div class="pred-score">2-0</div>
+    </div>
+    <div class="pred-right">
+      <div class="pred-ball">⚽</div>
+      <div class="pred-city">📍 Houston</div>
+    </div>
+  </div>
+
+</div>
+<div class="game-card"
+  data-grupo="K"
+  data-jornada="1"
+  data-search="uzbequistão colômbia k2 k">
+
+  <div class="card-stripe" style="background:linear-gradient(90deg,#3b82f6,#3b82f666)"></div>
+
+  <div class="card-head">
+    <div class="card-badges">
+      <span class="grupo-badge" style="background:#3b82f622;color:#3b82f6;border:1px solid #3b82f644">Grupo K</span>
+      <span class="jornada-badge">Jornada 1</span>
+      <span class="card-codigo">K2</span>
+    </div>
+    <div class="card-time">🕐 03:00 <small>(Lisboa)</small></div>
+  </div>
+
+  <div class="card-teams">
+    <div class="team">
+      <span class="team-flag">🇺🇿</span>
+      <div class="team-name">Uzbequistão</div>
+    </div>
+    <div class="vs-wrap">
+      <span class="vs-text">VS</span>
+    </div>
+    <div class="team">
+      <span class="team-flag">🇨🇴</span>
+      <div class="team-name">Colômbia</div>
+    </div>
+  </div>
+
+  <div class="pred-box">
+    <div class="pred-left">
+      <div class="pred-tag">🎯 A minha previsão</div>
+      <div class="pred-score">0-2</div>
+    </div>
+    <div class="pred-right">
+      <div class="pred-ball">⚽</div>
+      <div class="pred-city">📍 Dallas</div>
+    </div>
+  </div>
+
+</div>
+<div class="game-card"
+  data-grupo="L"
+  data-jornada="1"
+  data-search="inglaterra croácia l1 l">
+
+  <div class="card-stripe" style="background:linear-gradient(90deg,#10b981,#10b98166)"></div>
+
+  <div class="card-head">
+    <div class="card-badges">
+      <span class="grupo-badge" style="background:#10b98122;color:#10b981;border:1px solid #10b98144">Grupo L</span>
+      <span class="jornada-badge">Jornada 1</span>
+      <span class="card-codigo">L1</span>
+    </div>
+    <div class="card-time">🕐 20:00 <small>(Lisboa)</small></div>
+  </div>
+
+  <div class="card-teams">
+    <div class="team">
+      <span class="team-flag">🏴󠁧󠁢󠁥󠁮󠁧󠁿</span>
+      <div class="team-name">Inglaterra</div>
+    </div>
+    <div class="vs-wrap">
+      <span class="vs-text">VS</span>
+    </div>
+    <div class="team">
+      <span class="team-flag">🇭🇷</span>
+      <div class="team-name">Croácia</div>
+    </div>
+  </div>
+
+  <div class="pred-box">
+    <div class="pred-left">
+      <div class="pred-tag">🎯 A minha previsão</div>
+      <div class="pred-score">2-1</div>
+    </div>
+    <div class="pred-right">
+      <div class="pred-ball">⚽</div>
+      <div class="pred-city">📍 Filadélfia</div>
+    </div>
+  </div>
+
+</div>
+<div class="game-card"
+  data-grupo="L"
+  data-jornada="1"
+  data-search="gana panamá l2 l">
+
+  <div class="card-stripe" style="background:linear-gradient(90deg,#10b981,#10b98166)"></div>
+
+  <div class="card-head">
+    <div class="card-badges">
+      <span class="grupo-badge" style="background:#10b98122;color:#10b981;border:1px solid #10b98144">Grupo L</span>
+      <span class="jornada-badge">Jornada 1</span>
+      <span class="card-codigo">L2</span>
+    </div>
+    <div class="card-time">🕐 23:00 <small>(Lisboa)</small></div>
+  </div>
+
+  <div class="card-teams">
+    <div class="team">
+      <span class="team-flag">🇬🇭</span>
+      <div class="team-name">Gana</div>
+    </div>
+    <div class="vs-wrap">
+      <span class="vs-text">VS</span>
+    </div>
+    <div class="team">
+      <span class="team-flag">🇵🇦</span>
+      <div class="team-name">Panamá</div>
+    </div>
+  </div>
+
+  <div class="pred-box">
+    <div class="pred-left">
+      <div class="pred-tag">🎯 A minha previsão</div>
+      <div class="pred-score">1-0</div>
+    </div>
+    <div class="pred-right">
+      <div class="pred-ball">⚽</div>
+      <div class="pred-city">📍 Toronto</div>
+    </div>
+  </div>
+
+</div>
+  </div>
+</div>
+
+<div class="date-group" data-date="2026-06-19">
+  <div class="date-label">
+    <span class="date-label-icon">📅</span>
+    <span class="date-label-text">Sexta, 19 de Junho de 2026</span>
+    <div class="date-label-line"></div>
+    <span class="date-label-count">4 jogos</span>
+  </div>
+  <div class="cards-grid">
+<div class="game-card"
+  data-grupo="A"
+  data-jornada="2"
+  data-search="chéquia áfrica do sul a3 a">
+
+  <div class="card-stripe" style="background:linear-gradient(90deg,#ef4444,#ef444466)"></div>
+
+  <div class="card-head">
+    <div class="card-badges">
+      <span class="grupo-badge" style="background:#ef444422;color:#ef4444;border:1px solid #ef444444">Grupo A</span>
+      <span class="jornada-badge">Jornada 2</span>
+      <span class="card-codigo">A3</span>
+    </div>
+    <div class="card-time">🕐 17:00 <small>(Lisboa)</small></div>
+  </div>
+
+  <div class="card-teams">
+    <div class="team">
+      <span class="team-flag">🇨🇿</span>
+      <div class="team-name">Chéquia</div>
+    </div>
+    <div class="vs-wrap">
+      <span class="vs-text">VS</span>
+    </div>
+    <div class="team">
+      <span class="team-flag">🇿🇦</span>
+      <div class="team-name">África do Sul</div>
+    </div>
+  </div>
+
+  <div class="pred-box">
+    <div class="pred-left">
+      <div class="pred-tag">🎯 A minha previsão</div>
+      <div class="pred-score">1-0</div>
+    </div>
+    <div class="pred-right">
+      <div class="pred-ball">⚽</div>
+      <div class="pred-city">📍 Atlanta</div>
+    </div>
+  </div>
+
+</div>
+<div class="game-card"
+  data-grupo="A"
+  data-jornada="2"
+  data-search="méxico coreia do sul a4 a">
+
+  <div class="card-stripe" style="background:linear-gradient(90deg,#ef4444,#ef444466)"></div>
+
+  <div class="card-head">
+    <div class="card-badges">
+      <span class="grupo-badge" style="background:#ef444422;color:#ef4444;border:1px solid #ef444444">Grupo A</span>
+      <span class="jornada-badge">Jornada 2</span>
+      <span class="card-codigo">A4</span>
+    </div>
+    <div class="card-time">🕐 20:00 <small>(Lisboa)</small></div>
+  </div>
+
+  <div class="card-teams">
+    <div class="team">
+      <span class="team-flag">🇲🇽</span>
+      <div class="team-name">México</div>
+    </div>
+    <div class="vs-wrap">
+      <span class="vs-text">VS</span>
+    </div>
+    <div class="team">
+      <span class="team-flag">🇰🇷</span>
+      <div class="team-name">Coreia do Sul</div>
+    </div>
+  </div>
+
+  <div class="pred-box">
+    <div class="pred-left">
+      <div class="pred-tag">🎯 A minha previsão</div>
+      <div class="pred-score">1-1</div>
+    </div>
+    <div class="pred-right">
+      <div class="pred-ball">⚽</div>
+      <div class="pred-city">📍 Guadalajara</div>
+    </div>
+  </div>
+
+</div>
+<div class="game-card"
+  data-grupo="B"
+  data-jornada="2"
+  data-search="suíça bósnia e herzegovina b3 b">
+
+  <div class="card-stripe" style="background:linear-gradient(90deg,#f97316,#f9731666)"></div>
+
+  <div class="card-head">
+    <div class="card-badges">
+      <span class="grupo-badge" style="background:#f9731622;color:#f97316;border:1px solid #f9731644">Grupo B</span>
+      <span class="jornada-badge">Jornada 2</span>
+      <span class="card-codigo">B3</span>
+    </div>
+    <div class="card-time">🕐 20:00 <small>(Lisboa)</small></div>
+  </div>
+
+  <div class="card-teams">
+    <div class="team">
+      <span class="team-flag">🇨🇭</span>
+      <div class="team-name">Suíça</div>
+    </div>
+    <div class="vs-wrap">
+      <span class="vs-text">VS</span>
+    </div>
+    <div class="team">
+      <span class="team-flag">🇧🇦</span>
+      <div class="team-name">Bósnia e Herzegovina</div>
+    </div>
+  </div>
+
+  <div class="pred-box">
+    <div class="pred-left">
+      <div class="pred-tag">🎯 A minha previsão</div>
+      <div class="pred-score">2-1</div>
+    </div>
+    <div class="pred-right">
+      <div class="pred-ball">⚽</div>
+      <div class="pred-city">📍 Los Angeles</div>
+    </div>
+  </div>
+
+</div>
+<div class="game-card"
+  data-grupo="B"
+  data-jornada="2"
+  data-search="canadá catar b4 b">
+
+  <div class="card-stripe" style="background:linear-gradient(90deg,#f97316,#f9731666)"></div>
+
+  <div class="card-head">
+    <div class="card-badges">
+      <span class="grupo-badge" style="background:#f9731622;color:#f97316;border:1px solid #f9731644">Grupo B</span>
+      <span class="jornada-badge">Jornada 2</span>
+      <span class="card-codigo">B4</span>
+    </div>
+    <div class="card-time">🕐 23:00 <small>(Lisboa)</small></div>
+  </div>
+
+  <div class="card-teams">
+    <div class="team">
+      <span class="team-flag">🇨🇦</span>
+      <div class="team-name">Canadá</div>
+    </div>
+    <div class="vs-wrap">
+      <span class="vs-text">VS</span>
+    </div>
+    <div class="team">
+      <span class="team-flag">🇶🇦</span>
+      <div class="team-name">Catar</div>
+    </div>
+  </div>
+
+  <div class="pred-box">
+    <div class="pred-left">
+      <div class="pred-tag">🎯 A minha previsão</div>
+      <div class="pred-score">2-1</div>
+    </div>
+    <div class="pred-right">
+      <div class="pred-ball">⚽</div>
+      <div class="pred-city">📍 Vancouver</div>
+    </div>
+  </div>
+
+</div>
+  </div>
+</div>
+
+<div class="date-group" data-date="2026-06-20">
+  <div class="date-label">
+    <span class="date-label-icon">📅</span>
+    <span class="date-label-text">Sábado, 20 de Junho de 2026</span>
+    <div class="date-label-line"></div>
+    <span class="date-label-count">2 jogos</span>
+  </div>
+  <div class="cards-grid">
+<div class="game-card"
+  data-grupo="C"
+  data-jornada="2"
+  data-search="escócia marrocos c3 c">
+
+  <div class="card-stripe" style="background:linear-gradient(90deg,#eab308,#eab30866)"></div>
+
+  <div class="card-head">
+    <div class="card-badges">
+      <span class="grupo-badge" style="background:#eab30822;color:#eab308;border:1px solid #eab30844">Grupo C</span>
+      <span class="jornada-badge">Jornada 2</span>
+      <span class="card-codigo">C3</span>
+    </div>
+    <div class="card-time">🕐 20:00 <small>(Lisboa)</small></div>
+  </div>
+
+  <div class="card-teams">
+    <div class="team">
+      <span class="team-flag">🏴󠁧󠁢󠁳󠁣󠁴󠁿</span>
+      <div class="team-name">Escócia</div>
+    </div>
+    <div class="vs-wrap">
+      <span class="vs-text">VS</span>
+    </div>
+    <div class="team">
+      <span class="team-flag">🇲🇦</span>
+      <div class="team-name">Marrocos</div>
+    </div>
+  </div>
+
+  <div class="pred-box">
+    <div class="pred-left">
+      <div class="pred-tag">🎯 A minha previsão</div>
+      <div class="pred-score">2-2</div>
+    </div>
+    <div class="pred-right">
+      <div class="pred-ball">⚽</div>
+      <div class="pred-city">📍 Boston</div>
+    </div>
+  </div>
+
+</div>
+<div class="game-card"
+  data-grupo="C"
+  data-jornada="2"
+  data-search="brasil haiti c4 c">
+
+  <div class="card-stripe" style="background:linear-gradient(90deg,#eab308,#eab30866)"></div>
+
+  <div class="card-head">
+    <div class="card-badges">
+      <span class="grupo-badge" style="background:#eab30822;color:#eab308;border:1px solid #eab30844">Grupo C</span>
+      <span class="jornada-badge">Jornada 2</span>
+      <span class="card-codigo">C4</span>
+    </div>
+    <div class="card-time">🕐 23:00 <small>(Lisboa)</small></div>
+  </div>
+
+  <div class="card-teams">
+    <div class="team">
+      <span class="team-flag">🇧🇷</span>
+      <div class="team-name">Brasil</div>
+    </div>
+    <div class="vs-wrap">
+      <span class="vs-text">VS</span>
+    </div>
+    <div class="team">
+      <span class="team-flag">🇭🇹</span>
+      <div class="team-name">Haiti</div>
+    </div>
+  </div>
+
+  <div class="pred-box">
+    <div class="pred-left">
+      <div class="pred-tag">🎯 A minha previsão</div>
+      <div class="pred-score">3-0</div>
+    </div>
+    <div class="pred-right">
+      <div class="pred-ball">⚽</div>
+      <div class="pred-city">📍 Houston</div>
+    </div>
+  </div>
+
+</div>
+  </div>
+</div>
+
+<div class="date-group" data-date="2026-06-21">
+  <div class="date-label">
+    <span class="date-label-icon">📅</span>
+    <span class="date-label-text">Domingo, 21 de Junho de 2026</span>
+    <div class="date-label-line"></div>
+    <span class="date-label-count">4 jogos</span>
+  </div>
+  <div class="cards-grid">
+<div class="game-card"
+  data-grupo="D"
+  data-jornada="2"
+  data-search="estados unidos austrália d3 d">
+
+  <div class="card-stripe" style="background:linear-gradient(90deg,#22c55e,#22c55e66)"></div>
+
+  <div class="card-head">
+    <div class="card-badges">
+      <span class="grupo-badge" style="background:#22c55e22;color:#22c55e;border:1px solid #22c55e44">Grupo D</span>
+      <span class="jornada-badge">Jornada 2</span>
+      <span class="card-codigo">D3</span>
+    </div>
+    <div class="card-time">🕐 17:00 <small>(Lisboa)</small></div>
+  </div>
+
+  <div class="card-teams">
+    <div class="team">
+      <span class="team-flag">🇺🇸</span>
+      <div class="team-name">Estados Unidos</div>
+    </div>
+    <div class="vs-wrap">
+      <span class="vs-text">VS</span>
+    </div>
+    <div class="team">
+      <span class="team-flag">🇦🇺</span>
+      <div class="team-name">Austrália</div>
+    </div>
+  </div>
+
+  <div class="pred-box">
+    <div class="pred-left">
+      <div class="pred-tag">🎯 A minha previsão</div>
+      <div class="pred-score">2-0</div>
+    </div>
+    <div class="pred-right">
+      <div class="pred-ball">⚽</div>
+      <div class="pred-city">📍 Dallas</div>
+    </div>
+  </div>
+
+</div>
+<div class="game-card"
+  data-grupo="D"
+  data-jornada="2"
+  data-search="turquia paraguai d4 d">
+
+  <div class="card-stripe" style="background:linear-gradient(90deg,#22c55e,#22c55e66)"></div>
+
+  <div class="card-head">
+    <div class="card-badges">
+      <span class="grupo-badge" style="background:#22c55e22;color:#22c55e;border:1px solid #22c55e44">Grupo D</span>
+      <span class="jornada-badge">Jornada 2</span>
+      <span class="card-codigo">D4</span>
+    </div>
+    <div class="card-time">🕐 20:00 <small>(Lisboa)</small></div>
+  </div>
+
+  <div class="card-teams">
+    <div class="team">
+      <span class="team-flag">🇹🇷</span>
+      <div class="team-name">Turquia</div>
+    </div>
+    <div class="vs-wrap">
+      <span class="vs-text">VS</span>
+    </div>
+    <div class="team">
+      <span class="team-flag">🇵🇾</span>
+      <div class="team-name">Paraguai</div>
+    </div>
+  </div>
+
+  <div class="pred-box">
+    <div class="pred-left">
+      <div class="pred-tag">🎯 A minha previsão</div>
+      <div class="pred-score">1-0</div>
+    </div>
+    <div class="pred-right">
+      <div class="pred-ball">⚽</div>
+      <div class="pred-city">📍 Kansas City</div>
+    </div>
+  </div>
+
+</div>
+<div class="game-card"
+  data-grupo="E"
+  data-jornada="2"
+  data-search="alemanha costa do marfim e3 e">
+
+  <div class="card-stripe" style="background:linear-gradient(90deg,#06b6d4,#06b6d466)"></div>
+
+  <div class="card-head">
+    <div class="card-badges">
+      <span class="grupo-badge" style="background:#06b6d422;color:#06b6d4;border:1px solid #06b6d444">Grupo E</span>
+      <span class="jornada-badge">Jornada 2</span>
+      <span class="card-codigo">E3</span>
+    </div>
+    <div class="card-time">🕐 20:00 <small>(Lisboa)</small></div>
+  </div>
+
+  <div class="card-teams">
+    <div class="team">
+      <span class="team-flag">🇩🇪</span>
+      <div class="team-name">Alemanha</div>
+    </div>
+    <div class="vs-wrap">
+      <span class="vs-text">VS</span>
+    </div>
+    <div class="team">
+      <span class="team-flag">🇨🇮</span>
+      <div class="team-name">Costa do Marfim</div>
+    </div>
+  </div>
+
+  <div class="pred-box">
+    <div class="pred-left">
+      <div class="pred-tag">🎯 A minha previsão</div>
+      <div class="pred-score">2-0</div>
+    </div>
+    <div class="pred-right">
+      <div class="pred-ball">⚽</div>
+      <div class="pred-city">📍 Seattle</div>
+    </div>
+  </div>
+
+</div>
+<div class="game-card"
+  data-grupo="E"
+  data-jornada="2"
+  data-search="equador curaçau e4 e">
+
+  <div class="card-stripe" style="background:linear-gradient(90deg,#06b6d4,#06b6d466)"></div>
+
+  <div class="card-head">
+    <div class="card-badges">
+      <span class="grupo-badge" style="background:#06b6d422;color:#06b6d4;border:1px solid #06b6d444">Grupo E</span>
+      <span class="jornada-badge">Jornada 2</span>
+      <span class="card-codigo">E4</span>
+    </div>
+    <div class="card-time">🕐 23:00 <small>(Lisboa)</small></div>
+  </div>
+
+  <div class="card-teams">
+    <div class="team">
+      <span class="team-flag">🇪🇨</span>
+      <div class="team-name">Equador</div>
+    </div>
+    <div class="vs-wrap">
+      <span class="vs-text">VS</span>
+    </div>
+    <div class="team">
+      <span class="team-flag">🇨🇼</span>
+      <div class="team-name">Curaçau</div>
+    </div>
+  </div>
+
+  <div class="pred-box">
+    <div class="pred-left">
+      <div class="pred-tag">🎯 A minha previsão</div>
+      <div class="pred-score">1-0</div>
+    </div>
+    <div class="pred-right">
+      <div class="pred-ball">⚽</div>
+      <div class="pred-city">📍 Miami</div>
+    </div>
+  </div>
+
+</div>
+  </div>
+</div>
+
+<div class="date-group" data-date="2026-06-22">
+  <div class="date-label">
+    <span class="date-label-icon">📅</span>
+    <span class="date-label-text">Segunda, 22 de Junho de 2026</span>
+    <div class="date-label-line"></div>
+    <span class="date-label-count">4 jogos</span>
+  </div>
+  <div class="cards-grid">
+<div class="game-card"
+  data-grupo="F"
+  data-jornada="2"
+  data-search="holanda suécia f3 f">
+
+  <div class="card-stripe" style="background:linear-gradient(90deg,#6366f1,#6366f166)"></div>
+
+  <div class="card-head">
+    <div class="card-badges">
+      <span class="grupo-badge" style="background:#6366f122;color:#6366f1;border:1px solid #6366f144">Grupo F</span>
+      <span class="jornada-badge">Jornada 2</span>
+      <span class="card-codigo">F3</span>
+    </div>
+    <div class="card-time">🕐 00:00 <small>(Lisboa)</small></div>
+  </div>
+
+  <div class="card-teams">
+    <div class="team">
+      <span class="team-flag">🇳🇱</span>
+      <div class="team-name">Holanda</div>
+    </div>
+    <div class="vs-wrap">
+      <span class="vs-text">VS</span>
+    </div>
+    <div class="team">
+      <span class="team-flag">🇸🇪</span>
+      <div class="team-name">Suécia</div>
+    </div>
+  </div>
+
+  <div class="pred-box">
+    <div class="pred-left">
+      <div class="pred-tag">🎯 A minha previsão</div>
+      <div class="pred-score">2-1</div>
+    </div>
+    <div class="pred-right">
+      <div class="pred-ball">⚽</div>
+      <div class="pred-city">📍 Los Angeles</div>
+    </div>
+  </div>
+
+</div>
+<div class="game-card"
+  data-grupo="F"
+  data-jornada="2"
+  data-search="tunísia japão f4 f">
+
+  <div class="card-stripe" style="background:linear-gradient(90deg,#6366f1,#6366f166)"></div>
+
+  <div class="card-head">
+    <div class="card-badges">
+      <span class="grupo-badge" style="background:#6366f122;color:#6366f1;border:1px solid #6366f144">Grupo F</span>
+      <span class="jornada-badge">Jornada 2</span>
+      <span class="card-codigo">F4</span>
+    </div>
+    <div class="card-time">🕐 03:00 <small>(Lisboa)</small></div>
+  </div>
+
+  <div class="card-teams">
+    <div class="team">
+      <span class="team-flag">🇹🇳</span>
+      <div class="team-name">Tunísia</div>
+    </div>
+    <div class="vs-wrap">
+      <span class="vs-text">VS</span>
+    </div>
+    <div class="team">
+      <span class="team-flag">🇯🇵</span>
+      <div class="team-name">Japão</div>
+    </div>
+  </div>
+
+  <div class="pred-box">
+    <div class="pred-left">
+      <div class="pred-tag">🎯 A minha previsão</div>
+      <div class="pred-score">1-0</div>
+    </div>
+    <div class="pred-right">
+      <div class="pred-ball">⚽</div>
+      <div class="pred-city">📍 Dallas</div>
+    </div>
+  </div>
+
+</div>
+<div class="game-card"
+  data-grupo="G"
+  data-jornada="2"
+  data-search="bélgica irão g3 g">
+
+  <div class="card-stripe" style="background:linear-gradient(90deg,#a855f7,#a855f766)"></div>
+
+  <div class="card-head">
+    <div class="card-badges">
+      <span class="grupo-badge" style="background:#a855f722;color:#a855f7;border:1px solid #a855f744">Grupo G</span>
+      <span class="jornada-badge">Jornada 2</span>
+      <span class="card-codigo">G3</span>
+    </div>
+    <div class="card-time">🕐 20:00 <small>(Lisboa)</small></div>
+  </div>
+
+  <div class="card-teams">
+    <div class="team">
+      <span class="team-flag">🇧🇪</span>
+      <div class="team-name">Bélgica</div>
+    </div>
+    <div class="vs-wrap">
+      <span class="vs-text">VS</span>
+    </div>
+    <div class="team">
+      <span class="team-flag">🇮🇷</span>
+      <div class="team-name">Irão</div>
+    </div>
+  </div>
+
+  <div class="pred-box">
+    <div class="pred-left">
+      <div class="pred-tag">🎯 A minha previsão</div>
+      <div class="pred-score">2-1</div>
+    </div>
+    <div class="pred-right">
+      <div class="pred-ball">⚽</div>
+      <div class="pred-city">📍 Nova Jérsia</div>
+    </div>
+  </div>
+
+</div>
+<div class="game-card"
+  data-grupo="G"
+  data-jornada="2"
+  data-search="nova zelândia egito g4 g">
+
+  <div class="card-stripe" style="background:linear-gradient(90deg,#a855f7,#a855f766)"></div>
+
+  <div class="card-head">
+    <div class="card-badges">
+      <span class="grupo-badge" style="background:#a855f722;color:#a855f7;border:1px solid #a855f744">Grupo G</span>
+      <span class="jornada-badge">Jornada 2</span>
+      <span class="card-codigo">G4</span>
+    </div>
+    <div class="card-time">🕐 23:00 <small>(Lisboa)</small></div>
+  </div>
+
+  <div class="card-teams">
+    <div class="team">
+      <span class="team-flag">🇳🇿</span>
+      <div class="team-name">Nova Zelândia</div>
+    </div>
+    <div class="vs-wrap">
+      <span class="vs-text">VS</span>
+    </div>
+    <div class="team">
+      <span class="team-flag">🇪🇬</span>
+      <div class="team-name">Egito</div>
+    </div>
+  </div>
+
+  <div class="pred-box">
+    <div class="pred-left">
+      <div class="pred-tag">🎯 A minha previsão</div>
+      <div class="pred-score">0-1</div>
+    </div>
+    <div class="pred-right">
+      <div class="pred-ball">⚽</div>
+      <div class="pred-city">📍 Seattle</div>
+    </div>
+  </div>
+
+</div>
+  </div>
+</div>
+
+<div class="date-group" data-date="2026-06-23">
+  <div class="date-label">
+    <span class="date-label-icon">📅</span>
+    <span class="date-label-text">Terça, 23 de Junho de 2026</span>
+    <div class="date-label-line"></div>
+    <span class="date-label-count">4 jogos</span>
+  </div>
+  <div class="cards-grid">
+<div class="game-card"
+  data-grupo="H"
+  data-jornada="2"
+  data-search="espanha arábia saudita h3 h">
+
+  <div class="card-stripe" style="background:linear-gradient(90deg,#ec4899,#ec489966)"></div>
+
+  <div class="card-head">
+    <div class="card-badges">
+      <span class="grupo-badge" style="background:#ec489922;color:#ec4899;border:1px solid #ec489944">Grupo H</span>
+      <span class="jornada-badge">Jornada 2</span>
+      <span class="card-codigo">H3</span>
+    </div>
+    <div class="card-time">🕐 00:00 <small>(Lisboa)</small></div>
+  </div>
+
+  <div class="card-teams">
+    <div class="team">
+      <span class="team-flag">🇪🇸</span>
+      <div class="team-name">Espanha</div>
+    </div>
+    <div class="vs-wrap">
+      <span class="vs-text">VS</span>
+    </div>
+    <div class="team">
+      <span class="team-flag">🇸🇦</span>
+      <div class="team-name">Arábia Saudita</div>
+    </div>
+  </div>
+
+  <div class="pred-box">
+    <div class="pred-left">
+      <div class="pred-tag">🎯 A minha previsão</div>
+      <div class="pred-score">2-0</div>
+    </div>
+    <div class="pred-right">
+      <div class="pred-ball">⚽</div>
+      <div class="pred-city">📍 Kansas City</div>
+    </div>
+  </div>
+
+</div>
+<div class="game-card"
+  data-grupo="H"
+  data-jornada="2"
+  data-search="uruguai cabo verde h4 h">
+
+  <div class="card-stripe" style="background:linear-gradient(90deg,#ec4899,#ec489966)"></div>
+
+  <div class="card-head">
+    <div class="card-badges">
+      <span class="grupo-badge" style="background:#ec489922;color:#ec4899;border:1px solid #ec489944">Grupo H</span>
+      <span class="jornada-badge">Jornada 2</span>
+      <span class="card-codigo">H4</span>
+    </div>
+    <div class="card-time">🕐 03:00 <small>(Lisboa)</small></div>
+  </div>
+
+  <div class="card-teams">
+    <div class="team">
+      <span class="team-flag">🇺🇾</span>
+      <div class="team-name">Uruguai</div>
+    </div>
+    <div class="vs-wrap">
+      <span class="vs-text">VS</span>
+    </div>
+    <div class="team">
+      <span class="team-flag">🇨🇻</span>
+      <div class="team-name">Cabo Verde</div>
+    </div>
+  </div>
+
+  <div class="pred-box">
+    <div class="pred-left">
+      <div class="pred-tag">🎯 A minha previsão</div>
+      <div class="pred-score">1-0</div>
+    </div>
+    <div class="pred-right">
+      <div class="pred-ball">⚽</div>
+      <div class="pred-city">📍 São Francisco</div>
+    </div>
+  </div>
+
+</div>
+<div class="game-card"
+  data-grupo="I"
+  data-jornada="2"
+  data-search="frança iraque i3 i">
+
+  <div class="card-stripe" style="background:linear-gradient(90deg,#14b8a6,#14b8a666)"></div>
+
+  <div class="card-head">
+    <div class="card-badges">
+      <span class="grupo-badge" style="background:#14b8a622;color:#14b8a6;border:1px solid #14b8a644">Grupo I</span>
+      <span class="jornada-badge">Jornada 2</span>
+      <span class="card-codigo">I3</span>
+    </div>
+    <div class="card-time">🕐 20:00 <small>(Lisboa)</small></div>
+  </div>
+
+  <div class="card-teams">
+    <div class="team">
+      <span class="team-flag">🇫🇷</span>
+      <div class="team-name">França</div>
+    </div>
+    <div class="vs-wrap">
+      <span class="vs-text">VS</span>
+    </div>
+    <div class="team">
+      <span class="team-flag">🇮🇶</span>
+      <div class="team-name">Iraque</div>
+    </div>
+  </div>
+
+  <div class="pred-box">
+    <div class="pred-left">
+      <div class="pred-tag">🎯 A minha previsão</div>
+      <div class="pred-score">2-0</div>
+    </div>
+    <div class="pred-right">
+      <div class="pred-ball">⚽</div>
+      <div class="pred-city">📍 Houston</div>
+    </div>
+  </div>
+
+</div>
+<div class="game-card"
+  data-grupo="I"
+  data-jornada="2"
+  data-search="noruega senegal i4 i">
+
+  <div class="card-stripe" style="background:linear-gradient(90deg,#14b8a6,#14b8a666)"></div>
+
+  <div class="card-head">
+    <div class="card-badges">
+      <span class="grupo-badge" style="background:#14b8a622;color:#14b8a6;border:1px solid #14b8a644">Grupo I</span>
+      <span class="jornada-badge">Jornada 2</span>
+      <span class="card-codigo">I4</span>
+    </div>
+    <div class="card-time">🕐 23:00 <small>(Lisboa)</small></div>
+  </div>
+
+  <div class="card-teams">
+    <div class="team">
+      <span class="team-flag">🇳🇴</span>
+      <div class="team-name">Noruega</div>
+    </div>
+    <div class="vs-wrap">
+      <span class="vs-text">VS</span>
+    </div>
+    <div class="team">
+      <span class="team-flag">🇸🇳</span>
+      <div class="team-name">Senegal</div>
+    </div>
+  </div>
+
+  <div class="pred-box">
+    <div class="pred-left">
+      <div class="pred-tag">🎯 A minha previsão</div>
+      <div class="pred-score">2-1</div>
+    </div>
+    <div class="pred-right">
+      <div class="pred-ball">⚽</div>
+      <div class="pred-city">📍 Atlanta</div>
+    </div>
+  </div>
+
+</div>
+  </div>
+</div>
+
+<div class="date-group" data-date="2026-06-24">
+  <div class="date-label">
+    <span class="date-label-icon">📅</span>
+    <span class="date-label-text">Quarta, 24 de Junho de 2026</span>
+    <div class="date-label-line"></div>
+    <span class="date-label-count">4 jogos</span>
+  </div>
+  <div class="cards-grid">
+<div class="game-card"
+  data-grupo="J"
+  data-jornada="2"
+  data-search="argentina áustria j3 j">
+
+  <div class="card-stripe" style="background:linear-gradient(90deg,#f59e0b,#f59e0b66)"></div>
+
+  <div class="card-head">
+    <div class="card-badges">
+      <span class="grupo-badge" style="background:#f59e0b22;color:#f59e0b;border:1px solid #f59e0b44">Grupo J</span>
+      <span class="jornada-badge">Jornada 2</span>
+      <span class="card-codigo">J3</span>
+    </div>
+    <div class="card-time">🕐 00:00 <small>(Lisboa)</small></div>
+  </div>
+
+  <div class="card-teams">
+    <div class="team">
+      <span class="team-flag">🇦🇷</span>
+      <div class="team-name">Argentina</div>
+    </div>
+    <div class="vs-wrap">
+      <span class="vs-text">VS</span>
+    </div>
+    <div class="team">
+      <span class="team-flag">🇦🇹</span>
+      <div class="team-name">Áustria</div>
+    </div>
+  </div>
+
+  <div class="pred-box">
+    <div class="pred-left">
+      <div class="pred-tag">🎯 A minha previsão</div>
+      <div class="pred-score">3-1</div>
+    </div>
+    <div class="pred-right">
+      <div class="pred-ball">⚽</div>
+      <div class="pred-city">📍 Filadélfia</div>
+    </div>
+  </div>
+
+</div>
+<div class="game-card"
+  data-grupo="J"
+  data-jornada="2"
+  data-search="jordânia argélia j4 j">
+
+  <div class="card-stripe" style="background:linear-gradient(90deg,#f59e0b,#f59e0b66)"></div>
+
+  <div class="card-head">
+    <div class="card-badges">
+      <span class="grupo-badge" style="background:#f59e0b22;color:#f59e0b;border:1px solid #f59e0b44">Grupo J</span>
+      <span class="jornada-badge">Jornada 2</span>
+      <span class="card-codigo">J4</span>
+    </div>
+    <div class="card-time">🕐 03:00 <small>(Lisboa)</small></div>
+  </div>
+
+  <div class="card-teams">
+    <div class="team">
+      <span class="team-flag">🇯🇴</span>
+      <div class="team-name">Jordânia</div>
+    </div>
+    <div class="vs-wrap">
+      <span class="vs-text">VS</span>
+    </div>
+    <div class="team">
+      <span class="team-flag">🇩🇿</span>
+      <div class="team-name">Argélia</div>
+    </div>
+  </div>
+
+  <div class="pred-box">
+    <div class="pred-left">
+      <div class="pred-tag">🎯 A minha previsão</div>
+      <div class="pred-score">1-2</div>
+    </div>
+    <div class="pred-right">
+      <div class="pred-ball">⚽</div>
+      <div class="pred-city">📍 Miami</div>
+    </div>
+  </div>
+
+</div>
+<div class="game-card"
+  data-grupo="K"
+  data-jornada="2"
+  data-search="portugal uzbequistão k3 k">
+
+  <div class="card-stripe" style="background:linear-gradient(90deg,#3b82f6,#3b82f666)"></div>
+
+  <div class="card-head">
+    <div class="card-badges">
+      <span class="grupo-badge" style="background:#3b82f622;color:#3b82f6;border:1px solid #3b82f644">Grupo K</span>
+      <span class="jornada-badge">Jornada 2</span>
+      <span class="card-codigo">K3</span>
+    </div>
+    <div class="card-time">🕐 20:00 <small>(Lisboa)</small></div>
+  </div>
+
+  <div class="card-teams">
+    <div class="team">
+      <span class="team-flag">🇵🇹</span>
+      <div class="team-name">Portugal</div>
+    </div>
+    <div class="vs-wrap">
+      <span class="vs-text">VS</span>
+    </div>
+    <div class="team">
+      <span class="team-flag">🇺🇿</span>
+      <div class="team-name">Uzbequistão</div>
+    </div>
+  </div>
+
+  <div class="pred-box">
+    <div class="pred-left">
+      <div class="pred-tag">🎯 A minha previsão</div>
+      <div class="pred-score">2-0</div>
+    </div>
+    <div class="pred-right">
+      <div class="pred-ball">⚽</div>
+      <div class="pred-city">📍 Boston</div>
+    </div>
+  </div>
+
+</div>
+<div class="game-card"
+  data-grupo="K"
+  data-jornada="2"
+  data-search="colômbia rd congo k4 k">
+
+  <div class="card-stripe" style="background:linear-gradient(90deg,#3b82f6,#3b82f666)"></div>
+
+  <div class="card-head">
+    <div class="card-badges">
+      <span class="grupo-badge" style="background:#3b82f622;color:#3b82f6;border:1px solid #3b82f644">Grupo K</span>
+      <span class="jornada-badge">Jornada 2</span>
+      <span class="card-codigo">K4</span>
+    </div>
+    <div class="card-time">🕐 23:00 <small>(Lisboa)</small></div>
+  </div>
+
+  <div class="card-teams">
+    <div class="team">
+      <span class="team-flag">🇨🇴</span>
+      <div class="team-name">Colômbia</div>
+    </div>
+    <div class="vs-wrap">
+      <span class="vs-text">VS</span>
+    </div>
+    <div class="team">
+      <span class="team-flag">🇨🇩</span>
+      <div class="team-name">RD Congo</div>
+    </div>
+  </div>
+
+  <div class="pred-box">
+    <div class="pred-left">
+      <div class="pred-tag">🎯 A minha previsão</div>
+      <div class="pred-score">2-0</div>
+    </div>
+    <div class="pred-right">
+      <div class="pred-ball">⚽</div>
+      <div class="pred-city">📍 Kansas City</div>
+    </div>
+  </div>
+
+</div>
+  </div>
+</div>
+
+<div class="date-group" data-date="2026-06-25">
+  <div class="date-label">
+    <span class="date-label-icon">📅</span>
+    <span class="date-label-text">Quinta, 25 de Junho de 2026</span>
+    <div class="date-label-line"></div>
+    <span class="date-label-count">6 jogos</span>
+  </div>
+  <div class="cards-grid">
+<div class="game-card"
+  data-grupo="A"
+  data-jornada="3"
+  data-search="chéquia méxico a5 a">
+
+  <div class="card-stripe" style="background:linear-gradient(90deg,#ef4444,#ef444466)"></div>
+
+  <div class="card-head">
+    <div class="card-badges">
+      <span class="grupo-badge" style="background:#ef444422;color:#ef4444;border:1px solid #ef444444">Grupo A</span>
+      <span class="jornada-badge">Jornada 3</span>
+      <span class="card-codigo">A5</span>
+    </div>
+    <div class="card-time">🕐 21:00 <small>(Lisboa)</small></div>
+  </div>
+
+  <div class="card-teams">
+    <div class="team">
+      <span class="team-flag">🇨🇿</span>
+      <div class="team-name">Chéquia</div>
+    </div>
+    <div class="vs-wrap">
+      <span class="vs-text">VS</span>
+    </div>
+    <div class="team">
+      <span class="team-flag">🇲🇽</span>
+      <div class="team-name">México</div>
+    </div>
+  </div>
+
+  <div class="pred-box">
+    <div class="pred-left">
+      <div class="pred-tag">🎯 A minha previsão</div>
+      <div class="pred-score">1-2</div>
+    </div>
+    <div class="pred-right">
+      <div class="pred-ball">⚽</div>
+      <div class="pred-city">📍 Cidade do México</div>
+    </div>
+  </div>
+
+</div>
+<div class="game-card"
+  data-grupo="A"
+  data-jornada="3"
+  data-search="áfrica do sul coreia do sul a6 a">
+
+  <div class="card-stripe" style="background:linear-gradient(90deg,#ef4444,#ef444466)"></div>
+
+  <div class="card-head">
+    <div class="card-badges">
+      <span class="grupo-badge" style="background:#ef444422;color:#ef4444;border:1px solid #ef444444">Grupo A</span>
+      <span class="jornada-badge">Jornada 3</span>
+      <span class="card-codigo">A6</span>
+    </div>
+    <div class="card-time">🕐 21:00 <small>(Lisboa)</small></div>
+  </div>
+
+  <div class="card-teams">
+    <div class="team">
+      <span class="team-flag">🇿🇦</span>
+      <div class="team-name">África do Sul</div>
+    </div>
+    <div class="vs-wrap">
+      <span class="vs-text">VS</span>
+    </div>
+    <div class="team">
+      <span class="team-flag">🇰🇷</span>
+      <div class="team-name">Coreia do Sul</div>
+    </div>
+  </div>
+
+  <div class="pred-box">
+    <div class="pred-left">
+      <div class="pred-tag">🎯 A minha previsão</div>
+      <div class="pred-score">0-2</div>
+    </div>
+    <div class="pred-right">
+      <div class="pred-ball">⚽</div>
+      <div class="pred-city">📍 Monterrey</div>
+    </div>
+  </div>
+
+</div>
+<div class="game-card"
+  data-grupo="B"
+  data-jornada="3"
+  data-search="suíça canadá b5 b">
+
+  <div class="card-stripe" style="background:linear-gradient(90deg,#f97316,#f9731666)"></div>
+
+  <div class="card-head">
+    <div class="card-badges">
+      <span class="grupo-badge" style="background:#f9731622;color:#f97316;border:1px solid #f9731644">Grupo B</span>
+      <span class="jornada-badge">Jornada 3</span>
+      <span class="card-codigo">B5</span>
+    </div>
+    <div class="card-time">🕐 00:00 <small>(Lisboa)</small></div>
+  </div>
+
+  <div class="card-teams">
+    <div class="team">
+      <span class="team-flag">🇨🇭</span>
+      <div class="team-name">Suíça</div>
+    </div>
+    <div class="vs-wrap">
+      <span class="vs-text">VS</span>
+    </div>
+    <div class="team">
+      <span class="team-flag">🇨🇦</span>
+      <div class="team-name">Canadá</div>
+    </div>
+  </div>
+
+  <div class="pred-box">
+    <div class="pred-left">
+      <div class="pred-tag">🎯 A minha previsão</div>
+      <div class="pred-score">2-1</div>
+    </div>
+    <div class="pred-right">
+      <div class="pred-ball">⚽</div>
+      <div class="pred-city">📍 Vancouver</div>
+    </div>
+  </div>
+
+</div>
+<div class="game-card"
+  data-grupo="B"
+  data-jornada="3"
+  data-search="bósnia e herzegovina catar b6 b">
+
+  <div class="card-stripe" style="background:linear-gradient(90deg,#f97316,#f9731666)"></div>
+
+  <div class="card-head">
+    <div class="card-badges">
+      <span class="grupo-badge" style="background:#f9731622;color:#f97316;border:1px solid #f9731644">Grupo B</span>
+      <span class="jornada-badge">Jornada 3</span>
+      <span class="card-codigo">B6</span>
+    </div>
+    <div class="card-time">🕐 00:00 <small>(Lisboa)</small></div>
+  </div>
+
+  <div class="card-teams">
+    <div class="team">
+      <span class="team-flag">🇧🇦</span>
+      <div class="team-name">Bósnia e Herzegovina</div>
+    </div>
+    <div class="vs-wrap">
+      <span class="vs-text">VS</span>
+    </div>
+    <div class="team">
+      <span class="team-flag">🇶🇦</span>
+      <div class="team-name">Catar</div>
+    </div>
+  </div>
+
+  <div class="pred-box">
+    <div class="pred-left">
+      <div class="pred-tag">🎯 A minha previsão</div>
+      <div class="pred-score">1-1</div>
+    </div>
+    <div class="pred-right">
+      <div class="pred-ball">⚽</div>
+      <div class="pred-city">📍 Seattle</div>
+    </div>
+  </div>
+
+</div>
+<div class="game-card"
+  data-grupo="L"
+  data-jornada="2"
+  data-search="inglaterra gana l3 l">
+
+  <div class="card-stripe" style="background:linear-gradient(90deg,#10b981,#10b98166)"></div>
+
+  <div class="card-head">
+    <div class="card-badges">
+      <span class="grupo-badge" style="background:#10b98122;color:#10b981;border:1px solid #10b98144">Grupo L</span>
+      <span class="jornada-badge">Jornada 2</span>
+      <span class="card-codigo">L3</span>
+    </div>
+    <div class="card-time">🕐 00:00 <small>(Lisboa)</small></div>
+  </div>
+
+  <div class="card-teams">
+    <div class="team">
+      <span class="team-flag">🏴󠁧󠁢󠁥󠁮󠁧󠁿</span>
+      <div class="team-name">Inglaterra</div>
+    </div>
+    <div class="vs-wrap">
+      <span class="vs-text">VS</span>
+    </div>
+    <div class="team">
+      <span class="team-flag">🇬🇭</span>
+      <div class="team-name">Gana</div>
+    </div>
+  </div>
+
+  <div class="pred-box">
+    <div class="pred-left">
+      <div class="pred-tag">🎯 A minha previsão</div>
+      <div class="pred-score">2-0</div>
+    </div>
+    <div class="pred-right">
+      <div class="pred-ball">⚽</div>
+      <div class="pred-city">📍 Dallas</div>
+    </div>
+  </div>
+
+</div>
+<div class="game-card"
+  data-grupo="L"
+  data-jornada="2"
+  data-search="panamá croácia l4 l">
+
+  <div class="card-stripe" style="background:linear-gradient(90deg,#10b981,#10b98166)"></div>
+
+  <div class="card-head">
+    <div class="card-badges">
+      <span class="grupo-badge" style="background:#10b98122;color:#10b981;border:1px solid #10b98144">Grupo L</span>
+      <span class="jornada-badge">Jornada 2</span>
+      <span class="card-codigo">L4</span>
+    </div>
+    <div class="card-time">🕐 03:00 <small>(Lisboa)</small></div>
+  </div>
+
+  <div class="card-teams">
+    <div class="team">
+      <span class="team-flag">🇵🇦</span>
+      <div class="team-name">Panamá</div>
+    </div>
+    <div class="vs-wrap">
+      <span class="vs-text">VS</span>
+    </div>
+    <div class="team">
+      <span class="team-flag">🇭🇷</span>
+      <div class="team-name">Croácia</div>
+    </div>
+  </div>
+
+  <div class="pred-box">
+    <div class="pred-left">
+      <div class="pred-tag">🎯 A minha previsão</div>
+      <div class="pred-score">0-3</div>
+    </div>
+    <div class="pred-right">
+      <div class="pred-ball">⚽</div>
+      <div class="pred-city">📍 Filadélfia</div>
+    </div>
+  </div>
+
+</div>
+  </div>
+</div>
+
+<div class="date-group" data-date="2026-06-26">
+  <div class="date-label">
+    <span class="date-label-icon">📅</span>
+    <span class="date-label-text">Sexta, 26 de Junho de 2026</span>
+    <div class="date-label-line"></div>
+    <span class="date-label-count">6 jogos</span>
+  </div>
+  <div class="cards-grid">
+<div class="game-card"
+  data-grupo="C"
+  data-jornada="3"
+  data-search="escócia brasil c5 c">
+
+  <div class="card-stripe" style="background:linear-gradient(90deg,#eab308,#eab30866)"></div>
+
+  <div class="card-head">
+    <div class="card-badges">
+      <span class="grupo-badge" style="background:#eab30822;color:#eab308;border:1px solid #eab30844">Grupo C</span>
+      <span class="jornada-badge">Jornada 3</span>
+      <span class="card-codigo">C5</span>
+    </div>
+    <div class="card-time">🕐 00:00 <small>(Lisboa)</small></div>
+  </div>
+
+  <div class="card-teams">
+    <div class="team">
+      <span class="team-flag">🏴󠁧󠁢󠁳󠁣󠁴󠁿</span>
+      <div class="team-name">Escócia</div>
+    </div>
+    <div class="vs-wrap">
+      <span class="vs-text">VS</span>
+    </div>
+    <div class="team">
+      <span class="team-flag">🇧🇷</span>
+      <div class="team-name">Brasil</div>
+    </div>
+  </div>
+
+  <div class="pred-box">
+    <div class="pred-left">
+      <div class="pred-tag">🎯 A minha previsão</div>
+      <div class="pred-score">1-2</div>
+    </div>
+    <div class="pred-right">
+      <div class="pred-ball">⚽</div>
+      <div class="pred-city">📍 Los Angeles</div>
+    </div>
+  </div>
+
+</div>
+<div class="game-card"
+  data-grupo="C"
+  data-jornada="3"
+  data-search="marrocos haiti c6 c">
+
+  <div class="card-stripe" style="background:linear-gradient(90deg,#eab308,#eab30866)"></div>
+
+  <div class="card-head">
+    <div class="card-badges">
+      <span class="grupo-badge" style="background:#eab30822;color:#eab308;border:1px solid #eab30844">Grupo C</span>
+      <span class="jornada-badge">Jornada 3</span>
+      <span class="card-codigo">C6</span>
+    </div>
+    <div class="card-time">🕐 00:00 <small>(Lisboa)</small></div>
+  </div>
+
+  <div class="card-teams">
+    <div class="team">
+      <span class="team-flag">🇲🇦</span>
+      <div class="team-name">Marrocos</div>
+    </div>
+    <div class="vs-wrap">
+      <span class="vs-text">VS</span>
+    </div>
+    <div class="team">
+      <span class="team-flag">🇭🇹</span>
+      <div class="team-name">Haiti</div>
+    </div>
+  </div>
+
+  <div class="pred-box">
+    <div class="pred-left">
+      <div class="pred-tag">🎯 A minha previsão</div>
+      <div class="pred-score">2-0</div>
+    </div>
+    <div class="pred-right">
+      <div class="pred-ball">⚽</div>
+      <div class="pred-city">📍 Atlanta</div>
+    </div>
+  </div>
+
+</div>
+<div class="game-card"
+  data-grupo="D"
+  data-jornada="3"
+  data-search="turquia estados unidos d5 d">
+
+  <div class="card-stripe" style="background:linear-gradient(90deg,#22c55e,#22c55e66)"></div>
+
+  <div class="card-head">
+    <div class="card-badges">
+      <span class="grupo-badge" style="background:#22c55e22;color:#22c55e;border:1px solid #22c55e44">Grupo D</span>
+      <span class="jornada-badge">Jornada 3</span>
+      <span class="card-codigo">D5</span>
+    </div>
+    <div class="card-time">🕐 02:00 <small>(Lisboa)</small></div>
+  </div>
+
+  <div class="card-teams">
+    <div class="team">
+      <span class="team-flag">🇹🇷</span>
+      <div class="team-name">Turquia</div>
+    </div>
+    <div class="vs-wrap">
+      <span class="vs-text">VS</span>
+    </div>
+    <div class="team">
+      <span class="team-flag">🇺🇸</span>
+      <div class="team-name">Estados Unidos</div>
+    </div>
+  </div>
+
+  <div class="pred-box">
+    <div class="pred-left">
+      <div class="pred-tag">🎯 A minha previsão</div>
+      <div class="pred-score">1-1</div>
+    </div>
+    <div class="pred-right">
+      <div class="pred-ball">⚽</div>
+      <div class="pred-city">📍 Nova Jérsia</div>
+    </div>
+  </div>
+
+</div>
+<div class="game-card"
+  data-grupo="D"
+  data-jornada="3"
+  data-search="paraguai austrália d6 d">
+
+  <div class="card-stripe" style="background:linear-gradient(90deg,#22c55e,#22c55e66)"></div>
+
+  <div class="card-head">
+    <div class="card-badges">
+      <span class="grupo-badge" style="background:#22c55e22;color:#22c55e;border:1px solid #22c55e44">Grupo D</span>
+      <span class="jornada-badge">Jornada 3</span>
+      <span class="card-codigo">D6</span>
+    </div>
+    <div class="card-time">🕐 02:00 <small>(Lisboa)</small></div>
+  </div>
+
+  <div class="card-teams">
+    <div class="team">
+      <span class="team-flag">🇵🇾</span>
+      <div class="team-name">Paraguai</div>
+    </div>
+    <div class="vs-wrap">
+      <span class="vs-text">VS</span>
+    </div>
+    <div class="team">
+      <span class="team-flag">🇦🇺</span>
+      <div class="team-name">Austrália</div>
+    </div>
+  </div>
+
+  <div class="pred-box">
+    <div class="pred-left">
+      <div class="pred-tag">🎯 A minha previsão</div>
+      <div class="pred-score">2-0</div>
+    </div>
+    <div class="pred-right">
+      <div class="pred-ball">⚽</div>
+      <div class="pred-city">📍 Miami</div>
+    </div>
+  </div>
+
+</div>
+<div class="game-card"
+  data-grupo="E"
+  data-jornada="3"
+  data-search="equador alemanha e5 e">
+
+  <div class="card-stripe" style="background:linear-gradient(90deg,#06b6d4,#06b6d466)"></div>
+
+  <div class="card-head">
+    <div class="card-badges">
+      <span class="grupo-badge" style="background:#06b6d422;color:#06b6d4;border:1px solid #06b6d444">Grupo E</span>
+      <span class="jornada-badge">Jornada 3</span>
+      <span class="card-codigo">E5</span>
+    </div>
+    <div class="card-time">🕐 21:00 <small>(Lisboa)</small></div>
+  </div>
+
+  <div class="card-teams">
+    <div class="team">
+      <span class="team-flag">🇪🇨</span>
+      <div class="team-name">Equador</div>
+    </div>
+    <div class="vs-wrap">
+      <span class="vs-text">VS</span>
+    </div>
+    <div class="team">
+      <span class="team-flag">🇩🇪</span>
+      <div class="team-name">Alemanha</div>
+    </div>
+  </div>
+
+  <div class="pred-box">
+    <div class="pred-left">
+      <div class="pred-tag">🎯 A minha previsão</div>
+      <div class="pred-score">1-3</div>
+    </div>
+    <div class="pred-right">
+      <div class="pred-ball">⚽</div>
+      <div class="pred-city">📍 Kansas City</div>
+    </div>
+  </div>
+
+</div>
+<div class="game-card"
+  data-grupo="E"
+  data-jornada="3"
+  data-search="curaçau costa do marfim e6 e">
+
+  <div class="card-stripe" style="background:linear-gradient(90deg,#06b6d4,#06b6d466)"></div>
+
+  <div class="card-head">
+    <div class="card-badges">
+      <span class="grupo-badge" style="background:#06b6d422;color:#06b6d4;border:1px solid #06b6d444">Grupo E</span>
+      <span class="jornada-badge">Jornada 3</span>
+      <span class="card-codigo">E6</span>
+    </div>
+    <div class="card-time">🕐 21:00 <small>(Lisboa)</small></div>
+  </div>
+
+  <div class="card-teams">
+    <div class="team">
+      <span class="team-flag">🇨🇼</span>
+      <div class="team-name">Curaçau</div>
+    </div>
+    <div class="vs-wrap">
+      <span class="vs-text">VS</span>
+    </div>
+    <div class="team">
+      <span class="team-flag">🇨🇮</span>
+      <div class="team-name">Costa do Marfim</div>
+    </div>
+  </div>
+
+  <div class="pred-box">
+    <div class="pred-left">
+      <div class="pred-tag">🎯 A minha previsão</div>
+      <div class="pred-score">0-2</div>
+    </div>
+    <div class="pred-right">
+      <div class="pred-ball">⚽</div>
+      <div class="pred-city">📍 Boston</div>
+    </div>
+  </div>
+
+</div>
+  </div>
+</div>
+
+<div class="date-group" data-date="2026-06-27">
+  <div class="date-label">
+    <span class="date-label-icon">📅</span>
+    <span class="date-label-text">Sábado, 27 de Junho de 2026</span>
+    <div class="date-label-line"></div>
+    <span class="date-label-count">6 jogos</span>
+  </div>
+  <div class="cards-grid">
+<div class="game-card"
+  data-grupo="F"
+  data-jornada="3"
+  data-search="japão suécia f5 f">
+
+  <div class="card-stripe" style="background:linear-gradient(90deg,#6366f1,#6366f166)"></div>
+
+  <div class="card-head">
+    <div class="card-badges">
+      <span class="grupo-badge" style="background:#6366f122;color:#6366f1;border:1px solid #6366f144">Grupo F</span>
+      <span class="jornada-badge">Jornada 3</span>
+      <span class="card-codigo">F5</span>
+    </div>
+    <div class="card-time">🕐 00:00 <small>(Lisboa)</small></div>
+  </div>
+
+  <div class="card-teams">
+    <div class="team">
+      <span class="team-flag">🇯🇵</span>
+      <div class="team-name">Japão</div>
+    </div>
+    <div class="vs-wrap">
+      <span class="vs-text">VS</span>
+    </div>
+    <div class="team">
+      <span class="team-flag">🇸🇪</span>
+      <div class="team-name">Suécia</div>
+    </div>
+  </div>
+
+  <div class="pred-box">
+    <div class="pred-left">
+      <div class="pred-tag">🎯 A minha previsão</div>
+      <div class="pred-score">0-0</div>
+    </div>
+    <div class="pred-right">
+      <div class="pred-ball">⚽</div>
+      <div class="pred-city">📍 Houston</div>
+    </div>
+  </div>
+
+</div>
+<div class="game-card"
+  data-grupo="F"
+  data-jornada="3"
+  data-search="tunísia holanda f6 f">
+
+  <div class="card-stripe" style="background:linear-gradient(90deg,#6366f1,#6366f166)"></div>
+
+  <div class="card-head">
+    <div class="card-badges">
+      <span class="grupo-badge" style="background:#6366f122;color:#6366f1;border:1px solid #6366f144">Grupo F</span>
+      <span class="jornada-badge">Jornada 3</span>
+      <span class="card-codigo">F6</span>
+    </div>
+    <div class="card-time">🕐 00:00 <small>(Lisboa)</small></div>
+  </div>
+
+  <div class="card-teams">
+    <div class="team">
+      <span class="team-flag">🇹🇳</span>
+      <div class="team-name">Tunísia</div>
+    </div>
+    <div class="vs-wrap">
+      <span class="vs-text">VS</span>
+    </div>
+    <div class="team">
+      <span class="team-flag">🇳🇱</span>
+      <div class="team-name">Holanda</div>
+    </div>
+  </div>
+
+  <div class="pred-box">
+    <div class="pred-left">
+      <div class="pred-tag">🎯 A minha previsão</div>
+      <div class="pred-score">1-1</div>
+    </div>
+    <div class="pred-right">
+      <div class="pred-ball">⚽</div>
+      <div class="pred-city">📍 São Francisco</div>
+    </div>
+  </div>
+
+</div>
+<div class="game-card"
+  data-grupo="G"
+  data-jornada="3"
+  data-search="egito irão g5 g">
+
+  <div class="card-stripe" style="background:linear-gradient(90deg,#a855f7,#a855f766)"></div>
+
+  <div class="card-head">
+    <div class="card-badges">
+      <span class="grupo-badge" style="background:#a855f722;color:#a855f7;border:1px solid #a855f744">Grupo G</span>
+      <span class="jornada-badge">Jornada 3</span>
+      <span class="card-codigo">G5</span>
+    </div>
+    <div class="card-time">🕐 02:00 <small>(Lisboa)</small></div>
+  </div>
+
+  <div class="card-teams">
+    <div class="team">
+      <span class="team-flag">🇪🇬</span>
+      <div class="team-name">Egito</div>
+    </div>
+    <div class="vs-wrap">
+      <span class="vs-text">VS</span>
+    </div>
+    <div class="team">
+      <span class="team-flag">🇮🇷</span>
+      <div class="team-name">Irão</div>
+    </div>
+  </div>
+
+  <div class="pred-box">
+    <div class="pred-left">
+      <div class="pred-tag">🎯 A minha previsão</div>
+      <div class="pred-score">1-1</div>
+    </div>
+    <div class="pred-right">
+      <div class="pred-ball">⚽</div>
+      <div class="pred-city">📍 Dallas</div>
+    </div>
+  </div>
+
+</div>
+<div class="game-card"
+  data-grupo="G"
+  data-jornada="3"
+  data-search="nova zelândia bélgica g6 g">
+
+  <div class="card-stripe" style="background:linear-gradient(90deg,#a855f7,#a855f766)"></div>
+
+  <div class="card-head">
+    <div class="card-badges">
+      <span class="grupo-badge" style="background:#a855f722;color:#a855f7;border:1px solid #a855f744">Grupo G</span>
+      <span class="jornada-badge">Jornada 3</span>
+      <span class="card-codigo">G6</span>
+    </div>
+    <div class="card-time">🕐 02:00 <small>(Lisboa)</small></div>
+  </div>
+
+  <div class="card-teams">
+    <div class="team">
+      <span class="team-flag">🇳🇿</span>
+      <div class="team-name">Nova Zelândia</div>
+    </div>
+    <div class="vs-wrap">
+      <span class="vs-text">VS</span>
+    </div>
+    <div class="team">
+      <span class="team-flag">🇧🇪</span>
+      <div class="team-name">Bélgica</div>
+    </div>
+  </div>
+
+  <div class="pred-box">
+    <div class="pred-left">
+      <div class="pred-tag">🎯 A minha previsão</div>
+      <div class="pred-score">0-2</div>
+    </div>
+    <div class="pred-right">
+      <div class="pred-ball">⚽</div>
+      <div class="pred-city">📍 Seattle</div>
+    </div>
+  </div>
+
+</div>
+<div class="game-card"
+  data-grupo="H"
+  data-jornada="3"
+  data-search="cabo verde arábia saudita h5 h">
+
+  <div class="card-stripe" style="background:linear-gradient(90deg,#ec4899,#ec489966)"></div>
+
+  <div class="card-head">
+    <div class="card-badges">
+      <span class="grupo-badge" style="background:#ec489922;color:#ec4899;border:1px solid #ec489944">Grupo H</span>
+      <span class="jornada-badge">Jornada 3</span>
+      <span class="card-codigo">H5</span>
+    </div>
+    <div class="card-time">🕐 21:00 <small>(Lisboa)</small></div>
+  </div>
+
+  <div class="card-teams">
+    <div class="team">
+      <span class="team-flag">🇨🇻</span>
+      <div class="team-name">Cabo Verde</div>
+    </div>
+    <div class="vs-wrap">
+      <span class="vs-text">VS</span>
+    </div>
+    <div class="team">
+      <span class="team-flag">🇸🇦</span>
+      <div class="team-name">Arábia Saudita</div>
+    </div>
+  </div>
+
+  <div class="pred-box">
+    <div class="pred-left">
+      <div class="pred-tag">🎯 A minha previsão</div>
+      <div class="pred-score">1-0</div>
+    </div>
+    <div class="pred-right">
+      <div class="pred-ball">⚽</div>
+      <div class="pred-city">📍 Houston</div>
+    </div>
+  </div>
+
+</div>
+<div class="game-card"
+  data-grupo="H"
+  data-jornada="3"
+  data-search="uruguai espanha h6 h">
+
+  <div class="card-stripe" style="background:linear-gradient(90deg,#ec4899,#ec489966)"></div>
+
+  <div class="card-head">
+    <div class="card-badges">
+      <span class="grupo-badge" style="background:#ec489922;color:#ec4899;border:1px solid #ec489944">Grupo H</span>
+      <span class="jornada-badge">Jornada 3</span>
+      <span class="card-codigo">H6</span>
+    </div>
+    <div class="card-time">🕐 21:00 <small>(Lisboa)</small></div>
+  </div>
+
+  <div class="card-teams">
+    <div class="team">
+      <span class="team-flag">🇺🇾</span>
+      <div class="team-name">Uruguai</div>
+    </div>
+    <div class="vs-wrap">
+      <span class="vs-text">VS</span>
+    </div>
+    <div class="team">
+      <span class="team-flag">🇪🇸</span>
+      <div class="team-name">Espanha</div>
+    </div>
+  </div>
+
+  <div class="pred-box">
+    <div class="pred-left">
+      <div class="pred-tag">🎯 A minha previsão</div>
+      <div class="pred-score">2-2</div>
+    </div>
+    <div class="pred-right">
+      <div class="pred-ball">⚽</div>
+      <div class="pred-city">📍 Guadalajara</div>
+    </div>
+  </div>
+
+</div>
+  </div>
+</div>
+
+<div class="date-group" data-date="2026-06-28">
+  <div class="date-label">
+    <span class="date-label-icon">📅</span>
+    <span class="date-label-text">Domingo, 28 de Junho de 2026</span>
+    <div class="date-label-line"></div>
+    <span class="date-label-count">8 jogos</span>
+  </div>
+  <div class="cards-grid">
+<div class="game-card"
+  data-grupo="I"
+  data-jornada="3"
+  data-search="noruega frança i5 i">
+
+  <div class="card-stripe" style="background:linear-gradient(90deg,#14b8a6,#14b8a666)"></div>
+
+  <div class="card-head">
+    <div class="card-badges">
+      <span class="grupo-badge" style="background:#14b8a622;color:#14b8a6;border:1px solid #14b8a644">Grupo I</span>
+      <span class="jornada-badge">Jornada 3</span>
+      <span class="card-codigo">I5</span>
+    </div>
+    <div class="card-time">🕐 00:00 <small>(Lisboa)</small></div>
+  </div>
+
+  <div class="card-teams">
+    <div class="team">
+      <span class="team-flag">🇳🇴</span>
+      <div class="team-name">Noruega</div>
+    </div>
+    <div class="vs-wrap">
+      <span class="vs-text">VS</span>
+    </div>
+    <div class="team">
+      <span class="team-flag">🇫🇷</span>
+      <div class="team-name">França</div>
+    </div>
+  </div>
+
+  <div class="pred-box">
+    <div class="pred-left">
+      <div class="pred-tag">🎯 A minha previsão</div>
+      <div class="pred-score">0-2</div>
+    </div>
+    <div class="pred-right">
+      <div class="pred-ball">⚽</div>
+      <div class="pred-city">📍 Los Angeles</div>
+    </div>
+  </div>
+
+</div>
+<div class="game-card"
+  data-grupo="I"
+  data-jornada="3"
+  data-search="senegal iraque i6 i">
+
+  <div class="card-stripe" style="background:linear-gradient(90deg,#14b8a6,#14b8a666)"></div>
+
+  <div class="card-head">
+    <div class="card-badges">
+      <span class="grupo-badge" style="background:#14b8a622;color:#14b8a6;border:1px solid #14b8a644">Grupo I</span>
+      <span class="jornada-badge">Jornada 3</span>
+      <span class="card-codigo">I6</span>
+    </div>
+    <div class="card-time">🕐 00:00 <small>(Lisboa)</small></div>
+  </div>
+
+  <div class="card-teams">
+    <div class="team">
+      <span class="team-flag">🇸🇳</span>
+      <div class="team-name">Senegal</div>
+    </div>
+    <div class="vs-wrap">
+      <span class="vs-text">VS</span>
+    </div>
+    <div class="team">
+      <span class="team-flag">🇮🇶</span>
+      <div class="team-name">Iraque</div>
+    </div>
+  </div>
+
+  <div class="pred-box">
+    <div class="pred-left">
+      <div class="pred-tag">🎯 A minha previsão</div>
+      <div class="pred-score">2-0</div>
+    </div>
+    <div class="pred-right">
+      <div class="pred-ball">⚽</div>
+      <div class="pred-city">📍 Toronto</div>
+    </div>
+  </div>
+
+</div>
+<div class="game-card"
+  data-grupo="J"
+  data-jornada="3"
+  data-search="argélia áustria j5 j">
+
+  <div class="card-stripe" style="background:linear-gradient(90deg,#f59e0b,#f59e0b66)"></div>
+
+  <div class="card-head">
+    <div class="card-badges">
+      <span class="grupo-badge" style="background:#f59e0b22;color:#f59e0b;border:1px solid #f59e0b44">Grupo J</span>
+      <span class="jornada-badge">Jornada 3</span>
+      <span class="card-codigo">J5</span>
+    </div>
+    <div class="card-time">🕐 02:00 <small>(Lisboa)</small></div>
+  </div>
+
+  <div class="card-teams">
+    <div class="team">
+      <span class="team-flag">🇩🇿</span>
+      <div class="team-name">Argélia</div>
+    </div>
+    <div class="vs-wrap">
+      <span class="vs-text">VS</span>
+    </div>
+    <div class="team">
+      <span class="team-flag">🇦🇹</span>
+      <div class="team-name">Áustria</div>
+    </div>
+  </div>
+
+  <div class="pred-box">
+    <div class="pred-left">
+      <div class="pred-tag">🎯 A minha previsão</div>
+      <div class="pred-score">1-0</div>
+    </div>
+    <div class="pred-right">
+      <div class="pred-ball">⚽</div>
+      <div class="pred-city">📍 Kansas City</div>
+    </div>
+  </div>
+
+</div>
+<div class="game-card"
+  data-grupo="J"
+  data-jornada="3"
+  data-search="jordânia argentina j6 j">
+
+  <div class="card-stripe" style="background:linear-gradient(90deg,#f59e0b,#f59e0b66)"></div>
+
+  <div class="card-head">
+    <div class="card-badges">
+      <span class="grupo-badge" style="background:#f59e0b22;color:#f59e0b;border:1px solid #f59e0b44">Grupo J</span>
+      <span class="jornada-badge">Jornada 3</span>
+      <span class="card-codigo">J6</span>
+    </div>
+    <div class="card-time">🕐 02:00 <small>(Lisboa)</small></div>
+  </div>
+
+  <div class="card-teams">
+    <div class="team">
+      <span class="team-flag">🇯🇴</span>
+      <div class="team-name">Jordânia</div>
+    </div>
+    <div class="vs-wrap">
+      <span class="vs-text">VS</span>
+    </div>
+    <div class="team">
+      <span class="team-flag">🇦🇷</span>
+      <div class="team-name">Argentina</div>
+    </div>
+  </div>
+
+  <div class="pred-box">
+    <div class="pred-left">
+      <div class="pred-tag">🎯 A minha previsão</div>
+      <div class="pred-score">0-3</div>
+    </div>
+    <div class="pred-right">
+      <div class="pred-ball">⚽</div>
+      <div class="pred-city">📍 Dallas</div>
+    </div>
+  </div>
+
+</div>
+<div class="game-card"
+  data-grupo="K"
+  data-jornada="3"
+  data-search="colômbia portugal k5 k">
+
+  <div class="card-stripe" style="background:linear-gradient(90deg,#3b82f6,#3b82f666)"></div>
+
+  <div class="card-head">
+    <div class="card-badges">
+      <span class="grupo-badge" style="background:#3b82f622;color:#3b82f6;border:1px solid #3b82f644">Grupo K</span>
+      <span class="jornada-badge">Jornada 3</span>
+      <span class="card-codigo">K5</span>
+    </div>
+    <div class="card-time">🕐 21:00 <small>(Lisboa)</small></div>
+  </div>
+
+  <div class="card-teams">
+    <div class="team">
+      <span class="team-flag">🇨🇴</span>
+      <div class="team-name">Colômbia</div>
+    </div>
+    <div class="vs-wrap">
+      <span class="vs-text">VS</span>
+    </div>
+    <div class="team">
+      <span class="team-flag">🇵🇹</span>
+      <div class="team-name">Portugal</div>
+    </div>
+  </div>
+
+  <div class="pred-box">
+    <div class="pred-left">
+      <div class="pred-tag">🎯 A minha previsão</div>
+      <div class="pred-score">1-3</div>
+    </div>
+    <div class="pred-right">
+      <div class="pred-ball">⚽</div>
+      <div class="pred-city">📍 Miami</div>
+    </div>
+  </div>
+
+</div>
+<div class="game-card"
+  data-grupo="K"
+  data-jornada="3"
+  data-search="rd congo uzbequistão k6 k">
+
+  <div class="card-stripe" style="background:linear-gradient(90deg,#3b82f6,#3b82f666)"></div>
+
+  <div class="card-head">
+    <div class="card-badges">
+      <span class="grupo-badge" style="background:#3b82f622;color:#3b82f6;border:1px solid #3b82f644">Grupo K</span>
+      <span class="jornada-badge">Jornada 3</span>
+      <span class="card-codigo">K6</span>
+    </div>
+    <div class="card-time">🕐 21:00 <small>(Lisboa)</small></div>
+  </div>
+
+  <div class="card-teams">
+    <div class="team">
+      <span class="team-flag">🇨🇩</span>
+      <div class="team-name">RD Congo</div>
+    </div>
+    <div class="vs-wrap">
+      <span class="vs-text">VS</span>
+    </div>
+    <div class="team">
+      <span class="team-flag">🇺🇿</span>
+      <div class="team-name">Uzbequistão</div>
+    </div>
+  </div>
+
+  <div class="pred-box">
+    <div class="pred-left">
+      <div class="pred-tag">🎯 A minha previsão</div>
+      <div class="pred-score">0-1</div>
+    </div>
+    <div class="pred-right">
+      <div class="pred-ball">⚽</div>
+      <div class="pred-city">📍 Atlanta</div>
+    </div>
+  </div>
+
+</div>
+<div class="game-card"
+  data-grupo="L"
+  data-jornada="3"
+  data-search="panamá inglaterra l5 l">
+
+  <div class="card-stripe" style="background:linear-gradient(90deg,#10b981,#10b98166)"></div>
+
+  <div class="card-head">
+    <div class="card-badges">
+      <span class="grupo-badge" style="background:#10b98122;color:#10b981;border:1px solid #10b98144">Grupo L</span>
+      <span class="jornada-badge">Jornada 3</span>
+      <span class="card-codigo">L5</span>
+    </div>
+    <div class="card-time">🕐 02:00 <small>(Lisboa)</small></div>
+  </div>
+
+  <div class="card-teams">
+    <div class="team">
+      <span class="team-flag">🇵🇦</span>
+      <div class="team-name">Panamá</div>
+    </div>
+    <div class="vs-wrap">
+      <span class="vs-text">VS</span>
+    </div>
+    <div class="team">
+      <span class="team-flag">🏴󠁧󠁢󠁥󠁮󠁧󠁿</span>
+      <div class="team-name">Inglaterra</div>
+    </div>
+  </div>
+
+  <div class="pred-box">
+    <div class="pred-left">
+      <div class="pred-tag">🎯 A minha previsão</div>
+      <div class="pred-score">0-3</div>
+    </div>
+    <div class="pred-right">
+      <div class="pred-ball">⚽</div>
+      <div class="pred-city">📍 Nova Jérsia</div>
+    </div>
+  </div>
+
+</div>
+<div class="game-card"
+  data-grupo="L"
+  data-jornada="3"
+  data-search="croácia gana l6 l">
+
+  <div class="card-stripe" style="background:linear-gradient(90deg,#10b981,#10b98166)"></div>
+
+  <div class="card-head">
+    <div class="card-badges">
+      <span class="grupo-badge" style="background:#10b98122;color:#10b981;border:1px solid #10b98144">Grupo L</span>
+      <span class="jornada-badge">Jornada 3</span>
+      <span class="card-codigo">L6</span>
+    </div>
+    <div class="card-time">🕐 02:00 <small>(Lisboa)</small></div>
+  </div>
+
+  <div class="card-teams">
+    <div class="team">
+      <span class="team-flag">🇭🇷</span>
+      <div class="team-name">Croácia</div>
+    </div>
+    <div class="vs-wrap">
+      <span class="vs-text">VS</span>
+    </div>
+    <div class="team">
+      <span class="team-flag">🇬🇭</span>
+      <div class="team-name">Gana</div>
+    </div>
+  </div>
+
+  <div class="pred-box">
+    <div class="pred-left">
+      <div class="pred-tag">🎯 A minha previsão</div>
+      <div class="pred-score">1-2</div>
+    </div>
+    <div class="pred-right">
+      <div class="pred-ball">⚽</div>
+      <div class="pred-city">📍 Filadélfia</div>
+    </div>
+  </div>
+
+</div>
+  </div>
+</div>
+</div>
+
 <div class="footer">
   <div class="footer-stars">⭐ ⚽ 🏆 ⚽ ⭐</div>
   <strong>Predictor Parque Biológico — Mundial 2026</strong><br>
@@ -415,8 +3459,7 @@ body::before{
 </div>
 
 <script>
-const JOGOS = [{"codigo":"A1","grupo":"A","casa":"México","fora":"África do Sul","casaFlag":"🇲🇽","foraFlag":"🇿🇦","data":"2026-06-11","hora":"00:00","cidade":"Cidade do México","jornada":1,"pred":"1-0","gc":1,"gf":0},{"codigo":"A2","grupo":"A","casa":"Coreia do Sul","fora":"Chéquia","casaFlag":"🇰🇷","foraFlag":"🇨🇿","data":"2026-06-12","hora":"04:00","cidade":"Guadalajara","jornada":1,"pred":"2-1","gc":2,"gf":1},{"codigo":"A3","grupo":"A","casa":"Chéquia","fora":"África do Sul","casaFlag":"🇨🇿","foraFlag":"🇿🇦","data":"2026-06-19","hora":"17:00","cidade":"Atlanta","jornada":2,"pred":"1-0","gc":1,"gf":0},{"codigo":"A4","grupo":"A","casa":"México","fora":"Coreia do Sul","casaFlag":"🇲🇽","foraFlag":"🇰🇷","data":"2026-06-19","hora":"20:00","cidade":"Guadalajara","jornada":2,"pred":"1-1","gc":1,"gf":1},{"codigo":"A5","grupo":"A","casa":"Chéquia","fora":"México","casaFlag":"🇨🇿","foraFlag":"🇲🇽","data":"2026-06-25","hora":"21:00","cidade":"Cidade do México","jornada":3,"pred":"1-2","gc":1,"gf":2},{"codigo":"A6","grupo":"A","casa":"África do Sul","fora":"Coreia do Sul","casaFlag":"🇿🇦","foraFlag":"🇰🇷","data":"2026-06-25","hora":"21:00","cidade":"Monterrey","jornada":3,"pred":"0-2","gc":0,"gf":2},{"codigo":"B1","grupo":"B","casa":"Canadá","fora":"Bósnia e Herzegovina","casaFlag":"🇨🇦","foraFlag":"🇧🇦","data":"2026-06-13","hora":"00:00","cidade":"Toronto","jornada":1,"pred":"2-1","gc":2,"gf":1},{"codigo":"B2","grupo":"B","casa":"Catar","fora":"Suíça","casaFlag":"🇶🇦","foraFlag":"🇨🇭","data":"2026-06-14","hora":"00:00","cidade":"São Francisco","jornada":1,"pred":"0-1","gc":0,"gf":1},{"codigo":"B3","grupo":"B","casa":"Suíça","fora":"Bósnia e Herzegovina","casaFlag":"🇨🇭","foraFlag":"🇧🇦","data":"2026-06-19","hora":"20:00","cidade":"Los Angeles","jornada":2,"pred":"2-1","gc":2,"gf":1},{"codigo":"B4","grupo":"B","casa":"Canadá","fora":"Catar","casaFlag":"🇨🇦","foraFlag":"🇶🇦","data":"2026-06-19","hora":"23:00","cidade":"Vancouver","jornada":2,"pred":"2-1","gc":2,"gf":1},{"codigo":"B5","grupo":"B","casa":"Suíça","fora":"Canadá","casaFlag":"🇨🇭","foraFlag":"🇨🇦","data":"2026-06-25","hora":"00:00","cidade":"Vancouver","jornada":3,"pred":"2-1","gc":2,"gf":1},{"codigo":"B6","grupo":"B","casa":"Bósnia e Herzegovina","fora":"Catar","casaFlag":"🇧🇦","foraFlag":"🇶🇦","data":"2026-06-25","hora":"00:00","cidade":"Seattle","jornada":3,"pred":"1-1","gc":1,"gf":1},{"codigo":"C1","grupo":"C","casa":"Brasil","fora":"Marrocos","casaFlag":"🇧🇷","foraFlag":"🇲🇦","data":"2026-06-14","hora":"03:00","cidade":"Nova Jérsia","jornada":1,"pred":"3-1","gc":3,"gf":1},{"codigo":"C2","grupo":"C","casa":"Haiti","fora":"Escócia","casaFlag":"🇭🇹","foraFlag":"🏴󠁧󠁢󠁳󠁣󠁴󠁿","data":"2026-06-14","hora":"22:00","cidade":"Boston","jornada":1,"pred":"0-1","gc":0,"gf":1},{"codigo":"C3","grupo":"C","casa":"Escócia","fora":"Marrocos","casaFlag":"🏴󠁧󠁢󠁳󠁣󠁴󠁿","foraFlag":"🇲🇦","data":"2026-06-20","hora":"20:00","cidade":"Boston","jornada":2,"pred":"2-2","gc":2,"gf":2},{"codigo":"C4","grupo":"C","casa":"Brasil","fora":"Haiti","casaFlag":"🇧🇷","foraFlag":"🇭🇹","data":"2026-06-20","hora":"23:00","cidade":"Houston","jornada":2,"pred":"3-0","gc":3,"gf":0},{"codigo":"C5","grupo":"C","casa":"Escócia","fora":"Brasil","casaFlag":"🏴󠁧󠁢󠁳󠁣󠁴󠁿","foraFlag":"🇧🇷","data":"2026-06-26","hora":"00:00","cidade":"Los Angeles","jornada":3,"pred":"1-2","gc":1,"gf":2},{"codigo":"C6","grupo":"C","casa":"Marrocos","fora":"Haiti","casaFlag":"🇲🇦","foraFlag":"🇭🇹","data":"2026-06-26","hora":"00:00","cidade":"Atlanta","jornada":3,"pred":"2-0","gc":2,"gf":0},{"codigo":"D1","grupo":"D","casa":"Estados Unidos","fora":"Paraguai","casaFlag":"🇺🇸","foraFlag":"🇵🇾","data":"2026-06-13","hora":"03:00","cidade":"Los Angeles","jornada":1,"pred":"2-1","gc":2,"gf":1},{"codigo":"D2","grupo":"D","casa":"Austrália","fora":"Turquia","casaFlag":"🇦🇺","foraFlag":"🇹🇷","data":"2026-06-15","hora":"01:00","cidade":"Houston","jornada":1,"pred":"0-1","gc":0,"gf":1},{"codigo":"D3","grupo":"D","casa":"Estados Unidos","fora":"Austrália","casaFlag":"🇺🇸","foraFlag":"🇦🇺","data":"2026-06-21","hora":"17:00","cidade":"Dallas","jornada":2,"pred":"2-0","gc":2,"gf":0},{"codigo":"D4","grupo":"D","casa":"Turquia","fora":"Paraguai","casaFlag":"🇹🇷","foraFlag":"🇵🇾","data":"2026-06-21","hora":"20:00","cidade":"Kansas City","jornada":2,"pred":"1-0","gc":1,"gf":0},{"codigo":"D5","grupo":"D","casa":"Turquia","fora":"Estados Unidos","casaFlag":"🇹🇷","foraFlag":"🇺🇸","data":"2026-06-26","hora":"02:00","cidade":"Nova Jérsia","jornada":3,"pred":"1-1","gc":1,"gf":1},{"codigo":"D6","grupo":"D","casa":"Paraguai","fora":"Austrália","casaFlag":"🇵🇾","foraFlag":"🇦🇺","data":"2026-06-26","hora":"02:00","cidade":"Miami","jornada":3,"pred":"2-0","gc":2,"gf":0},{"codigo":"E1","grupo":"E","casa":"Alemanha","fora":"Curaçau","casaFlag":"🇩🇪","foraFlag":"🇨🇼","data":"2026-06-15","hora":"19:00","cidade":"Dallas","jornada":1,"pred":"4-0","gc":4,"gf":0},{"codigo":"E2","grupo":"E","casa":"Costa do Marfim","fora":"Equador","casaFlag":"🇨🇮","foraFlag":"🇪🇨","data":"2026-06-15","hora":"22:00","cidade":"Filadélfia","jornada":1,"pred":"1-0","gc":1,"gf":0},{"codigo":"E3","grupo":"E","casa":"Alemanha","fora":"Costa do Marfim","casaFlag":"🇩🇪","foraFlag":"🇨🇮","data":"2026-06-21","hora":"20:00","cidade":"Seattle","jornada":2,"pred":"2-0","gc":2,"gf":0},{"codigo":"E4","grupo":"E","casa":"Equador","fora":"Curaçau","casaFlag":"🇪🇨","foraFlag":"🇨🇼","data":"2026-06-21","hora":"23:00","cidade":"Miami","jornada":2,"pred":"1-0","gc":1,"gf":0},{"codigo":"E5","grupo":"E","casa":"Equador","fora":"Alemanha","casaFlag":"🇪🇨","foraFlag":"🇩🇪","data":"2026-06-26","hora":"21:00","cidade":"Kansas City","jornada":3,"pred":"1-3","gc":1,"gf":3},{"codigo":"E6","grupo":"E","casa":"Curaçau","fora":"Costa do Marfim","casaFlag":"🇨🇼","foraFlag":"🇨🇮","data":"2026-06-26","hora":"21:00","cidade":"Boston","jornada":3,"pred":"0-2","gc":0,"gf":2},{"codigo":"F1","grupo":"F","casa":"Holanda","fora":"Japão","casaFlag":"🇳🇱","foraFlag":"🇯🇵","data":"2026-06-16","hora":"00:00","cidade":"Monterrey","jornada":1,"pred":"2-0","gc":2,"gf":0},{"codigo":"F2","grupo":"F","casa":"Suécia","fora":"Tunísia","casaFlag":"🇸🇪","foraFlag":"🇹🇳","data":"2026-06-16","hora":"02:00","cidade":"Monterrey","jornada":1,"pred":"1-2","gc":1,"gf":2},{"codigo":"F3","grupo":"F","casa":"Holanda","fora":"Suécia","casaFlag":"🇳🇱","foraFlag":"🇸🇪","data":"2026-06-22","hora":"00:00","cidade":"Los Angeles","jornada":2,"pred":"2-1","gc":2,"gf":1},{"codigo":"F4","grupo":"F","casa":"Tunísia","fora":"Japão","casaFlag":"🇹🇳","foraFlag":"🇯🇵","data":"2026-06-22","hora":"03:00","cidade":"Dallas","jornada":2,"pred":"1-0","gc":1,"gf":0},{"codigo":"F5","grupo":"F","casa":"Japão","fora":"Suécia","casaFlag":"🇯🇵","foraFlag":"🇸🇪","data":"2026-06-27","hora":"00:00","cidade":"Houston","jornada":3,"pred":"0-0","gc":0,"gf":0},{"codigo":"F6","grupo":"F","casa":"Tunísia","fora":"Holanda","casaFlag":"🇹🇳","foraFlag":"🇳🇱","data":"2026-06-27","hora":"00:00","cidade":"São Francisco","jornada":3,"pred":"1-1","gc":1,"gf":1},{"codigo":"G1","grupo":"G","casa":"Bélgica","fora":"Egito","casaFlag":"🇧🇪","foraFlag":"🇪🇬","data":"2026-06-16","hora":"20:00","cidade":"Atlanta","jornada":1,"pred":"2-0","gc":2,"gf":0},{"codigo":"G2","grupo":"G","casa":"Irão","fora":"Nova Zelândia","casaFlag":"🇮🇷","foraFlag":"🇳🇿","data":"2026-06-16","hora":"23:00","cidade":"Seattle","jornada":1,"pred":"1-2","gc":1,"gf":2},{"codigo":"G3","grupo":"G","casa":"Bélgica","fora":"Irão","casaFlag":"🇧🇪","foraFlag":"🇮🇷","data":"2026-06-22","hora":"20:00","cidade":"Nova Jérsia","jornada":2,"pred":"2-1","gc":2,"gf":1},{"codigo":"G4","grupo":"G","casa":"Nova Zelândia","fora":"Egito","casaFlag":"🇳🇿","foraFlag":"🇪🇬","data":"2026-06-22","hora":"23:00","cidade":"Seattle","jornada":2,"pred":"0-1","gc":0,"gf":1},{"codigo":"G5","grupo":"G","casa":"Egito","fora":"Irão","casaFlag":"🇪🇬","foraFlag":"🇮🇷","data":"2026-06-27","hora":"02:00","cidade":"Dallas","jornada":3,"pred":"1-1","gc":1,"gf":1},{"codigo":"G6","grupo":"G","casa":"Nova Zelândia","fora":"Bélgica","casaFlag":"🇳🇿","foraFlag":"🇧🇪","data":"2026-06-27","hora":"02:00","cidade":"Seattle","jornada":3,"pred":"0-2","gc":0,"gf":2},{"codigo":"H1","grupo":"H","casa":"Espanha","fora":"Cabo Verde","casaFlag":"🇪🇸","foraFlag":"🇨🇻","data":"2026-06-17","hora":"01:00","cidade":"Los Angeles","jornada":1,"pred":"2-1","gc":2,"gf":1},{"codigo":"H2","grupo":"H","casa":"Arábia Saudita","fora":"Uruguai","casaFlag":"🇸🇦","foraFlag":"🇺🇾","data":"2026-06-17","hora":"20:00","cidade":"Miami","jornada":1,"pred":"0-2","gc":0,"gf":2},{"codigo":"H3","grupo":"H","casa":"Espanha","fora":"Arábia Saudita","casaFlag":"🇪🇸","foraFlag":"🇸🇦","data":"2026-06-23","hora":"00:00","cidade":"Kansas City","jornada":2,"pred":"2-0","gc":2,"gf":0},{"codigo":"H4","grupo":"H","casa":"Uruguai","fora":"Cabo Verde","casaFlag":"🇺🇾","foraFlag":"🇨🇻","data":"2026-06-23","hora":"03:00","cidade":"São Francisco","jornada":2,"pred":"1-0","gc":1,"gf":0},{"codigo":"H5","grupo":"H","casa":"Cabo Verde","fora":"Arábia Saudita","casaFlag":"🇨🇻","foraFlag":"🇸🇦","data":"2026-06-27","hora":"21:00","cidade":"Houston","jornada":3,"pred":"1-0","gc":1,"gf":0},{"codigo":"H6","grupo":"H","casa":"Uruguai","fora":"Espanha","casaFlag":"🇺🇾","foraFlag":"🇪🇸","data":"2026-06-27","hora":"21:00","cidade":"Guadalajara","jornada":3,"pred":"2-2","gc":2,"gf":2},{"codigo":"I1","grupo":"I","casa":"França","fora":"Senegal","casaFlag":"🇫🇷","foraFlag":"🇸🇳","data":"2026-06-17","hora":"00:00","cidade":"Nova Jérsia","jornada":1,"pred":"2-0","gc":2,"gf":0},{"codigo":"I2","grupo":"I","casa":"Iraque","fora":"Noruega","casaFlag":"🇮🇶","foraFlag":"🇳🇴","data":"2026-06-17","hora":"03:00","cidade":"Boston","jornada":1,"pred":"0-1","gc":0,"gf":1},{"codigo":"I3","grupo":"I","casa":"França","fora":"Iraque","casaFlag":"🇫🇷","foraFlag":"🇮🇶","data":"2026-06-23","hora":"20:00","cidade":"Houston","jornada":2,"pred":"2-0","gc":2,"gf":0},{"codigo":"I4","grupo":"I","casa":"Noruega","fora":"Senegal","casaFlag":"🇳🇴","foraFlag":"🇸🇳","data":"2026-06-23","hora":"23:00","cidade":"Atlanta","jornada":2,"pred":"2-1","gc":2,"gf":1},{"codigo":"I5","grupo":"I","casa":"Noruega","fora":"França","casaFlag":"🇳🇴","foraFlag":"🇫🇷","data":"2026-06-28","hora":"00:00","cidade":"Los Angeles","jornada":3,"pred":"0-2","gc":0,"gf":2},{"codigo":"I6","grupo":"I","casa":"Senegal","fora":"Iraque","casaFlag":"🇸🇳","foraFlag":"🇮🇶","data":"2026-06-28","hora":"00:00","cidade":"Toronto","jornada":3,"pred":"2-0","gc":2,"gf":0},{"codigo":"J1","grupo":"J","casa":"Argentina","fora":"Argélia","casaFlag":"🇦🇷","foraFlag":"🇩🇿","data":"2026-06-17","hora":"22:00","cidade":"Kansas City","jornada":1,"pred":"3-0","gc":3,"gf":0},{"codigo":"J2","grupo":"J","casa":"Áustria","fora":"Jordânia","casaFlag":"🇦🇹","foraFlag":"🇯🇴","data":"2026-06-18","hora":"01:00","cidade":"São Francisco","jornada":1,"pred":"1-1","gc":1,"gf":1},{"codigo":"J3","grupo":"J","casa":"Argentina","fora":"Áustria","casaFlag":"🇦🇷","foraFlag":"🇦🇹","data":"2026-06-24","hora":"00:00","cidade":"Filadélfia","jornada":2,"pred":"3-1","gc":3,"gf":1},{"codigo":"J4","grupo":"J","casa":"Jordânia","fora":"Argélia","casaFlag":"🇯🇴","foraFlag":"🇩🇿","data":"2026-06-24","hora":"03:00","cidade":"Miami","jornada":2,"pred":"1-2","gc":1,"gf":2},{"codigo":"J5","grupo":"J","casa":"Argélia","fora":"Áustria","casaFlag":"🇩🇿","foraFlag":"🇦🇹","data":"2026-06-28","hora":"02:00","cidade":"Kansas City","jornada":3,"pred":"1-0","gc":1,"gf":0},{"codigo":"J6","grupo":"J","casa":"Jordânia","fora":"Argentina","casaFlag":"🇯🇴","foraFlag":"🇦🇷","data":"2026-06-28","hora":"02:00","cidade":"Dallas","jornada":3,"pred":"0-3","gc":0,"gf":3},{"codigo":"K1","grupo":"K","casa":"Portugal","fora":"RD Congo","casaFlag":"🇵🇹","foraFlag":"🇨🇩","data":"2026-06-18","hora":"00:00","cidade":"Houston","jornada":1,"pred":"2-0","gc":2,"gf":0},{"codigo":"K2","grupo":"K","casa":"Uzbequistão","fora":"Colômbia","casaFlag":"🇺🇿","foraFlag":"🇨🇴","data":"2026-06-18","hora":"03:00","cidade":"Dallas","jornada":1,"pred":"0-2","gc":0,"gf":2},{"codigo":"K3","grupo":"K","casa":"Portugal","fora":"Uzbequistão","casaFlag":"🇵🇹","foraFlag":"🇺🇿","data":"2026-06-24","hora":"20:00","cidade":"Boston","jornada":2,"pred":"2-0","gc":2,"gf":0},{"codigo":"K4","grupo":"K","casa":"Colômbia","fora":"RD Congo","casaFlag":"🇨🇴","foraFlag":"🇨🇩","data":"2026-06-24","hora":"23:00","cidade":"Kansas City","jornada":2,"pred":"2-0","gc":2,"gf":0},{"codigo":"K5","grupo":"K","casa":"Colômbia","fora":"Portugal","casaFlag":"🇨🇴","foraFlag":"🇵🇹","data":"2026-06-28","hora":"21:00","cidade":"Miami","jornada":3,"pred":"1-3","gc":1,"gf":3},{"codigo":"K6","grupo":"K","casa":"RD Congo","fora":"Uzbequistão","casaFlag":"🇨🇩","foraFlag":"🇺🇿","data":"2026-06-28","hora":"21:00","cidade":"Atlanta","jornada":3,"pred":"0-1","gc":0,"gf":1},{"codigo":"L1","grupo":"L","casa":"Inglaterra","fora":"Croácia","casaFlag":"🏴󠁧󠁢󠁥󠁮󠁧󠁿","foraFlag":"🇭🇷","data":"2026-06-18","hora":"20:00","cidade":"Filadélfia","jornada":1,"pred":"2-1","gc":2,"gf":1},{"codigo":"L2","grupo":"L","casa":"Gana","fora":"Panamá","casaFlag":"🇬🇭","foraFlag":"🇵🇦","data":"2026-06-18","hora":"23:00","cidade":"Toronto","jornada":1,"pred":"1-0","gc":1,"gf":0},{"codigo":"L3","grupo":"L","casa":"Inglaterra","fora":"Gana","casaFlag":"🏴󠁧󠁢󠁥󠁮󠁧󠁿","foraFlag":"🇬🇭","data":"2026-06-25","hora":"00:00","cidade":"Dallas","jornada":2,"pred":"2-0","gc":2,"gf":0},{"codigo":"L4","grupo":"L","casa":"Panamá","fora":"Croácia","casaFlag":"🇵🇦","foraFlag":"🇭🇷","data":"2026-06-25","hora":"03:00","cidade":"Filadélfia","jornada":2,"pred":"0-3","gc":0,"gf":3},{"codigo":"L5","grupo":"L","casa":"Panamá","fora":"Inglaterra","casaFlag":"🇵🇦","foraFlag":"🏴󠁧󠁢󠁥󠁮󠁧󠁿","data":"2026-06-28","hora":"02:00","cidade":"Nova Jérsia","jornada":3,"pred":"0-3","gc":0,"gf":3},{"codigo":"L6","grupo":"L","casa":"Croácia","fora":"Gana","casaFlag":"🇭🇷","foraFlag":"🇬🇭","data":"2026-06-28","hora":"02:00","cidade":"Filadélfia","jornada":3,"pred":"1-2","gc":1,"gf":2}];
-const GC    = {"A":"#ef4444","B":"#f97316","C":"#eab308","D":"#22c55e","E":"#06b6d4","F":"#6366f1","G":"#a855f7","H":"#ec4899","I":"#14b8a6","J":"#f59e0b","K":"#3b82f6","L":"#10b981"};
+/* Filtros — o conteúdo já está no HTML, JS apenas mostra/esconde */
 let activeFilter = "all";
 
 function setFilter(f) {
@@ -427,77 +3470,32 @@ function setFilter(f) {
 
 function applyFilters() {
   const q = document.getElementById("searchInput").value.trim().toLowerCase();
-  const list = JOGOS.filter(j => {
-    if (q && !(j.casa+j.fora+j.codigo+j.grupo).toLowerCase().includes(q)) return false;
-    if (activeFilter==="all") return true;
-    if (activeFilter==="j1")  return j.jornada===1;
-    if (activeFilter==="j2")  return j.jornada===2;
-    if (activeFilter==="j3")  return j.jornada===3;
-    if (activeFilter.startsWith("g")) return j.grupo===activeFilter.slice(1);
-    return true;
+  let anyVisible = false;
+
+  document.querySelectorAll(".game-card").forEach(card => {
+    const grupo   = card.dataset.grupo;
+    const jornada = card.dataset.jornada;
+    const search  = card.dataset.search || "";
+
+    let show = true;
+    if (q && !search.includes(q)) show = false;
+    if (activeFilter === "j1" && jornada !== "1") show = false;
+    if (activeFilter === "j2" && jornada !== "2") show = false;
+    if (activeFilter === "j3" && jornada !== "3") show = false;
+    if (activeFilter.startsWith("g") && grupo !== activeFilter.slice(1)) show = false;
+
+    card.classList.toggle("hidden", !show);
+    if (show) anyVisible = true;
   });
-  render(list);
-}
 
-function render(jogos) {
-  const el = document.getElementById("content");
-  if (!jogos.length) {
-    el.innerHTML = '<div class="no-results"><div class="no-results-icon">🔎</div><div>Nenhuma previsão encontrada</div></div>';
-    return;
-  }
-  const byDate = {};
-  jogos.forEach(j => { if(!byDate[j.data]) byDate[j.data]=[]; byDate[j.data].push(j); });
-  const dias  = ["Dom","Seg","Ter","Qua","Qui","Sex","Sáb"];
-  const meses = ["Janeiro","Fevereiro","Março","Abril","Maio","Junho","Julho","Agosto","Setembro","Outubro","Novembro","Dezembro"];
-  el.innerHTML = Object.keys(byDate).sort().map(data => {
-    const dt  = new Date(data+"T12:00:00");
-    const lbl = dias[dt.getDay()]+" "+dt.getDate()+" de "+meses[dt.getMonth()]+" de "+dt.getFullYear();
-    const n   = byDate[data].length;
-    return '<div class="date-group">'
-      + '<div class="date-label">'
-      + '<span class="date-label-text">📅 '+lbl+'</span>'
-      + '<div class="date-label-line"></div>'
-      + '<span class="date-label-count">'+n+' jogo'+(n>1?"s":"")+'</span>'
-      + '</div>'
-      + '<div class="cards-grid">'+byDate[data].map(j=>card(j)).join("")+'</div>'
-      + '</div>';
-  }).join("");
-}
+  // Esconder grupos de data que ficaram todos vazios
+  document.querySelectorAll(".date-group").forEach(dg => {
+    const hasVisible = [...dg.querySelectorAll(".game-card")].some(c => !c.classList.contains("hidden"));
+    dg.classList.toggle("all-hidden", !hasVisible);
+  });
 
-function card(j) {
-  const color = GC[j.grupo] || "#f59e0b";
-  const pred  = j.pred
-    ? '<div class="pred-score">'+j.pred+'</div>'
-    : '<div class="pred-score empty">Sem previsão</div>';
-  return '<div class="game-card">'
-    + '<div class="card-stripe" style="background:linear-gradient(90deg,'+color+','+color+'88)"></div>'
-    + '<div class="card-head">'
-    +   '<div class="card-badges">'
-    +     '<span class="grupo-badge" style="background:'+color+'22;color:'+color+';border:1px solid '+color+'44">Grupo '+j.grupo+'</span>'
-    +     '<span class="jornada-badge">J'+j.jornada+'</span>'
-    +     '<span class="card-codigo">'+j.codigo+'</span>'
-    +   '</div>'
-    +   '<div class="card-time">🕐 '+j.hora+' <span style="font-size:.55rem;opacity:.6">(Lisboa)</span></div>'
-    + '</div>'
-    + '<div class="card-teams">'
-    +   '<div class="team"><span class="team-flag">'+j.casaFlag+'</span><div class="team-name">'+j.casa+'</div></div>'
-    +   '<div class="vs-wrap"><span class="vs-text">VS</span></div>'
-    +   '<div class="team"><span class="team-flag">'+j.foraFlag+'</span><div class="team-name">'+j.fora+'</div></div>'
-    + '</div>'
-    + '<div class="pred-box">'
-    +   '<div class="pred-left">'
-    +     '<div class="pred-tag">🎯 A minha previsão</div>'
-    +     pred
-    +   '</div>'
-    +   '<div class="pred-right">'
-    +     '<div class="pred-ball">⚽</div>'
-    +     '<div class="pred-city">📍 '+j.cidade+'</div>'
-    +   '</div>'
-    + '</div>'
-    + '</div>';
+  document.getElementById("noResults").classList.toggle("visible", !anyVisible);
 }
-
-render(JOGOS);
 </script>
 </body>
 </html>
