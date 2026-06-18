@@ -221,10 +221,40 @@ function switchTab(tab) {
   activeTab = tab;
   document.querySelectorAll(".tab-btn").forEach(b =>
     b.classList.toggle("active", b.dataset.tab === tab));
+  document.querySelectorAll(".mobile-nav-btn").forEach(b => {
+    const t = b.dataset.tab;
+    if (t === "more") {
+      b.classList.toggle("active", ["grupos","previsoes","regras","whatsapp"].includes(tab));
+    } else {
+      b.classList.toggle("active", t === tab);
+    }
+  });
   document.querySelectorAll(".tab-content").forEach(c =>
     c.classList.toggle("active", c.id === "tab-" + tab));
   renderTab(tab);
+  // Scroll tab activo para a vista (desktop)
+  const activeBtn = document.querySelector(`.tabs-nav .tab-btn[data-tab="${tab}"]`);
+  activeBtn?.scrollIntoView({ behavior: "smooth", inline: "center", block: "nearest" });
 }
+
+function toggleHeaderMenu() {
+  document.getElementById("header-dropdown")?.classList.toggle("open");
+}
+
+function openMobileMore() {
+  document.getElementById("mobile-sheet")?.classList.add("active");
+}
+
+function closeMobileMore() {
+  document.getElementById("mobile-sheet")?.classList.remove("active");
+}
+
+document.addEventListener("click", e => {
+  const menu = document.querySelector(".header-menu");
+  if (menu && !menu.contains(e.target)) {
+    document.getElementById("header-dropdown")?.classList.remove("open");
+  }
+});
 
 function renderTab(tab) {
   const r = getResultados();
@@ -1576,7 +1606,7 @@ function showApp() {
     const el = document.getElementById("header-user");
     el.textContent = "👤 " + (u.email || "").split("@")[0];
     el.style.display = "inline-flex";
-    document.getElementById("btn-logout").style.display = "inline-flex";
+    document.getElementById("btn-logout").style.display = "block";
   }
   getResultados();
   switchTab("resultados");

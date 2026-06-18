@@ -2,18 +2,33 @@
 <html lang="pt">
 <head>
   <meta charset="UTF-8" />
-  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover" />
+  <meta name="theme-color" content="#030712" />
+  <meta name="apple-mobile-web-app-capable" content="yes" />
+  <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent" />
   <title>Predictor Parque Biológico — Mundial 2026</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com" />
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+  <link href="https://fonts.googleapis.com/css2?family=Outfit:wght@300;400;500;600;700;800;900&family=JetBrains+Mono:wght@500;700&display=swap" rel="stylesheet" />
   <link rel="stylesheet" href="css/style.css" />
 </head>
 <body>
 
-<!-- ─── ECRÃ DE LOGIN ────────────────────────────────────────────────────── -->
+<div class="ambient-bg" aria-hidden="true">
+  <div class="orb orb-1"></div>
+  <div class="orb orb-2"></div>
+  <div class="orb orb-3"></div>
+  <div class="grid-overlay"></div>
+</div>
+
+<!-- ─── LOGIN ─────────────────────────────────────────────────────────────── -->
 <div id="login-overlay">
   <div class="login-box">
+    <div class="login-glow"></div>
+    <div class="login-badge">WC 2026™</div>
     <div class="login-trophy">🏆</div>
-    <h2 class="login-title">Predictor Parque Biológico</h2>
-    <p class="login-sub">Mundial 2026 · Acesso privado</p>
+    <h2 class="login-title">Predictor<br><span>Parque Biológico</span></h2>
+    <p class="login-sub">Painel privado · USA · CAN · MEX</p>
     <div id="login-error" class="login-error" style="display:none"></div>
     <div class="login-field">
       <label>Email</label>
@@ -24,38 +39,56 @@
       <input type="password" id="login-password" placeholder="••••••••" autocomplete="current-password"
              onkeydown="if(event.key==='Enter')doLogin()" />
     </div>
-    <button class="login-btn" onclick="doLogin()" id="login-btn">Entrar</button>
+    <button class="login-btn" onclick="doLogin()" id="login-btn">
+      <span>Entrar</span>
+      <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><path d="M5 12h14M12 5l7 7-7 7"/></svg>
+    </button>
     <p class="login-note" id="login-note">A verificar sessão…</p>
   </div>
 </div>
 
+<div class="app-shell">
+
   <header class="app-header">
-    <div class="header-title">
-      <span class="header-trophy">🏆</span>
-      <div>
-        <h1>Predictor Parque Biológico — Mundial 2026</h1>
-        <p>10 participantes · 72 jogos · 720 prognósticos · Fase de grupos + Mata-Mata</p>
+    <div class="header-brand">
+      <div class="brand-mark">
+        <span class="brand-icon">⚽</span>
+        <span class="brand-ring"></span>
+      </div>
+      <div class="brand-text">
+        <h1>Predictor <em>2026</em></h1>
+        <p class="brand-sub">Parque Biológico · 10 jogadores · 72 jogos</p>
       </div>
     </div>
-    <div class="header-actions">
+
+    <div class="header-toolbar">
       <span id="api-status" class="api-status" style="display:none"></span>
-      <button class="btn-sync" id="btn-sync" onclick="apiFetch()" title="Sincronizar resultados com football-data.org">🔄 Sync</button>
+      <button class="btn-icon btn-sync" id="btn-sync" onclick="apiFetch()" title="Sincronizar resultados">
+        <span class="btn-icon-svg">🔄</span><span class="btn-label">Sync</span>
+      </button>
       <span id="header-user" class="header-user" style="display:none"></span>
-      <button class="btn-reset" onclick="resetResultados()">🗑️ Reset Grupos</button>
-      <button class="btn-reset" onclick="resetMataMata()">🗑️ Reset Mata-Mata</button>
-      <button class="btn-logout" id="btn-logout" onclick="doLogout()" style="display:none">🚪 Sair</button>
+      <div class="header-menu">
+        <button class="btn-icon btn-menu-toggle" id="menu-toggle" onclick="toggleHeaderMenu()" aria-label="Menu">⋮</button>
+        <div class="header-dropdown" id="header-dropdown">
+          <button class="dropdown-item danger" onclick="resetResultados();toggleHeaderMenu()">🗑️ Reset Grupos</button>
+          <button class="dropdown-item danger" onclick="resetMataMata();toggleHeaderMenu()">🗑️ Reset Mata-Mata</button>
+          <button class="dropdown-item" id="btn-logout" onclick="doLogout();toggleHeaderMenu()" style="display:none">🚪 Sair</button>
+        </div>
+      </div>
     </div>
   </header>
 
-  <nav class="tabs-nav">
-    <button class="tab-btn active" data-tab="resultados"    onclick="switchTab('resultados')">⚽ Resultados</button>
-    <button class="tab-btn"        data-tab="classificacao" onclick="switchTab('classificacao')">🏅 Classificação</button>
-    <button class="tab-btn"        data-tab="revisao"       onclick="switchTab('revisao')">📊 Revisão Larga</button>
-    <button class="tab-btn"        data-tab="grupos"        onclick="switchTab('grupos')">🗂️ Grupos</button>
-    <button class="tab-btn"        data-tab="matamata"      onclick="switchTab('matamata')">⚔️ Mata-Mata</button>
-    <button class="tab-btn"        data-tab="previsoes"     onclick="switchTab('previsoes')">🔮 Previsões</button>
-    <button class="tab-btn"        data-tab="regras"        onclick="switchTab('regras')">📖 Regras</button>
-    <button class="tab-btn"        data-tab="whatsapp"      onclick="switchTab('whatsapp')">💬 WhatsApp</button>
+  <nav class="tabs-nav" aria-label="Navegação principal">
+    <div class="tabs-track">
+      <button class="tab-btn active" data-tab="resultados"    onclick="switchTab('resultados')"><span class="tab-icon">⚽</span><span class="tab-label">Resultados</span></button>
+      <button class="tab-btn"        data-tab="classificacao" onclick="switchTab('classificacao')"><span class="tab-icon">🏅</span><span class="tab-label">Classificação</span></button>
+      <button class="tab-btn"        data-tab="revisao"       onclick="switchTab('revisao')"><span class="tab-icon">📊</span><span class="tab-label">Revisão</span></button>
+      <button class="tab-btn"        data-tab="grupos"        onclick="switchTab('grupos')"><span class="tab-icon">🗂️</span><span class="tab-label">Grupos</span></button>
+      <button class="tab-btn"        data-tab="matamata"      onclick="switchTab('matamata')"><span class="tab-icon">⚔️</span><span class="tab-label">Mata-Mata</span></button>
+      <button class="tab-btn"        data-tab="previsoes"     onclick="switchTab('previsoes')"><span class="tab-icon">🔮</span><span class="tab-label">Previsões</span></button>
+      <button class="tab-btn"        data-tab="regras"        onclick="switchTab('regras')"><span class="tab-icon">📖</span><span class="tab-label">Regras</span></button>
+      <button class="tab-btn"        data-tab="whatsapp"      onclick="switchTab('whatsapp')"><span class="tab-icon">💬</span><span class="tab-label">WhatsApp</span></button>
+    </div>
   </nav>
 
   <main class="main-content">
@@ -94,30 +127,55 @@
 
   </main>
 
-  <!-- Modal Resumo WhatsApp por jogo -->
-  <div class="wa-modal-overlay" id="wa-modal" onclick="if(event.target===this)closeWAModal()">
-    <div class="wa-modal-box">
-      <div class="wa-modal-header">
-        <span class="wa-modal-icon">💬</span>
-        <span class="wa-modal-title-text" id="wa-modal-title">Resumo do Jogo</span>
-        <button class="wa-modal-close" onclick="closeWAModal()">✕</button>
-      </div>
-      <div class="wa-modal-body">
-        <div class="wa-preview" id="wa-modal-preview"></div>
-        <textarea class="wa-textarea" id="wa-modal-textarea" readonly></textarea>
-        <div class="wa-modal-actions">
-          <button class="btn-copy" id="wa-modal-copy-btn" onclick="copyWAModal()">📋 Copiar</button>
-          <button class="btn-wa-send" id="wa-modal-send-btn" onclick="sendWAModal()">💬 Abrir no WhatsApp</button>
-        </div>
+  <!-- Bottom nav mobile -->
+  <nav class="mobile-nav" aria-label="Navegação rápida">
+    <button class="mobile-nav-btn active" data-tab="resultados"    onclick="switchTab('resultados')"><span>⚽</span><small>Resultados</small></button>
+    <button class="mobile-nav-btn"        data-tab="classificacao" onclick="switchTab('classificacao')"><span>🏅</span><small>Classif.</small></button>
+    <button class="mobile-nav-btn"        data-tab="revisao"       onclick="switchTab('revisao')"><span>📊</span><small>Revisão</small></button>
+    <button class="mobile-nav-btn"        data-tab="matamata"      onclick="switchTab('matamata')"><span>⚔️</span><small>M-Mata</small></button>
+    <button class="mobile-nav-btn"        data-tab="more"          onclick="openMobileMore()"><span>⋯</span><small>Mais</small></button>
+  </nav>
+
+  <!-- Sheet "Mais" mobile -->
+  <div class="mobile-sheet-overlay" id="mobile-sheet" onclick="if(event.target===this)closeMobileMore()">
+    <div class="mobile-sheet">
+      <div class="mobile-sheet-handle"></div>
+      <h3>Mais opções</h3>
+      <div class="mobile-sheet-grid">
+        <button class="sheet-item" data-tab="grupos"    onclick="switchTab('grupos');closeMobileMore()"><span>🗂️</span>Grupos</button>
+        <button class="sheet-item" data-tab="previsoes" onclick="switchTab('previsoes');closeMobileMore()"><span>🔮</span>Previsões</button>
+        <button class="sheet-item" data-tab="regras"    onclick="switchTab('regras');closeMobileMore()"><span>📖</span>Regras</button>
+        <button class="sheet-item" data-tab="whatsapp"  onclick="switchTab('whatsapp');closeMobileMore()"><span>💬</span>WhatsApp</button>
       </div>
     </div>
   </div>
 
-  <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2/dist/umd/supabase.js"></script>
-  <script src="js/config.js"></script>
-  <script src="js/db.js"></script>
-  <script src="js/api.js"></script>
-  <script src="js/data.js"></script>
-  <script src="js/app.js"></script>
+</div>
+
+<!-- Modal WhatsApp -->
+<div class="wa-modal-overlay" id="wa-modal" onclick="if(event.target===this)closeWAModal()">
+  <div class="wa-modal-box">
+    <div class="wa-modal-header">
+      <span class="wa-modal-icon">💬</span>
+      <span class="wa-modal-title-text" id="wa-modal-title">Resumo do Jogo</span>
+      <button class="wa-modal-close" onclick="closeWAModal()">✕</button>
+    </div>
+    <div class="wa-modal-body">
+      <div class="wa-preview" id="wa-modal-preview"></div>
+      <textarea class="wa-textarea" id="wa-modal-textarea" readonly></textarea>
+      <div class="wa-modal-actions">
+        <button class="btn-copy" id="wa-modal-copy-btn" onclick="copyWAModal()">📋 Copiar</button>
+        <button class="btn-wa-send" id="wa-modal-send-btn" onclick="sendWAModal()">💬 Abrir no WhatsApp</button>
+      </div>
+    </div>
+  </div>
+</div>
+
+<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2/dist/umd/supabase.js"></script>
+<script src="js/config.js"></script>
+<script src="js/db.js"></script>
+<script src="js/api.js"></script>
+<script src="js/data.js"></script>
+<script src="js/app.js"></script>
 </body>
 </html>
