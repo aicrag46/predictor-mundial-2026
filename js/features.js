@@ -141,23 +141,17 @@ function renderResultadosFilters() {
       <option value="all" ${_resFilter.estado === "all" ? "selected" : ""}>Todos</option>
       <option value="ft" ${_resFilter.estado === "ft" ? "selected" : ""}>✅ Terminados</option>
       <option value="pend" ${_resFilter.estado === "pend" ? "selected" : ""}>⏳ Pendentes</option>
-      <option value="live" ${_resFilter.estado === "live" ? "selected" : ""}>🔴 Ao vivo</option>
     </select>
   </div>`;
 }
 
-function matchResFilter(j, r, live) {
+function matchResFilter(j, r) {
   const q = _resFilter.q;
   if (q && !(`${j.casa} ${j.fora} ${j.codigo}`.toLowerCase().includes(q))) return false;
   if (_resFilter.grupo !== "all" && j.grupo !== _resFilter.grupo) return false;
   if (_resFilter.estado === "ft" && !r) return false;
   if (_resFilter.estado === "pend" && r) return false;
-  if (_resFilter.estado === "live" && !live) return false;
   return true;
-}
-
-function getLiveScores() {
-  return dbGet(DB_KEYS.LIVE_SCORES) || {};
 }
 
 // ─── Conflitos API vs manual ──────────────────────────────────────────────────

@@ -239,55 +239,74 @@ function parseRes(str) {
 // ─── TAB: RESULTADOS ─────────────────────────────────────────────────────────
 function renderResultados(resultados) {
   const grupos = [...new Set(DADOS.jogos.map(j => j.grupo))];
-  const live = getLiveScores();
   const container = document.getElementById("resultados-content");
   const totalDone = DADOS.jogos.filter(j => resultados[j.codigo]).length;
 
   let html = renderResultadosFilters();
   html += renderProgressBar(totalDone, DADOS.jogos.length, "⚽ Jogos com resultado");
 
+  html += `<div class="preds-section">
+    <div class="preds-gs-scroll">
+    <table class="preds-table preds-flat res-table">
+      <colgroup>
+        <col class="col-cod">
+        <col class="col-jogo">
+        <col class="col-pred">
+        <col class="col-tipo">
+        <col class="col-pts">
+      </colgroup>
+      <thead>
+        <tr>
+          <th>Cód.</th><th>Jogo</th><th>Resultado</th><th>Estado</th><th>💬</th>
+        </tr>
+      </thead>`;
+
   let visible = 0;
   for (const g of grupos) {
     if (_resFilter.grupo !== "all" && _resFilter.grupo !== g) continue;
     const jogos = DADOS.jogos.filter(j => j.grupo === g);
-    const filtered = jogos.filter(j => matchResFilter(j, resultados[j.codigo], live[j.codigo]));
+    const filtered = jogos.filter(j => matchResFilter(j, resultados[j.codigo]));
     if (!filtered.length) continue;
     const done = jogos.filter(j => resultados[j.codigo]).length;
-    const color = gc(g);
+    const tbId = `res-tb-${g}`;
 
-    html += `<div class="group-panel" style="--gc:${color}">
-      <div class="group-panel-head">
-        <span class="group-letter" style="background:${color}">Gr. ${g}</span>
-        <span class="group-panel-prog">${done}/${jogos.length} jogos</span>
-      </div>
-      <div class="match-card-grid">`;
+    html += `<tbody>
+      <tr class="preds-group-hdr" onclick="toggleFlatGroup('${tbId}')">
+        <td colspan="5">
+          <div class="pgr-inner">
+            <span class="pgr-label">Grupo ${g}</span>
+            <span class="pgr-prog">${done}/${jogos.length} jogos</span>
+            <span class="preds-chevron" id="ch-${tbId}">▾</span>
+          </div>
+        </td>
+      </tr>
+    </tbody>
+    <tbody id="${tbId}">`;
 
     for (const j of filtered) {
       visible++;
       const r = resultados[j.codigo];
-      const lv = live[j.codigo];
-      const val = r ? `${r.gc}-${r.gf}` : (lv ? `${lv.gc}-${lv.gf}` : "");
+      const val = r ? `${r.gc}-${r.gf}` : "";
       const ft = r !== undefined;
-      html += `<div class="match-card ${ft ? "mc-done" : lv ? "mc-live" : ""}">
-        <div class="mc-top">
-          <span class="mc-code">${j.codigo}</span>
-          ${lv && !ft ? `<span class="mc-live-badge">🔴 ${lv.minute || "LIVE"}'</span>` : ""}
-          <span class="mc-status ${ft ? "mc-ft" : "mc-pend"}">${ft ? "FT" : "Pend."}</span>
-        </div>
-        <div class="mc-teams">
-          <div class="mc-team"><span class="mc-flag">${(FLAGS[j.casa]||"🏳")}</span><span>${j.casa}</span></div>
-          <div class="mc-vs">vs</div>
-          <div class="mc-team"><span class="mc-flag">${(FLAGS[j.fora]||"🏳")}</span><span>${j.fora}</span></div>
-        </div>
-        <div class="mc-foot">
-          <input type="text" class="res-input mc-input ${ft ? "res-filled" : lv ? "res-live" : ""}"
+      html += `<tr class="${ft ? "row-ft" : ""}">
+        <td><span class="badge-grupo">${j.codigo}</span></td>
+        <td class="jogo-nome-sm">${fl(j.casa)} <span class="vs">×</span> ${fl(j.fora)}</td>
+        <td class="td-center">
+          <input type="text" class="res-input pred-inp ${ft ? "res-filled" : ""}"
             placeholder="2-1" value="${val}" data-codigo="${j.codigo}" maxlength="7" inputmode="numeric" />
-          ${ft ? `<button class="btn-wa-jogo" onclick="showWAModal('${j.codigo}')" title="WhatsApp">💬</button>` : ""}
-        </div>
-      </div>`;
+        </td>
+        <td class="td-center">
+          <span class="estado-badge ${ft ? "estado-ft" : "estado-pendente"}">${ft ? "FT" : "Pend."}</span>
+        </td>
+        <td class="td-center res-estado-cell">
+          ${ft ? `<button class="btn-wa-jogo" onclick="showWAModal('${j.codigo}')" title="WhatsApp">💬</button>` : `<span class="muted-dash">—</span>`}
+        </td>
+      </tr>`;
     }
-    html += `</div></div>`;
+    html += `</tbody>`;
   }
+
+  html += `</table></div></div>`;
   if (!visible) html += `<div class="empty-state"><span class="empty-icon">🔍</span><p>Nenhum jogo encontrado</p></div>`;
   container.innerHTML = html;
   container.querySelectorAll(".res-input").forEach(inp => {

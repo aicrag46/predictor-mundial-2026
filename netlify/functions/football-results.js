@@ -24,7 +24,7 @@ exports.handler = async (event) => {
       body: JSON.stringify({ error: "FOOTBALL_DATA_TOKEN não configurado no Netlify" }) };
   }
 
-  const status = event.queryStringParameters?.status || "FINISHED,IN_PLAY,PAUSED";
+  const status = event.queryStringParameters?.status || "FINISHED";
   const now = Date.now();
   const cacheKey = status;
 
