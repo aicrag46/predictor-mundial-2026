@@ -29,16 +29,9 @@ const gc = g => GROUP_COLORS[g] || "#94a3b8";
 function renderProgressBar(done, total, label) {
   const pct = total ? Math.round((done / total) * 100) : 0;
   return `<div class="prog-wrap">
-    <div class="prog-head"><span>${label}</span><span class="prog-nums">${done}/${total}</span></div>
+    ${label ? `<div class="prog-head"><span>${label}</span><span class="prog-nums">${done}/${total}</span></div>` : ""}
     <div class="prog-track"><div class="prog-fill" style="width:${pct}%"></div></div>
   </div>`;
-}
-
-function renderPageHeader(title, desc = "") {
-  return `<header class="page-header">
-    <h2 class="page-title">${title}</h2>
-    ${desc ? `<p class="page-desc">${desc}</p>` : ""}
-  </header>`;
 }
 
 // ─── RESULTADOS ──────────────────────────────────────────────────────────────
@@ -184,38 +177,50 @@ function mmPropagate(mm, roundId, gameIdx) {
 let mmActiveRound = "r32";
 
 // ─── TABS ────────────────────────────────────────────────────────────────────
-let activeTab = "resultados";
+const PRIMARY_TABS = ["classificacao", "resultados", "previsoes", "mais"];
+const MAIS_TABS = ["revisao", "grupos", "matamata", "regras", "whatsapp"];
+const MAIS_LABELS = {
+  revisao: "Revisão", grupos: "Grupos", matamata: "Mata-Mata",
+  regras: "Regras", whatsapp: "WhatsApp",
+};
+const MAIS_ITEMS = [
+  { id: "revisao",   title: "Revisão",    desc: "Quem pontuou em cada jogo" },
+  { id: "grupos",    title: "Grupos",     desc: "Classificação dos 12 grupos" },
+  { id: "matamata",  title: "Mata-Mata",  desc: "Chave e resultados" },
+  { id: "whatsapp",  title: "WhatsApp",   desc: "Mensagem para o grupo" },
+  { id: "regras",    title: "Regras",     desc: "Como funciona a pontuação" },
+];
+
+let activeTab = "classificacao";
 
 function switchTab(tab) {
   activeTab = tab;
+  const navTab = PRIMARY_TABS.includes(tab) ? tab : "mais";
+
   document.querySelectorAll(".tab-btn").forEach(b =>
-    b.classList.toggle("active", b.dataset.tab === tab));
-  document.querySelectorAll(".mobile-nav-btn").forEach(b => {
-    const t = b.dataset.tab;
-    if (t === "more") {
-      b.classList.toggle("active", ["grupos","previsoes","regras","whatsapp"].includes(tab));
-    } else {
-      b.classList.toggle("active", t === tab);
-    }
-  });
+    b.classList.toggle("active", b.dataset.tab === navTab));
+  document.querySelectorAll(".mobile-nav-btn").forEach(b =>
+    b.classList.toggle("active", b.dataset.tab === navTab));
+
   document.querySelectorAll(".tab-content").forEach(c =>
     c.classList.toggle("active", c.id === "tab-" + tab));
+
+  const subNav = document.getElementById("sub-nav");
+  if (subNav) {
+    if (MAIS_TABS.includes(tab)) {
+      subNav.style.display = "flex";
+      document.getElementById("sub-nav-title").textContent = MAIS_LABELS[tab] || tab;
+    } else {
+      subNav.style.display = "none";
+    }
+  }
+
   renderTab(tab);
-  // Scroll tab activo para a vista (desktop)
-  const activeBtn = document.querySelector(`.tabs-nav .tab-btn[data-tab="${tab}"]`);
-  activeBtn?.scrollIntoView({ behavior: "smooth", inline: "center", block: "nearest" });
+  window.scrollTo({ top: 0, behavior: "smooth" });
 }
 
 function toggleHeaderMenu() {
   document.getElementById("header-dropdown")?.classList.toggle("open");
-}
-
-function openMobileMore() {
-  document.getElementById("mobile-sheet")?.classList.add("active");
-}
-
-function closeMobileMore() {
-  document.getElementById("mobile-sheet")?.classList.remove("active");
 }
 
 document.addEventListener("click", e => {
@@ -227,14 +232,28 @@ document.addEventListener("click", e => {
 
 function renderTab(tab) {
   const r = getResultados();
-  if      (tab === "resultados")    renderResultados(r);
-  else if (tab === "classificacao") renderClassificacao(r);
+  if      (tab === "classificacao") renderClassificacao(r);
+  else if (tab === "resultados")    renderResultados(r);
+  else if (tab === "previsoes")     renderPrevisoes();
+  else if (tab === "mais")          renderMais();
   else if (tab === "revisao")       renderRevisao(r);
   else if (tab === "grupos")        renderGrupos(r);
   else if (tab === "whatsapp")      renderWhatsapp(r);
   else if (tab === "matamata")      renderMataMata(getMataMata());
-  else if (tab === "previsoes")     renderPrevisoes();
   else if (tab === "regras")        renderRegras();
+}
+
+function renderMais() {
+  const el = document.getElementById("mais-content");
+  if (!el) return;
+  el.innerHTML = `<div class="mais-list">
+    ${MAIS_ITEMS.map(i => `
+      <button type="button" class="mais-item" onclick="switchTab('${i.id}')">
+        <strong>${i.title}</strong>
+        <span>${i.desc}</span>
+      </button>
+    `).join("")}
+  </div>`;
 }
 
 // ─── PARSE ───────────────────────────────────────────────────────────────────
@@ -249,9 +268,9 @@ function renderResultados(resultados) {
   const container = document.getElementById("resultados-content");
   const totalDone = DADOS.jogos.filter(j => resultados[j.codigo]).length;
 
-  let html = renderPageHeader("Resultados", "Introduz o resultado de cada jogo. Formato: 2-1");
+  let html = `<div class="page-bar"><span><strong>${totalDone}</strong> / ${DADOS.jogos.length} jogos · escreve 2-1</span></div>`;
   html += renderResultadosFilters();
-  html += renderProgressBar(totalDone, DADOS.jogos.length, "Jogos com resultado");
+  html += renderProgressBar(totalDone, DADOS.jogos.length, "");
 
   html += `<div class="preds-section">
     <div class="preds-gs-scroll">
@@ -360,20 +379,14 @@ function renderClassificacao(resultados) {
   const jogados = DADOS.jogos.filter(j => resultados[j.codigo]).length;
   const container = document.getElementById("classificacao-content");
 
-  let html = renderPageHeader("Classificação", "Top 5 não paga jantar · Bottom 5 paga");
-  html += `<div class="feat-actions-bar">
-    <button class="btn-feat" onclick="exportClassificacaoImage()">Exportar imagem</button>
-    <button class="btn-feat" onclick="exportBackupJSON()">Backup JSON</button>
-    <button class="btn-feat" onclick="openPresentationMode()">Modo jantar</button>
-    <button class="btn-feat" onclick="shareNative(buildMsgClassificacao(resultados),'Classificação')">Partilhar</button>
-  </div>`;
-  html += renderProgressBar(jogados, DADOS.jogos.length, "Progresso da competição");
+  let html = `<div class="page-bar"><span><strong>${jogados}</strong> / ${DADOS.jogos.length} jogos · top 5 livre · bottom 5 paga</span></div>`;
+  html += renderProgressBar(jogados, DADOS.jogos.length, "");
 
   html += `<div class="preds-section"><div class="preds-gs-scroll">
     <table class="preds-table cls-table">
       <thead><tr>
-        <th>#</th><th>Participante</th>
-        <th>Pts</th><th>Ex.</th><th>VE</th><th>Gol.</th><th>0p</th><th>Jantar</th>
+        <th>#</th><th>Nome</th>
+        <th>Pontos</th><th>Ex.</th><th>VE</th><th>Gol.</th><th>Jantar</th>
       </tr></thead><tbody>`;
 
   for (const s of cls) {
@@ -382,24 +395,15 @@ function renderClassificacao(resultados) {
       <td class="pos-col">${posLabel}</td>
       <td class="nome-col"><strong>${s.nome}</strong></td>
       <td class="pts-col"><strong>${s.pts}</strong></td>
-      <td>${s.exatos}</td><td>${s.ve}</td><td>${s.golos}</td><td>${s.naoPontua}</td>
+      <td>${s.exatos}</td><td>${s.ve}</td><td>${s.golos}</td>
       <td><span class="jantar-badge ${s.paga ? "paga" : "nao-paga"}">${s.paga ? "Paga" : "Livre"}</span></td>
     </tr>`;
   }
 
   html += `</tbody></table></div></div>`;
 
-  html += `<div class="cls-legenda">
-    <span class="legenda-item paga-nao-ex">Top 5 — Não paga jantar</span>
-    <span class="legenda-item paga-sim-ex">Bottom 5 — Paga jantar</span>
-    <span class="legenda-item legenda-pts">Exato=5 · VE=2 · Golos=1</span>
-  </div>
-  <div id="class-history-wrap" class="feat-section">
-    <h3 class="feat-section-title">Evolução da classificação</h3>
-    <div id="class-history"></div>
-  </div>`;
+  html += `<div class="cls-legenda">Exato 5 · VE 2 · Golos 1 · Top 5 não paga jantar</div>`;
   container.innerHTML = html;
-  renderClassificationHistory("class-history");
 }
 
 // ─── TAB: REVISÃO ────────────────────────────────────────────────────────────
@@ -413,12 +417,9 @@ function renderRevisao(resultados) {
     ? DADOS.jogos.filter(j => resultados[j.codigo])
     : DADOS.jogos;
 
-  let html = renderPageHeader("Revisão", "Matriz de previsões vs resultados reais. A cor indica a pontuação.");
-  html += renderProgressBar(jogados, DADOS.jogos.length, "Jogos com resultado");
-
-  html += `<div class="revisao-toolbar">
+  let html = `<div class="revisao-toolbar">
     <div class="revisao-filters">
-      <button class="btn-feat ${_revFilterPlayed ? "" : "btn-feat-on"}" onclick="_revFilterPlayed=false;renderTab('revisao')">Todos os jogos</button>
+      <button class="btn-feat ${_revFilterPlayed ? "" : "btn-feat-on"}" onclick="_revFilterPlayed=false;renderTab('revisao')">Todos</button>
       <button class="btn-feat ${_revFilterPlayed ? "btn-feat-on" : ""}" onclick="_revFilterPlayed=true;renderTab('revisao')">Só terminados</button>
     </div>
   </div>`;
@@ -521,8 +522,7 @@ function renderGrupos(resultados) {
       b.pts - a.pts || b.gd - a.gd || b.gm - a.gm || a.e.localeCompare(b.e));
   }
 
-  let html = renderPageHeader("Grupos", "Classificação simulada com base nos resultados introduzidos.");
-  html += `<div class="grupos-grid">`;
+  let html = `<div class="grupos-grid">`;
   for (const g of grupos) {
     const st = standingGrupo(g);
     html += `<div class="grupo-card">
@@ -614,17 +614,13 @@ function renderWhatsapp(resultados) {
   const container = document.getElementById("whatsapp-content");
   const jogosFeitos = DADOS.jogos.filter(j => resultados[j.codigo]);
   if (!jogosFeitos.length) {
-    container.innerHTML = `<div class="wa-empty">
-      ${renderPageHeader("WhatsApp", "Mensagens prontas para partilhar no grupo.")}
-      <p>Ainda não há resultados. Introduz resultados no separador <strong>Resultados</strong> e usa o botão <strong>WA</strong> ao lado de cada jogo.</p>
-    </div>`;
+    container.innerHTML = `<div class="wa-empty"><p>Ainda não há resultados.</p><p>Introduz resultados em <strong>Resultados</strong>.</p></div>`;
     return;
   }
   const msgCls = buildMsgClassificacao(resultados);
-  container.innerHTML = `${renderPageHeader("WhatsApp", "Copia ou envia a classificação. Resumos por jogo via botão WA em Resultados.")}
-  <div class="wa-container">
+  container.innerHTML = `<div class="wa-container">
     <div class="wa-block">
-      <div class="wa-title">Classificação geral
+      <div class="wa-title">Classificação
         <span class="wa-hint">Resumo por jogo: botão WA em Resultados</span>
       </div>
       <div class="wa-preview">${waPreview(msgCls)}</div>
@@ -711,8 +707,7 @@ function renderMataMata(mm) {
   const container = document.getElementById("matamata-content");
 
   // Bracket SEMPRE VISÍVEL no topo (auto-actualiza em cada mudança)
-  let html = renderPageHeader("Mata-Mata", "Resultados aos 90 minutos. Em empate, indica quem passa.");
-  html += buildBracketHTML(mm);
+  let html = buildBracketHTML(mm);
 
   // Selector de ronda
   html += `<div class="mm-round-tabs">`;
@@ -986,37 +981,19 @@ function renderPrevisoes() {
   const cls        = calcClassificacao(resultados);
   const pos        = cls.find(s => s.nome === nome)?.pos ?? "?";
 
-  // ── Sub-tabs ──────────────────────────────────────────────────────────────
-  let html = renderPageHeader("Previsões", "Prognósticos de cada participante. Edita e prime Enter para guardar.");
-  html += `<div class="pp-tabs">`;
+  const paga = cls.find(s => s.nome === nome)?.paga;
+
+  let html = `<select class="preds-select" onchange="setPredsParticipant(+this.value)">`;
   DADOS.participantes.forEach((n, i) => {
     const st = calcParticipante(n, resultados, gsOv);
-    html += `<button class="pp-btn ${predsPI === i ? "active" : ""}" onclick="setPredsParticipant(${i})">
-      <span class="pp-nome">${n.split(" ")[0]}</span>
-      <span class="pp-pts">${st.pts}pts</span>
-    </button>`;
+    html += `<option value="${i}" ${predsPI === i ? "selected" : ""}>${n} — ${st.pts} pts</option>`;
   });
-  html += `</div>`;
+  html += `</select>`;
 
-  // ── Player summary ────────────────────────────────────────────────────────
-  const paga = cls.find(s => s.nome === nome)?.paga;
-  const posLabel = pos === 1 ? "1º" : pos === 2 ? "2º" : pos === 3 ? "3º" : `${pos}º`;
-  html += `<div class="player-card ${paga ? "player-card--paga" : ""}">
-    <div class="player-card__rank">${posLabel}</div>
-    <div>
-      <div class="player-card__name">${nome}</div>
-      <div class="player-card__meta">${paga ? "Paga jantar" : "Não paga jantar"} · GS ${stats.gsPts} pts${stats.koPts ? ` · KO ${stats.koPts} pts` : ""}</div>
-    </div>
-    <div class="player-card__pts">${stats.pts}<span>pts</span></div>
-    <div class="player-card__stats">
-      <span><strong>${stats.exatos}</strong> exatos</span>
-      <span><strong>${stats.ve}</strong> VE</span>
-      <span><strong>${stats.golos}</strong> golos</span>
-      <span><strong>${stats.naoPontua}</strong> nada</span>
-    </div>
-    <div class="player-card__actions">
-      <button class="btn-feat" onclick="resetPrevisoesOriginais()" title="Repor previsões originais">Restaurar previsões</button>
-    </div>
+  html += `<div class="player-summary">
+    <span class="player-summary__name">${nome}</span>
+    <span class="player-summary__pts">${stats.pts} pts</span>
+    <span class="player-summary__meta">${pos}º · ${paga ? "paga jantar" : "livre"} · ${stats.exatos} ex · ${stats.ve} VE</span>
   </div>`;
 
   // ── Grupo stage ───────────────────────────────────────────────────────────
@@ -1285,7 +1262,6 @@ function renderRegras() {
   const container = document.getElementById("regras-content");
   container.innerHTML = `
   <div class="regras-wrap">
-    ${renderPageHeader("Regras", "Pontuação oficial do predictor. Grupos: não acumula. Mata-mata: score + apurado acumulam.")}
 
     <div class="regras-card">
       <h2 class="regras-h2">Predictor Parque Biológico — Mundial 2026</h2>
@@ -1708,13 +1684,13 @@ function showApp() {
   const u = dbCurrentUser();
   if (u) {
     const el = document.getElementById("header-user");
-    el.textContent = "👤 " + (u.email || "").split("@")[0];
+    el.textContent = (u.email || "").split("@")[0];
     el.style.display = "inline-flex";
     document.getElementById("btn-logout").style.display = "block";
   }
   initFeatures().then(() => {
     getResultados();
-    switchTab("resultados");
+    switchTab("classificacao");
     apiStartAutoSync(5 * 60 * 1000);
   });
 }
@@ -1729,7 +1705,7 @@ document.addEventListener("DOMContentLoaded", async () => {
     overlay.style.display = "none";
     initFeatures().then(() => {
       getResultados();
-      switchTab("resultados");
+      switchTab("classificacao");
     });
     return;
   }

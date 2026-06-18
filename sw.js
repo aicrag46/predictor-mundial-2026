@@ -1,4 +1,4 @@
-const CACHE = "predictor-v9";
+const CACHE = "predictor-v10";
 
 // JS, HTML e CSS: network-first (evita cache antigo)
 const NETWORK_FIRST = ["/js/", "/css/", "/index.html"];
