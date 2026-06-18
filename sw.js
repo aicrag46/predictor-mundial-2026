@@ -1,20 +1,10 @@
-const CACHE = "predictor-v3";
-const ASSETS = [
-  "/",
-  "/index.html",
-  "/css/style.css",
-  "/js/config.js",
-  "/js/scoring.js",
-  "/js/db.js",
-  "/js/api.js",
-  "/js/features.js",
-  "/js/data.js",
-  "/js/app.js",
-  "/manifest.json",
-];
+const CACHE = "predictor-v4";
+
+// JS e HTML: network-first (evita cache antigo sem previsões)
+const NETWORK_FIRST = ["/js/", "/index.html"];
 
 self.addEventListener("install", e => {
-  e.waitUntil(caches.open(CACHE).then(c => c.addAll(ASSETS)).then(() => self.skipWaiting()));
+  e.waitUntil(self.skipWaiting());
 });
 
 self.addEventListener("activate", e => {
@@ -27,16 +17,33 @@ self.addEventListener("activate", e => {
 self.addEventListener("fetch", e => {
   if (e.request.method !== "GET") return;
   if (e.request.url.includes("/.netlify/functions/")) return;
+
+  const url = e.request.url;
+  const networkFirst = NETWORK_FIRST.some(p => url.includes(p));
+
+  if (networkFirst) {
+    e.respondWith(
+      fetch(e.request)
+        .then(res => {
+          if (res.ok) {
+            const clone = res.clone();
+            caches.open(CACHE).then(c => c.put(e.request, clone));
+          }
+          return res;
+        })
+        .catch(() => caches.match(e.request))
+    );
+    return;
+  }
+
   e.respondWith(
     caches.match(e.request).then(cached => {
-      const fetched = fetch(e.request).then(res => {
-        if (res.ok && e.request.url.startsWith(self.location.origin)) {
-          const clone = res.clone();
-          caches.open(CACHE).then(c => c.put(e.request, clone));
+      return cached || fetch(e.request).then(res => {
+        if (res.ok && url.startsWith(self.location.origin)) {
+          caches.open(CACHE).then(c => c.put(e.request, res.clone()));
         }
         return res;
-      }).catch(() => cached);
-      return cached || fetched;
+      });
     })
   );
 });

@@ -822,10 +822,21 @@ function getGSOverrides() {
 function saveGSOverrides(o) { dbSet(DB_KEYS.GS_OVERRIDES, o); }
 
 function getGSPredFor(pi, codigo) {
-  const ov = getGSOverrides();
-  if (ov[pi]?.[codigo]) return ov[pi][codigo];
-  const p = DADOS.prognosticos[DADOS.participantes[pi]]?.[codigo];
-  return p ? { casa: p.casa, fora: p.fora } : null;
+  const nome = DADOS.participantes[pi];
+  const base = DADOS.prognosticos[nome]?.[codigo];
+  const ov = getGSOverrides()[pi]?.[codigo];
+  // Override manual explícito (edição na app)
+  if (ov && (ov.casa !== undefined && ov.fora !== undefined)) {
+    return { casa: ov.casa, fora: ov.fora };
+  }
+  return base ? { casa: base.casa, fora: base.fora } : null;
+}
+
+function resetPrevisoesOriginais() {
+  if (!confirm("Restaurar TODAS as previsões originais da base de dados?\n\nIsto apaga edições manuais na tab Previsões (overrides).")) return;
+  dbRemove(DB_KEYS.GS_OVERRIDES);
+  showApiStatus("✅ Previsões originais restauradas", "ok");
+  renderTab(activeTab);
 }
 
 // ── KO predictions ────────────────────────────────────────────────────────────
@@ -893,6 +904,7 @@ function renderPrevisoes() {
     <span class="pp-stat">🟡 ${stats.golos} golos</span>
     <span class="pp-stat">❌ ${stats.naoPontua}</span>
     <span class="pp-jantar ${paga ? "j-paga" : "j-nao"}">${paga ? "🍽️ PAGA" : "🎉 NÃO PAGA"}</span>
+    <button class="btn-feat" onclick="resetPrevisoesOriginais()" title="Repor previsões originais da BD">🔄 Restaurar BD</button>
   </div>`;
 
   // ── Grupo stage ───────────────────────────────────────────────────────────

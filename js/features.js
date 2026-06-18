@@ -6,16 +6,45 @@ let _pendingConflicts = [];
 
 // ─── Prognósticos protegidos (Supabase) ───────────────────────────────────────
 async function loadPrognosticos() {
-  // Fonte principal: data.js (sempre embarcado)
-  if (DADOS.prognosticos && Object.keys(DADOS.prognosticos).length >= 10) return true;
+  // data.js é sempre a fonte de verdade (720 previsões embarcadas)
+  const embedded = DADOS.prognosticos || {};
+  const nPlayers = Object.keys(embedded).length;
+  const nPreds = nPlayers ? Object.keys(embedded[Object.keys(embedded)[0]] || {}).length : 0;
 
-  // Opcional: cópia no Supabase (sync entre dispositivos)
+  if (nPlayers >= 10 && nPreds >= 72) return true;
+
+  // Supabase só se data.js falhar (não deve acontecer)
   const p = dbGet(DB_KEYS.PROGNOSTICOS);
   if (p && Object.keys(p).length >= 10) {
     DADOS.prognosticos = p;
     return true;
   }
+  console.error("[Prognósticos] data.js incompleto — verifica deploy/cache");
   return false;
+}
+
+/** Limpa overrides 0-0 acidentais que bloqueiam a BD */
+function healCorruptOverrides() {
+  const ov = getGSOverrides();
+  let changed = false;
+  for (const pi of Object.keys(ov)) {
+    for (const cod of Object.keys(ov[pi] || {})) {
+      const o = ov[pi][cod];
+      const base = DADOS.prognosticos[DADOS.participantes[pi]]?.[cod];
+      if (!base) continue;
+      // Override 0-0 mas BD tem valores diferentes → lixo de quando prognosticos estavam vazios
+      if (o.casa === 0 && o.fora === 0 && (base.casa !== 0 || base.fora !== 0)) {
+        delete ov[pi][cod];
+        changed = true;
+      }
+    }
+    if (ov[pi] && !Object.keys(ov[pi]).length) delete ov[pi];
+  }
+  if (changed) {
+    saveGSOverrides(ov);
+    console.log("[Prognósticos] Overrides corruptos reparados automaticamente");
+  }
+  return changed;
 }
 
 // ─── Histórico classificação ──────────────────────────────────────────────────
@@ -346,4 +375,8 @@ async function initFeatures() {
   initPWA();
   initPullToRefresh();
   await loadPrognosticos();
+  if (healCorruptOverrides()) {
+    showApiStatus("✅ Previsões reparadas automaticamente", "ok");
+    try { renderTab(activeTab); } catch {}
+  }
 }
