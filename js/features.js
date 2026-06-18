@@ -6,9 +6,11 @@ let _pendingConflicts = [];
 
 // ─── Prognósticos protegidos (Supabase) ───────────────────────────────────────
 async function loadPrognosticos() {
+  // Fonte principal: data.js (sempre embarcado)
   if (DADOS.prognosticos && Object.keys(DADOS.prognosticos).length >= 10) return true;
 
-  let p = dbGet(DB_KEYS.PROGNOSTICOS);
+  // Opcional: cópia no Supabase (sync entre dispositivos)
+  const p = dbGet(DB_KEYS.PROGNOSTICOS);
   if (p && Object.keys(p).length >= 10) {
     DADOS.prognosticos = p;
     return true;
@@ -343,13 +345,5 @@ function initPWA() {
 async function initFeatures() {
   initPWA();
   initPullToRefresh();
-  if (!await loadPrognosticos()) {
-    try {
-      const r = await fetch("/prognosticos.json");
-      if (r.ok) DADOS.prognosticos = await r.json();
-    } catch {}
-  }
-  if (!DADOS.prognosticos || Object.keys(DADOS.prognosticos).length < 10) {
-    showApiStatus("⚠️ Corre: npm run upload:prognosticos", "warn");
-  }
+  await loadPrognosticos();
 }

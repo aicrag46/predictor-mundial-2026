@@ -1,4 +1,4 @@
-const CACHE = "predictor-v2";
+const CACHE = "predictor-v3";
 const ASSETS = [
   "/",
   "/index.html",
@@ -8,7 +8,7 @@ const ASSETS = [
   "/js/db.js",
   "/js/api.js",
   "/js/features.js",
-  "/js/data-public.js",
+  "/js/data.js",
   "/js/app.js",
   "/manifest.json",
 ];
