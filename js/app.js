@@ -20,6 +20,20 @@ const FLAGS = {
 };
 const fl = t => (FLAGS[t] || "🏳") + " " + t;
 
+const GROUP_COLORS = {
+  A:"#ef4444",B:"#f97316",C:"#eab308",D:"#22c55e",E:"#06b6d4",F:"#6366f1",
+  G:"#a855f7",H:"#ec4899",I:"#14b8a6",J:"#f59e0b",K:"#3b82f6",L:"#10b981",
+};
+const gc = g => GROUP_COLORS[g] || "#94a3b8";
+
+function renderProgressBar(done, total, label) {
+  const pct = total ? Math.round((done / total) * 100) : 0;
+  return `<div class="prog-wrap">
+    <div class="prog-head"><span>${label}</span><span class="prog-nums">${done}/${total}</span></div>
+    <div class="prog-track"><div class="prog-fill" style="width:${pct}%"></div></div>
+  </div>`;
+}
+
 // ─── RESULTADOS ──────────────────────────────────────────────────────────────
 function getResultados() {
   const r = dbGet(DB_KEYS.RESULTADOS);
@@ -229,7 +243,11 @@ function renderResultados(resultados) {
   const grupos = [...new Set(DADOS.jogos.map(j => j.grupo))];
   const live = getLiveScores();
   const container = document.getElementById("resultados-content");
+  const totalDone = DADOS.jogos.filter(j => resultados[j.codigo]).length;
+
   let html = renderResultadosFilters();
+  html += renderProgressBar(totalDone, DADOS.jogos.length, "⚽ Jogos com resultado");
+
   let visible = 0;
   for (const g of grupos) {
     if (_resFilter.grupo !== "all" && _resFilter.grupo !== g) continue;
@@ -237,33 +255,42 @@ function renderResultados(resultados) {
     const filtered = jogos.filter(j => matchResFilter(j, resultados[j.codigo], live[j.codigo]));
     if (!filtered.length) continue;
     const done = jogos.filter(j => resultados[j.codigo]).length;
-    html += `<div class="grupo-block">
-      <div class="grupo-header">Grupo ${g} <span class="grupo-prog">${done}/${jogos.length}</span></div>
-      <table class="res-table">
-        <thead><tr><th>Cód.</th><th>Jogo</th><th>Resultado</th><th>Estado · 💬</th></tr></thead>
-        <tbody>`;
+    const color = gc(g);
+
+    html += `<div class="group-panel" style="--gc:${color}">
+      <div class="group-panel-head">
+        <span class="group-letter" style="background:${color}">Gr. ${g}</span>
+        <span class="group-panel-prog">${done}/${jogos.length} jogos</span>
+      </div>
+      <div class="match-card-grid">`;
+
     for (const j of filtered) {
       visible++;
       const r = resultados[j.codigo];
       const lv = live[j.codigo];
       const val = r ? `${r.gc}-${r.gf}` : (lv ? `${lv.gc}-${lv.gf}` : "");
       const ft = r !== undefined;
-      const liveBadge = lv && !ft ? `<span class="estado-badge estado-live">🔴 ${lv.minute || "LIVE"}'</span>` : "";
-      html += `<tr class="${ft ? "row-ft" : lv ? "row-live" : ""}">
-        <td><span class="badge-grupo">${j.codigo}</span></td>
-        <td class="jogo-nome">${fl(j.casa)} <span class="vs">vs</span> ${fl(j.fora)}</td>
-        <td><input type="text" class="res-input ${ft ? "res-filled" : lv ? "res-live" : ""}" placeholder="ex: 2-1"
-          value="${val}" data-codigo="${j.codigo}" maxlength="7" /></td>
-        <td class="res-estado-cell">
-          ${liveBadge}
-          <span class="estado-badge ${ft ? "estado-ft" : "estado-pendente"}">${ft ? "✅ FT" : "⏳ PEND."}</span>
-          ${ft ? `<button class="btn-wa-jogo" onclick="showWAModal('${j.codigo}')" title="Resumo WhatsApp">💬</button>` : ""}
-        </td>
-      </tr>`;
+      html += `<div class="match-card ${ft ? "mc-done" : lv ? "mc-live" : ""}">
+        <div class="mc-top">
+          <span class="mc-code">${j.codigo}</span>
+          ${lv && !ft ? `<span class="mc-live-badge">🔴 ${lv.minute || "LIVE"}'</span>` : ""}
+          <span class="mc-status ${ft ? "mc-ft" : "mc-pend"}">${ft ? "FT" : "Pend."}</span>
+        </div>
+        <div class="mc-teams">
+          <div class="mc-team"><span class="mc-flag">${(FLAGS[j.casa]||"🏳")}</span><span>${j.casa}</span></div>
+          <div class="mc-vs">vs</div>
+          <div class="mc-team"><span class="mc-flag">${(FLAGS[j.fora]||"🏳")}</span><span>${j.fora}</span></div>
+        </div>
+        <div class="mc-foot">
+          <input type="text" class="res-input mc-input ${ft ? "res-filled" : lv ? "res-live" : ""}"
+            placeholder="2-1" value="${val}" data-codigo="${j.codigo}" maxlength="7" inputmode="numeric" />
+          ${ft ? `<button class="btn-wa-jogo" onclick="showWAModal('${j.codigo}')" title="WhatsApp">💬</button>` : ""}
+        </div>
+      </div>`;
     }
-    html += `</tbody></table></div>`;
+    html += `</div></div>`;
   }
-  if (!visible) html += `<div class="wa-empty">Nenhum jogo corresponde aos filtros.</div>`;
+  if (!visible) html += `<div class="empty-state"><span class="empty-icon">🔍</span><p>Nenhum jogo encontrado</p></div>`;
   container.innerHTML = html;
   container.querySelectorAll(".res-input").forEach(inp => {
     inp.addEventListener("change", e => onResultadoChange(e.target));
@@ -303,48 +330,68 @@ function onResultadoChange(inp) {
 }
 
 // ─── TAB: CLASSIFICAÇÃO ──────────────────────────────────────────────────────
+function renderPodiumCard(s, pos) {
+  const medal = pos === 1 ? "🥇" : pos === 2 ? "🥈" : "🥉";
+  const short = s.nome.split(" ")[0];
+  return `<div class="podium-card ${s.paga ? "paga-sim" : "paga-nao"}">
+    <div class="podium-medal">${medal}</div>
+    <div class="podium-name" title="${s.nome}">${short}</div>
+    <div class="podium-pts">${s.pts}<span>pts</span></div>
+    <div class="podium-detail">✅ ${s.exatos} · ⚽ ${s.ve} · 🎯 ${s.golos}</div>
+    <span class="jantar-badge ${s.paga ? "paga" : "nao-paga"}">${s.paga ? "🍽️ PAGA" : "🎉 LIVRE"}</span>
+  </div>`;
+}
+
+function renderClsRow(s) {
+  return `<div class="cls-row ${s.paga ? "paga-sim" : "paga-nao"}">
+    <span class="cls-row-pos">${s.pos}</span>
+    <span class="cls-row-name">${s.nome}</span>
+    <span class="cls-row-stats">
+      <span title="Exatos">✅ ${s.exatos}</span>
+      <span title="VE">⚽ ${s.ve}</span>
+      <span title="Golos">🎯 ${s.golos}</span>
+      <span title="Não pontuou">❌ ${s.naoPontua}</span>
+    </span>
+    <span class="cls-row-pts">${s.pts}</span>
+    <span class="jantar-badge ${s.paga ? "paga" : "nao-paga"}">${s.paga ? "🍽️ PAGA" : "🎉 LIVRE"}</span>
+  </div>`;
+}
+
 function renderClassificacao(resultados) {
   const cls = calcClassificacao(resultados);
   const jogados = DADOS.jogos.filter(j => resultados[j.codigo]).length;
-  const totalPts = cls[0]?.pts ?? 0;
   const container = document.getElementById("classificacao-content");
+
   let html = `<div class="feat-actions-bar">
     <button class="btn-feat" onclick="exportClassificacaoImage()">🖼️ Exportar imagem</button>
     <button class="btn-feat" onclick="exportBackupJSON()">💾 Backup JSON</button>
     <button class="btn-feat" onclick="openPresentationMode()">🎬 Modo jantar</button>
     <button class="btn-feat" onclick="shareNative(buildMsgClassificacao(resultados),'Classificação')">📤 Partilhar</button>
-  </div>
-  <div class="cls-info">
-    <span>⚽ <strong>${jogados}</strong> / ${DADOS.jogos.length} jogos</span>
-    <span>🏆 Líder: <strong>${cls[0]?.nome ?? "—"}</strong> com <strong>${totalPts} pts</strong></span>
-  </div>
-  <table class="cls-table">
-    <thead><tr>
-      <th>#</th><th>Participante</th>
-      <th title="Pontos Totais">Pts</th>
-      <th title="Exactos (5pts)">✅</th>
-      <th title="Vencedor/Empate (2pts)">⚽</th>
-      <th title="Golos Equipa (1pt)">🎯</th>
-      <th title="Não Pontuou">❌</th>
-      <th>Jantar</th>
-    </tr></thead><tbody>`;
-  for (const s of cls) {
-    const posClass = s.pos <= 3 ? `pos-${s.pos}` : "";
-    html += `<tr class="${posClass} ${s.paga ? "paga-sim" : "paga-nao"}">
-      <td class="pos-col">${s.pos === 1 ? "🥇" : s.pos === 2 ? "🥈" : s.pos === 3 ? "🥉" : s.pos}</td>
-      <td class="nome-col"><strong>${s.nome}</strong></td>
-      <td class="pts-col"><strong>${s.pts}</strong></td>
-      <td>${s.exatos}</td><td>${s.ve}</td><td>${s.golos}</td><td>${s.naoPontua}</td>
-      <td><span class="jantar-badge ${s.paga ? "paga" : "nao-paga"}">${s.paga ? "🍽️ PAGA" : "🎉 NÃO PAGA"}</span></td>
-    </tr>`;
+  </div>`;
+  html += renderProgressBar(jogados, DADOS.jogos.length, "⚽ Progresso da competição");
+
+  if (cls.length >= 3) {
+    html += `<div class="podium">
+      <div class="podium-slot podium-2">${renderPodiumCard(cls[1], 2)}</div>
+      <div class="podium-slot podium-1">${renderPodiumCard(cls[0], 1)}</div>
+      <div class="podium-slot podium-3">${renderPodiumCard(cls[2], 3)}</div>
+    </div>`;
   }
-  html += `</tbody></table>
-    <div class="cls-legenda">
-      <span class="legenda-item paga-nao-ex">Top 5 — Não paga jantar</span>
-      <span class="legenda-item paga-sim-ex">Bottom 5 — Paga jantar</span>
-      <span class="legenda-item" style="margin-left:auto;color:var(--muted);font-size:.75rem">Pontuação: Exato=5pts · VE=2pts · Golos=1pt</span>
-    </div>
-    <div id="class-history-wrap" class="feat-section"><h3 class="feat-section-title">📈 Evolução da classificação</h3><div id="class-history"></div></div>`;
+
+  html += `<div class="cls-list">`;
+  const rest = cls.length >= 3 ? cls.slice(3) : cls;
+  for (const s of rest) html += renderClsRow(s);
+  html += `</div>`;
+
+  html += `<div class="cls-legenda">
+    <span class="legenda-item paga-nao-ex">Top 5 — Não paga jantar</span>
+    <span class="legenda-item paga-sim-ex">Bottom 5 — Paga jantar</span>
+    <span class="legenda-item legenda-pts">Exato=5 · VE=2 · Golos=1</span>
+  </div>
+  <div id="class-history-wrap" class="feat-section">
+    <h3 class="feat-section-title">📈 Evolução da classificação</h3>
+    <div id="class-history"></div>
+  </div>`;
   container.innerHTML = html;
   renderClassificationHistory("class-history");
 }
@@ -825,11 +872,18 @@ function getGSPredFor(pi, codigo) {
   const nome = DADOS.participantes[pi];
   const base = DADOS.prognosticos[nome]?.[codigo];
   const ov = getGSOverrides()[pi]?.[codigo];
-  // Override manual explícito (edição na app)
-  if (ov && (ov.casa !== undefined && ov.fora !== undefined)) {
-    return { casa: ov.casa, fora: ov.fora };
+
+  if (!base && !ov) return null;
+  if (!ov) return base ? { casa: base.casa, fora: base.fora } : null;
+
+  // Ignorar override corrupto (0-0 quando BD tem outro valor)
+  if (base && ov.casa === 0 && ov.fora === 0 && (base.casa !== 0 || base.fora !== 0)) {
+    return { casa: base.casa, fora: base.fora };
   }
-  return base ? { casa: base.casa, fora: base.fora } : null;
+  if (base && ov.casa === base.casa && ov.fora === base.fora) {
+    return { casa: base.casa, fora: base.fora };
+  }
+  return { casa: ov.casa, fora: ov.fora };
 }
 
 function resetPrevisoesOriginais() {
@@ -893,18 +947,25 @@ function renderPrevisoes() {
 
   // ── Banner ────────────────────────────────────────────────────────────────
   const paga = cls.find(s => s.nome === nome)?.paga;
-  html += `<div class="pp-banner">
-    <span class="pp-pos-badge ${paga ? "paga-sim" : "paga-nao"}">🏅 ${pos}º</span>
-    <strong class="pp-full-name">${nome}</strong>
-    <span class="pp-stat">⭐ <strong>${stats.pts}</strong> pts</span>
-    <span class="pp-stat pp-stat-sub">⚽ Grupos: ${stats.gsPts}p</span>
-    ${stats.koPts > 0 ? `<span class="pp-stat pp-stat-sub">⚔️ KO: ${stats.koPts}p</span>` : ""}
-    <span class="pp-stat">✅ ${stats.exatos} exatos</span>
-    <span class="pp-stat">🔵 ${stats.ve} VE</span>
-    <span class="pp-stat">🟡 ${stats.golos} golos</span>
-    <span class="pp-stat">❌ ${stats.naoPontua}</span>
-    <span class="pp-jantar ${paga ? "j-paga" : "j-nao"}">${paga ? "🍽️ PAGA" : "🎉 NÃO PAGA"}</span>
-    <button class="btn-feat" onclick="resetPrevisoesOriginais()" title="Repor previsões originais da BD">🔄 Restaurar BD</button>
+  const posBadge = pos === 1 ? "🥇" : pos === 2 ? "🥈" : pos === 3 ? "🥉" : `${pos}º`;
+  html += `<div class="pp-hero ${paga ? "pp-paga" : "pp-livre"}">
+    <div class="pp-hero-main">
+      <span class="pp-pos-badge">${posBadge}</span>
+      <div class="pp-hero-info">
+        <div class="pp-full-name">${nome}</div>
+        <div class="pp-hero-sub">${paga ? "🍽️ Paga jantar" : "🎉 Não paga jantar"}</div>
+      </div>
+      <div class="pp-hero-pts">${stats.pts}<small>pts</small></div>
+    </div>
+    <div class="stat-chips">
+      <span class="stat-chip chip-gold">⚽ GS ${stats.gsPts}p</span>
+      ${stats.koPts > 0 ? `<span class="stat-chip">⚔️ KO ${stats.koPts}p</span>` : ""}
+      <span class="stat-chip chip-exato">✅ ${stats.exatos}</span>
+      <span class="stat-chip chip-ve">🔵 ${stats.ve}</span>
+      <span class="stat-chip chip-golos">🟡 ${stats.golos}</span>
+      <span class="stat-chip chip-nao">❌ ${stats.naoPontua}</span>
+    </div>
+    <button class="btn-feat btn-restore" onclick="resetPrevisoesOriginais()" title="Repor previsões originais">🔄 Restaurar BD</button>
   </div>`;
 
   // ── Grupo stage ───────────────────────────────────────────────────────────
@@ -917,7 +978,7 @@ function renderPrevisoes() {
   attachPredsEvents(container);
 }
 
-// ── Group stage section — única tabela com tbody por grupo ────────────────────
+// ── Group stage section — cards por grupo ────────────────────────────────────
 function renderGSPredSection(pi, nome, resultados, gsOv) {
   const grupos = [...new Set(DADOS.jogos.map(j => j.grupo))];
 
@@ -926,71 +987,69 @@ function renderGSPredSection(pi, nome, resultados, gsOv) {
       ⚽ Fase de Grupos — 72 jogos
       <span class="edit-hint">✏️ edita o prognóstico e prime Enter</span>
     </div>
-    <div class="preds-gs-scroll">
-    <table class="preds-table preds-flat">
-      <colgroup>
-        <col class="col-cod">
-        <col class="col-jogo">
-        <col class="col-pred">
-        <col class="col-real">
-        <col class="col-tipo">
-        <col class="col-pts">
-      </colgroup>
-      <thead>
-        <tr>
-          <th>Cód.</th><th>Jogo</th>
-          <th>Prognóstico</th><th>Real</th><th>Tipo</th><th>Pts</th>
-        </tr>
-      </thead>`;
+    <div class="pg-groups">`;
 
   for (const g of grupos) {
     const jogos = DADOS.jogos.filter(j => j.grupo === g);
     let gpts = 0, gj = 0;
     for (const j of jogos) {
       const pred = getGSPredFor(pi, j.codigo);
-      const r    = resultados[j.codigo];
+      const r = resultados[j.codigo];
       if (r && pred) { gpts += getPontos(getTipo(pred.casa, pred.fora, r.gc, r.gf)); gj++; }
     }
-    const tbId = `gs-tb-${pi}-${g}`;
+    const bodyId = `gs-bd-${pi}-${g}`;
+    const color = gc(g);
 
-    // Linha de cabeçalho de grupo (clicável para colapsar)
-    html += `<tbody>
-      <tr class="preds-group-hdr" onclick="toggleFlatGroup('${tbId}')">
-        <td colspan="6">
-          <div class="pgr-inner">
-            <span class="pgr-label">Grupo ${g}</span>
-            <span class="pgr-prog">${gj}/${jogos.length} · <strong>${gpts}pts</strong></span>
-            <span class="preds-chevron" id="ch-${tbId}">▾</span>
-          </div>
-        </td>
-      </tr>
-    </tbody>
-    <tbody id="${tbId}">`;
+    html += `<div class="pg-group-panel" style="--gc:${color}">
+      <div class="pg-group-head" onclick="toggleFlatGroup('${bodyId}')">
+        <span class="group-letter" style="background:${color}">Gr. ${g}</span>
+        <span class="pg-group-meta">${gj}/${jogos.length} jogos · <strong>${gpts} pts</strong></span>
+        <span class="preds-chevron" id="ch-${bodyId}">▾</span>
+      </div>
+      <div class="pg-card-grid" id="${bodyId}">`;
 
     for (const j of jogos) {
       const pred = getGSPredFor(pi, j.codigo);
-      const r    = resultados[j.codigo];
+      const r = resultados[j.codigo];
       const tipo = pred ? getTipo(pred.casa, pred.fora, r?.gc, r?.gf) : "Pendente";
-      const pts  = getPontos(tipo);
+      const pts = getPontos(tipo);
       const isOv = gsOv[pi]?.[j.codigo];
+      const hasResult = !!r;
 
-      html += `<tr>
-        <td><span class="badge-grupo">${j.codigo}</span></td>
-        <td class="jogo-nome-sm">${fl(j.casa)} <span class="vs">×</span> ${fl(j.fora)}</td>
-        <td class="td-center">
-          <input class="pred-inp gs-pred-inp ${isOv ? "pred-edited" : ""}" type="text"
-            value="${pred ? `${pred.casa}-${pred.fora}` : ""}"
-            placeholder="0-0" data-pi="${pi}" data-codigo="${j.codigo}" maxlength="7" />
-        </td>
-        <td class="real-cell td-center">${r ? `${r.gc}-${r.gf}` : "—"}</td>
-        <td class="td-center">${r ? `<span class="tipo-pill ${TIPO_CSS[tipo]}">${tipoAbr(tipo)}</span>` : `<span class="muted-dash">—</span>`}</td>
-        <td class="pts-cell">${r ? pts : "—"}</td>
-      </tr>`;
+      html += `<div class="pg-card ${hasResult ? "pg-scored " + TIPO_CSS[tipo] : "pg-pend"} ${isOv ? "pg-edited" : ""}">
+        <div class="pg-card-top">
+          <span class="pg-code">${j.codigo}</span>
+          ${hasResult
+            ? `<span class="tipo-pill ${TIPO_CSS[tipo]}">${tipoAbr(tipo)}</span>`
+            : `<span class="pg-pend-badge">Pend.</span>`}
+        </div>
+        <div class="pg-teams">
+          <span class="pg-team">${fl(j.casa)}</span>
+          <span class="pg-vs">×</span>
+          <span class="pg-team">${fl(j.fora)}</span>
+        </div>
+        <div class="pg-scores">
+          <div class="pg-score-block">
+            <label>Progn.</label>
+            <input class="pred-inp gs-pred-inp ${isOv ? "pred-edited" : ""}" type="text"
+              value="${pred ? `${pred.casa}-${pred.fora}` : ""}"
+              placeholder="0-0" data-pi="${pi}" data-codigo="${j.codigo}" maxlength="7" inputmode="numeric" />
+          </div>
+          <div class="pg-score-block pg-real">
+            <label>Real</label>
+            <span class="pg-real-val">${r ? `${r.gc}-${r.gf}` : "—"}</span>
+          </div>
+          <div class="pg-score-block pg-pts">
+            <label>Pts</label>
+            <span class="pg-pts-val ${hasResult && pts > 0 ? "pts-pos" : ""}">${hasResult ? pts : "—"}</span>
+          </div>
+        </div>
+      </div>`;
     }
-    html += `</tbody>`;
+    html += `</div></div>`;
   }
 
-  html += `</table></div></div>`;
+  html += `</div></div>`;
   return html;
 }
 
@@ -1126,7 +1185,12 @@ function onGSPredChange(inp) {
   } else {
     const p = parseRes(val);
     if (!p) { inp.classList.add("res-error"); setTimeout(() => inp.classList.remove("res-error"), 2000); return; }
-    ov[pi][codigo] = { casa: p.gc, fora: p.gf };
+    const base = DADOS.prognosticos[DADOS.participantes[pi]]?.[codigo];
+    if (base && p.gc === base.casa && p.gf === base.fora) {
+      delete ov[pi][codigo];
+    } else {
+      ov[pi][codigo] = { casa: p.gc, fora: p.gf };
+    }
   }
   saveGSOverrides(ov);
   renderPrevisoes();
