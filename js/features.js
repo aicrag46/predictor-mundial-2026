@@ -1,6 +1,5 @@
 // ─── FEATURES AVANÇADAS ──────────────────────────────────────────────────────
 
-let _resFilter = { q: "", grupo: "all", estado: "all" };
 let _presentationActive = false;
 let _pendingConflicts = [];
 
@@ -122,38 +121,6 @@ function drawHistoryChart(hist, participants) {
       }
     });
   });
-}
-
-// ─── Filtros Resultados ───────────────────────────────────────────────────────
-function renderResultadosFilters() {
-  const grupos = [...new Set(DADOS.jogos.map(j => j.grupo))].sort();
-  return `<div class="feat-toolbar" id="res-filters">
-    <div class="feat-search-wrap">
-      <span>🔍</span>
-      <input type="search" id="res-filter-q" placeholder="Equipa ou código…" value="${_resFilter.q}"
-        oninput="_resFilter.q=this.value.toLowerCase();renderTab('resultados')">
-    </div>
-    <select class="feat-select" id="res-filter-grupo" onchange="_resFilter.grupo=this.value;renderTab('resultados')">
-      <option value="all" ${_resFilter.grupo === "all" ? "selected" : ""}>Todos grupos</option>
-      ${grupos.map(g => `<option value="${g}" ${_resFilter.grupo === g ? "selected" : ""}>Grupo ${g}</option>`).join("")}
-    </select>
-    <select class="feat-select" id="res-filter-estado" onchange="_resFilter.estado=this.value;renderTab('resultados')">
-      <option value="all" ${_resFilter.estado === "all" ? "selected" : ""}>Todos</option>
-      <option value="ft" ${_resFilter.estado === "ft" ? "selected" : ""}>✅ Terminados</option>
-      <option value="pend" ${_resFilter.estado === "pend" ? "selected" : ""}>⏳ Pendentes</option>
-      <option value="live" ${_resFilter.estado === "live" ? "selected" : ""}>🔴 Ao vivo</option>
-    </select>
-  </div>`;
-}
-
-function matchResFilter(j, r, live) {
-  const q = _resFilter.q;
-  if (q && !(`${j.casa} ${j.fora} ${j.codigo}`.toLowerCase().includes(q))) return false;
-  if (_resFilter.grupo !== "all" && j.grupo !== _resFilter.grupo) return false;
-  if (_resFilter.estado === "ft" && !r) return false;
-  if (_resFilter.estado === "pend" && r) return false;
-  if (_resFilter.estado === "live" && !live) return false;
-  return true;
 }
 
 function getLiveScores() {
@@ -306,9 +273,7 @@ function renderPresentationSlide(n) {
 }
 
 // ─── Auto-preencher Mata-Mata (top 2 por grupo → R32) ───────────────────────
-function autoFillMataMataFromGroups() {
-  if (!confirm("Preencher R32 com 1.º e 2.º de cada grupo (ordem A→L)? Equipas existentes podem ser substituídas.")) return;
-  const resultados = getResultados();
+function computeGroupQualified(resultados) {
   const grupos = [...new Set(DADOS.jogos.map(j => j.grupo))].sort();
   const qualified = [];
 
@@ -325,21 +290,48 @@ function autoFillMataMataFromGroups() {
       const sc = stats[j.casa], sf = stats[j.fora];
       sc.gm += gc; sc.gd += gc - gf;
       sf.gm += gf; sf.gd += gf - gc;
-      if (gc > gf) sc.pts += 3; else if (gc < gf) sf.pts += 3; else { sc.pts++; sf.pts++; }
+      if (gc > gf) sc.pts += 3;
+      else if (gc < gf) sf.pts += 3;
+      else { sc.pts++; sf.pts++; }
     }
     const st = Object.values(stats).sort((a, b) => b.pts - a.pts || b.gd - a.gd || b.gm - a.gm);
     if (st[0]) qualified.push(st[0].e);
     if (st[1]) qualified.push(st[1].e);
   }
+  return qualified;
+}
+
+/** Actualiza R32 com 1.º e 2.º de cada grupo (corre ao guardar resultados). */
+function syncMataMataFromGroups(opts = {}) {
+  const resultados = getResultados();
+  const qualified = computeGroupQualified(resultados);
+  if (qualified.length < 2) return false;
 
   const mm = getMataMata();
+  let changed = false;
+
   for (let i = 0; i < Math.min(16, Math.floor(qualified.length / 2)); i++) {
-    mm.r32[i].e1 = qualified[i * 2] || "";
-    mm.r32[i].e2 = qualified[i * 2 + 1] || "";
+    const e1 = qualified[i * 2] || "";
+    const e2 = qualified[i * 2 + 1] || "";
+    const game = mm.r32[i];
+    if (!game || (game.gc !== null && game.gf !== null)) continue;
+    if (game.e1 !== e1 || game.e2 !== e2) {
+      game.e1 = e1;
+      game.e2 = e2;
+      changed = true;
+    }
   }
+
+  if (!changed) return false;
+
   saveMataMata(mm);
-  renderMataMata(mm);
-  showApiStatus(`✅ R32 preenchido com ${qualified.length} qualificados`, "ok");
+  if (activeTab === "matamata") renderMataMata(mm);
+  if (opts.notify) showApiStatus(`R32 actualizado (${qualified.length} qualificados)`, "ok");
+  return true;
+}
+
+function autoFillMataMataFromGroups() {
+  syncMataMataFromGroups({ notify: true });
 }
 
 // ─── Pull to refresh ──────────────────────────────────────────────────────────
@@ -379,4 +371,5 @@ async function initFeatures() {
     showApiStatus("✅ Previsões reparadas automaticamente", "ok");
     try { renderTab(activeTab); } catch {}
   }
+  syncMataMataFromGroups({ silent: true });
 }

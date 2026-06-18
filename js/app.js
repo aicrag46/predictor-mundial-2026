@@ -34,7 +34,10 @@ function getResultados() {
   saveResultados(init);
   return init;
 }
-function saveResultados(r) { dbSet(DB_KEYS.RESULTADOS, r); }
+function saveResultados(r) {
+  dbSet(DB_KEYS.RESULTADOS, r);
+  syncMataMataFromGroups({ silent: true });
+}
 
 // Scoring em js/scoring.js
 
@@ -174,7 +177,7 @@ function switchTab(tab) {
   document.querySelectorAll(".mobile-nav-btn").forEach(b => {
     const t = b.dataset.tab;
     if (t === "more") {
-      b.classList.toggle("active", ["grupos","previsoes","regras","whatsapp"].includes(tab));
+      b.classList.toggle("active", ["previsoes","regras","whatsapp"].includes(tab));
     } else {
       b.classList.toggle("active", t === tab);
     }
@@ -211,7 +214,6 @@ function renderTab(tab) {
   if      (tab === "resultados")    renderResultados(r);
   else if (tab === "classificacao") renderClassificacao(r);
   else if (tab === "revisao")       renderRevisao(r);
-  else if (tab === "grupos")        renderGrupos(r);
   else if (tab === "whatsapp")      renderWhatsapp(r);
   else if (tab === "matamata")      renderMataMata(getMataMata());
   else if (tab === "previsoes")     renderPrevisoes();
@@ -229,21 +231,16 @@ function renderResultados(resultados) {
   const grupos = [...new Set(DADOS.jogos.map(j => j.grupo))];
   const live = getLiveScores();
   const container = document.getElementById("resultados-content");
-  let html = renderResultadosFilters();
-  let visible = 0;
+  let html = "";
   for (const g of grupos) {
-    if (_resFilter.grupo !== "all" && _resFilter.grupo !== g) continue;
     const jogos = DADOS.jogos.filter(j => j.grupo === g);
-    const filtered = jogos.filter(j => matchResFilter(j, resultados[j.codigo], live[j.codigo]));
-    if (!filtered.length) continue;
     const done = jogos.filter(j => resultados[j.codigo]).length;
     html += `<div class="grupo-block">
       <div class="grupo-header">Grupo ${g} <span class="grupo-prog">${done}/${jogos.length}</span></div>
       <table class="res-table">
         <thead><tr><th>Cód.</th><th>Jogo</th><th>Resultado</th><th>Estado · 💬</th></tr></thead>
         <tbody>`;
-    for (const j of filtered) {
-      visible++;
+    for (const j of jogos) {
       const r = resultados[j.codigo];
       const lv = live[j.codigo];
       const val = r ? `${r.gc}-${r.gf}` : (lv ? `${lv.gc}-${lv.gf}` : "");
@@ -263,7 +260,6 @@ function renderResultados(resultados) {
     }
     html += `</tbody></table></div>`;
   }
-  if (!visible) html += `<div class="wa-empty">Nenhum jogo corresponde aos filtros.</div>`;
   container.innerHTML = html;
   container.querySelectorAll(".res-input").forEach(inp => {
     inp.addEventListener("change", e => onResultadoChange(e.target));
@@ -394,62 +390,6 @@ function renderRevisao(resultados) {
       <span class="tipo-golos leg">🎯 Golos Equipa (1pt)</span>
       <span class="tipo-nao leg">❌ Não Pontuou (0pts)</span>
       <span class="tipo-pendente leg">⏳ Pendente</span>
-    </div>`;
-  container.innerHTML = html;
-}
-
-// ─── TAB: GRUPOS ─────────────────────────────────────────────────────────────
-function renderGrupos(resultados) {
-  const container = document.getElementById("grupos-content");
-  const grupos = [...new Set(DADOS.jogos.map(j => j.grupo))];
-
-  function standingGrupo(grupo) {
-    const jogos = DADOS.jogos.filter(j => j.grupo === grupo);
-    const equipas = new Set();
-    jogos.forEach(j => { equipas.add(j.casa); equipas.add(j.fora); });
-    const stats = {};
-    equipas.forEach(e => { stats[e] = { e, pj:0, v:0, ep:0, d:0, gm:0, gs:0, gd:0, pts:0 }; });
-    for (const j of jogos) {
-      const r = resultados[j.codigo];
-      if (!r) continue;
-      const { gc, gf } = r;
-      const sc = stats[j.casa], sf = stats[j.fora];
-      sc.pj++; sf.pj++;
-      sc.gm += gc; sc.gs += gf; sc.gd += gc - gf;
-      sf.gm += gf; sf.gs += gc; sf.gd += gf - gc;
-      if (gc > gf)      { sc.v++; sc.pts += 3; sf.d++; }
-      else if (gc < gf) { sf.v++; sf.pts += 3; sc.d++; }
-      else              { sc.ep++; sc.pts++; sf.ep++; sf.pts++; }
-    }
-    return Object.values(stats).sort((a, b) =>
-      b.pts - a.pts || b.gd - a.gd || b.gm - a.gm || a.e.localeCompare(b.e));
-  }
-
-  let html = `<div class="grupos-grid">`;
-  for (const g of grupos) {
-    const st = standingGrupo(g);
-    html += `<div class="grupo-card">
-      <div class="grupo-card-header">Grupo ${g}</div>
-      <table class="grupo-table">
-        <thead><tr><th></th><th>Equipa</th><th>PJ</th><th>V</th><th>E</th><th>D</th><th>GM</th><th>GS</th><th>GD</th><th>Pts</th></tr></thead>
-        <tbody>`;
-    st.forEach((s, i) => {
-      const qClass = i < 2 ? "qualifica" : i === 2 ? "terceiro" : "";
-      html += `<tr class="${qClass}">
-        <td class="pos-num">${i+1}</td>
-        <td class="equipa-nome">${fl(s.e)}</td>
-        <td>${s.pj}</td><td>${s.v}</td><td>${s.ep}</td><td>${s.d}</td>
-        <td>${s.gm}</td><td>${s.gs}</td>
-        <td>${s.gd > 0 ? "+"+s.gd : s.gd}</td>
-        <td><strong>${s.pts}</strong></td>
-      </tr>`;
-    });
-    html += `</tbody></table></div>`;
-  }
-  html += `</div>
-    <div class="grupos-legenda">
-      <span class="qualifica-ex">▶ Qualificados (1.º e 2.º)</span>
-      <span class="terceiro-ex">▶ Terceiro (pode qualificar)</span>
     </div>`;
   container.innerHTML = html;
 }
@@ -626,9 +566,7 @@ function renderMataMata(mm) {
   }
   html += `</div>`;
 
-  html += `<div class="mm-actions-bar">
-    <button class="btn-feat" onclick="autoFillMataMataFromGroups()">⚡ Preencher R32 dos grupos</button>
-  </div>`;
+  html += `<p class="mm-hint">R32 preenchido automaticamente com 1.º e 2.º de cada grupo.</p>`;
 
   // Editor da ronda activa
   const cfg = MM_ROUNDS.find(r => r.id === mmActiveRound);
