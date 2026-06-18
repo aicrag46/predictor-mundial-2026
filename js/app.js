@@ -57,15 +57,13 @@ function saveResultados(r) { dbSet(DB_KEYS.RESULTADOS, r); }
 // mm:     estado mata-mata
 // koP:    previsões KO  { [pi]: { [roundId:idx]: {gc,gf,qualifier} } }
 function calcParticipante(nome, resultados, gsOv, mm, koP) {
-  const pi    = DADOS.participantes.indexOf(nome);
-  const progs = DADOS.prognosticos[nome] || {};
+  const pi = DADOS.participantes.indexOf(nome);
   let pts = 0, exatos = 0, ve = 0, golos = 0, naoPontua = 0;
 
   // Fase de grupos
   for (const j of DADOS.jogos) {
-    const ov   = gsOv?.[pi]?.[j.codigo];
-    const p    = ov || progs[j.codigo];
-    const r    = resultados[j.codigo];
+    const p = getGSPredFor(pi, j.codigo);
+    const r = resultados[j.codigo];
     if (!p) continue;
     const tipo = getTipo(p.casa, p.fora, r?.gc, r?.gf);
     pts += getPontos(tipo);
