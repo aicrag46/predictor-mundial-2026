@@ -393,52 +393,101 @@ function renderClassificacao(resultados) {
   renderClassificationHistory("class-history");
 }
 
-// ─── TAB: REVISÃO LARGA ──────────────────────────────────────────────────────
+// ─── TAB: REVISÃO ────────────────────────────────────────────────────────────
+let _revFilterPlayed = false;
+
 function renderRevisao(resultados) {
   const container = document.getElementById("revisao-content");
   const participantes = DADOS.participantes;
-  let html = `<div class="revisao-scroll"><table class="revisao-table">
-    <thead>
-      <tr>
-        <th class="sticky-col">Jogo / Resultado</th>
-        ${participantes.map(p => `<th class="p-header" title="${p}">${p.split(" ")[0]}</th>`).join("")}
-      </tr>
-    </thead><tbody>`;
+  const jogados = DADOS.jogos.filter(j => resultados[j.codigo]).length;
+  const jogosVisiveis = _revFilterPlayed
+    ? DADOS.jogos.filter(j => resultados[j.codigo])
+    : DADOS.jogos;
+
+  let html = renderProgressBar(jogados, DADOS.jogos.length, "⚽ Jogos com resultado oficial");
+
+  html += `<div class="revisao-toolbar">
+    <p class="revisao-hint">Compara a <strong>previsão</strong> de cada jogador com o <strong>resultado real</strong>. A cor indica os pontos ganhos.</p>
+    <div class="revisao-filters">
+      <button class="btn-feat ${_revFilterPlayed ? "" : "btn-feat-on"}" onclick="_revFilterPlayed=false;renderTab('revisao')">Todos os jogos</button>
+      <button class="btn-feat ${_revFilterPlayed ? "btn-feat-on" : ""}" onclick="_revFilterPlayed=true;renderTab('revisao')">Só terminados</button>
+    </div>
+  </div>`;
+
+  html += `<div class="revisao-legenda revisao-legenda-top">
+    <span class="tipo-pill tipo-exato">Exato · 5p</span>
+    <span class="tipo-pill tipo-ve">VE · 2p</span>
+    <span class="tipo-pill tipo-golos">Golos · 1p</span>
+    <span class="tipo-pill tipo-nao">Nada · 0p</span>
+    <span class="tipo-pill tipo-pendente">Pendente</span>
+  </div>`;
+
+  html += `<div class="revisao-scroll"><table class="revisao-table">
+    <thead><tr>
+      <th class="sticky-col rev-th-jogo">Jogo · Resultado real</th>
+      ${participantes.map(p => {
+        const parts = p.split(" ");
+        const short = parts.length > 1 ? parts[0] : p.slice(0, 8);
+        return `<th class="rev-th-player" title="${p}">${short}</th>`;
+      }).join("")}
+    </tr></thead><tbody>`;
+
   let lastGrupo = "";
-  for (const j of DADOS.jogos) {
+  for (const j of jogosVisiveis) {
     if (j.grupo !== lastGrupo) {
       lastGrupo = j.grupo;
       html += `<tr class="grupo-sep"><td colspan="${participantes.length + 1}">Grupo ${j.grupo}</td></tr>`;
     }
     const r = resultados[j.codigo];
-    html += `<tr>
-      <td class="sticky-col jogo-cell">
-        <span class="cod-small">${j.codigo}</span>
-        ${r ? `<span class="res-badge">${r.gc}-${r.gf}</span>` : `<span class="pendente-dot">·</span>`}
-        <span class="equipas-small">${fl(j.casa)} × ${fl(j.fora)}</span>
+    html += `<tr class="${r ? "rev-row-ft" : "rev-row-pend"}">
+      <td class="sticky-col">
+        <div class="rev-jogo">
+          <div class="rev-jogo-top">
+            <span class="cod-small">${j.codigo}</span>
+            ${r
+              ? `<span class="res-badge">${r.gc}-${r.gf}</span>`
+              : `<span class="rev-pend-label">Pendente</span>`}
+          </div>
+          <div class="rev-teams">${fl(j.casa)} <span class="vs">×</span> ${fl(j.fora)}</div>
+        </div>
       </td>`;
+
     for (let pi2 = 0; pi2 < participantes.length; pi2++) {
-      const p    = participantes[pi2];
       const pred = getGSPredFor(pi2, j.codigo);
-      if (!pred) { html += `<td class="tipo-pendente">—</td>`; continue; }
+      if (!pred) {
+        html += `<td class="rev-cell rev-empty">—</td>`;
+        continue;
+      }
       const tipo = getTipo(pred.casa, pred.fora, r?.gc, r?.gf);
       const pts  = getPontos(tipo);
       const res  = `${pred.casa}-${pred.fora}`;
-      html += `<td class="${TIPO_CSS[tipo]}" title="${p}: ${res} | ${tipo} | ${pts}pts">
-        <span class="prog-val">${res}</span>
-        ${r ? `<span class="pts-small">${pts}p</span>` : ""}
+      html += `<td class="rev-cell ${TIPO_CSS[tipo]}">
+        <span class="rev-pred">${res}</span>
+        ${r
+          ? `<span class="rev-meta"><span class="tipo-pill ${TIPO_CSS[tipo]}">${tipoAbr(tipo)}</span><span class="rev-pts">${pts}p</span></span>`
+          : `<span class="rev-meta rev-meta-pend">—</span>`}
       </td>`;
     }
     html += `</tr>`;
   }
-  html += `</tbody></table></div>
-    <div class="revisao-legenda">
-      <span class="tipo-exato leg">✅ Exato (5pts)</span>
-      <span class="tipo-ve leg">⚽ Venc/Empate (2pts)</span>
-      <span class="tipo-golos leg">🎯 Golos Equipa (1pt)</span>
-      <span class="tipo-nao leg">❌ Não Pontuou (0pts)</span>
-      <span class="tipo-pendente leg">⏳ Pendente</span>
-    </div>`;
+
+  // Linha de totais
+  html += `<tr class="rev-totals">
+    <td class="sticky-col rev-totals-label"><strong>Totais</strong><span class="rev-totals-sub">jogos terminados</span></td>`;
+  for (let pi2 = 0; pi2 < participantes.length; pi2++) {
+    let total = 0, n = 0;
+    for (const j of DADOS.jogos) {
+      const r = resultados[j.codigo];
+      if (!r) continue;
+      const pred = getGSPredFor(pi2, j.codigo);
+      if (!pred) continue;
+      total += getPontos(getTipo(pred.casa, pred.fora, r.gc, r.gf));
+      n++;
+    }
+    html += `<td class="rev-total-cell"><strong>${total}</strong><span class="rev-total-sub">${n} jogos</span></td>`;
+  }
+  html += `</tr></tbody></table></div>`;
+
   container.innerHTML = html;
 }
 
