@@ -976,7 +976,7 @@ function renderPrevisoes() {
   attachPredsEvents(container);
 }
 
-// ── Group stage section — cards por grupo ────────────────────────────────────
+// ── Group stage section — tabela vertical por grupo ─────────────────────────
 function renderGSPredSection(pi, nome, resultados, gsOv) {
   const grupos = [...new Set(DADOS.jogos.map(j => j.grupo))];
 
@@ -985,7 +985,22 @@ function renderGSPredSection(pi, nome, resultados, gsOv) {
       ⚽ Fase de Grupos — 72 jogos
       <span class="edit-hint">✏️ edita o prognóstico e prime Enter</span>
     </div>
-    <div class="pg-groups">`;
+    <div class="preds-gs-scroll">
+    <table class="preds-table preds-flat">
+      <colgroup>
+        <col class="col-cod">
+        <col class="col-jogo">
+        <col class="col-pred">
+        <col class="col-real">
+        <col class="col-tipo">
+        <col class="col-pts">
+      </colgroup>
+      <thead>
+        <tr>
+          <th>Cód.</th><th>Jogo</th>
+          <th>Prognóstico</th><th>Real</th><th>Tipo</th><th>Pts</th>
+        </tr>
+      </thead>`;
 
   for (const g of grupos) {
     const jogos = DADOS.jogos.filter(j => j.grupo === g);
@@ -995,16 +1010,20 @@ function renderGSPredSection(pi, nome, resultados, gsOv) {
       const r = resultados[j.codigo];
       if (r && pred) { gpts += getPontos(getTipo(pred.casa, pred.fora, r.gc, r.gf)); gj++; }
     }
-    const bodyId = `gs-bd-${pi}-${g}`;
-    const color = gc(g);
+    const tbId = `gs-tb-${pi}-${g}`;
 
-    html += `<div class="pg-group-panel" style="--gc:${color}">
-      <div class="pg-group-head" onclick="toggleFlatGroup('${bodyId}')">
-        <span class="group-letter" style="background:${color}">Gr. ${g}</span>
-        <span class="pg-group-meta">${gj}/${jogos.length} jogos · <strong>${gpts} pts</strong></span>
-        <span class="preds-chevron" id="ch-${bodyId}">▾</span>
-      </div>
-      <div class="pg-card-grid" id="${bodyId}">`;
+    html += `<tbody>
+      <tr class="preds-group-hdr" onclick="toggleFlatGroup('${tbId}')">
+        <td colspan="6">
+          <div class="pgr-inner">
+            <span class="pgr-label">Grupo ${g}</span>
+            <span class="pgr-prog">${gj}/${jogos.length} · <strong>${gpts}pts</strong></span>
+            <span class="preds-chevron" id="ch-${tbId}">▾</span>
+          </div>
+        </td>
+      </tr>
+    </tbody>
+    <tbody id="${tbId}">`;
 
     for (const j of jogos) {
       const pred = getGSPredFor(pi, j.codigo);
@@ -1012,42 +1031,24 @@ function renderGSPredSection(pi, nome, resultados, gsOv) {
       const tipo = pred ? getTipo(pred.casa, pred.fora, r?.gc, r?.gf) : "Pendente";
       const pts = getPontos(tipo);
       const isOv = gsOv[pi]?.[j.codigo];
-      const hasResult = !!r;
 
-      html += `<div class="pg-card ${hasResult ? "pg-scored " + TIPO_CSS[tipo] : "pg-pend"} ${isOv ? "pg-edited" : ""}">
-        <div class="pg-card-top">
-          <span class="pg-code">${j.codigo}</span>
-          ${hasResult
-            ? `<span class="tipo-pill ${TIPO_CSS[tipo]}">${tipoAbr(tipo)}</span>`
-            : `<span class="pg-pend-badge">Pend.</span>`}
-        </div>
-        <div class="pg-teams">
-          <span class="pg-team">${fl(j.casa)}</span>
-          <span class="pg-vs">×</span>
-          <span class="pg-team">${fl(j.fora)}</span>
-        </div>
-        <div class="pg-scores">
-          <div class="pg-score-block">
-            <label>Progn.</label>
-            <input class="pred-inp gs-pred-inp ${isOv ? "pred-edited" : ""}" type="text"
-              value="${pred ? `${pred.casa}-${pred.fora}` : ""}"
-              placeholder="0-0" data-pi="${pi}" data-codigo="${j.codigo}" maxlength="7" inputmode="numeric" />
-          </div>
-          <div class="pg-score-block pg-real">
-            <label>Real</label>
-            <span class="pg-real-val">${r ? `${r.gc}-${r.gf}` : "—"}</span>
-          </div>
-          <div class="pg-score-block pg-pts">
-            <label>Pts</label>
-            <span class="pg-pts-val ${hasResult && pts > 0 ? "pts-pos" : ""}">${hasResult ? pts : "—"}</span>
-          </div>
-        </div>
-      </div>`;
+      html += `<tr>
+        <td><span class="badge-grupo">${j.codigo}</span></td>
+        <td class="jogo-nome-sm">${fl(j.casa)} <span class="vs">×</span> ${fl(j.fora)}</td>
+        <td class="td-center">
+          <input class="pred-inp gs-pred-inp ${isOv ? "pred-edited" : ""}" type="text"
+            value="${pred ? `${pred.casa}-${pred.fora}` : ""}"
+            placeholder="0-0" data-pi="${pi}" data-codigo="${j.codigo}" maxlength="7" inputmode="numeric" />
+        </td>
+        <td class="real-cell td-center">${r ? `${r.gc}-${r.gf}` : "—"}</td>
+        <td class="td-center">${r ? `<span class="tipo-pill ${TIPO_CSS[tipo]}">${tipoAbr(tipo)}</span>` : `<span class="muted-dash">—</span>`}</td>
+        <td class="pts-cell">${r ? pts : "—"}</td>
+      </tr>`;
     }
-    html += `</div></div>`;
+    html += `</tbody>`;
   }
 
-  html += `</div></div>`;
+  html += `</table></div></div>`;
   return html;
 }
 

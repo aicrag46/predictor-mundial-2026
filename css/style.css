@@ -1207,14 +1207,9 @@ body {
 .pp-tabs {
   display: flex;
   gap: 6px;
-  flex-wrap: nowrap;
+  flex-wrap: wrap;
   margin-bottom: 16px;
-  overflow-x: auto;
-  padding-bottom: 4px;
-  -webkit-overflow-scrolling: touch;
-  scrollbar-width: none;
 }
-.pp-tabs::-webkit-scrollbar { display: none; }
 .pp-btn {
   background: var(--white);
   border: 1px solid var(--border);
