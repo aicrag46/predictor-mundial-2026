@@ -129,7 +129,6 @@ function renderResultadosFilters() {
   const grupos = [...new Set(DADOS.jogos.map(j => j.grupo))].sort();
   return `<div class="feat-toolbar" id="res-filters">
     <div class="feat-search-wrap">
-      <span>🔍</span>
       <input type="search" id="res-filter-q" placeholder="Equipa ou código…" value="${_resFilter.q}"
         oninput="_resFilter.q=this.value.toLowerCase();renderTab('resultados')">
     </div>
@@ -139,8 +138,8 @@ function renderResultadosFilters() {
     </select>
     <select class="feat-select" id="res-filter-estado" onchange="_resFilter.estado=this.value;renderTab('resultados')">
       <option value="all" ${_resFilter.estado === "all" ? "selected" : ""}>Todos</option>
-      <option value="ft" ${_resFilter.estado === "ft" ? "selected" : ""}>✅ Terminados</option>
-      <option value="pend" ${_resFilter.estado === "pend" ? "selected" : ""}>⏳ Pendentes</option>
+      <option value="ft" ${_resFilter.estado === "ft" ? "selected" : ""}>Terminados</option>
+      <option value="pend" ${_resFilter.estado === "pend" ? "selected" : ""}>Pendentes</option>
     </select>
   </div>`;
 }
@@ -168,9 +167,9 @@ function showNextConflict() {
   document.getElementById("conflict-title").textContent =
     `${j.codigo}: ${j.casa} vs ${j.fora}`;
   document.getElementById("conflict-manual").textContent =
-    `✋ Manter manual (${c.existing.gc}-${c.existing.gf})`;
+    `Manter manual (${c.existing.gc}-${c.existing.gf})`;
   document.getElementById("conflict-api").textContent =
-    `🔄 Usar API (${c.incoming.gc}-${c.incoming.gf})`;
+    `Usar API (${c.incoming.gc}-${c.incoming.gf})`;
   modal.classList.add("active");
   modal.dataset.codigo = c.codigo;
 }
@@ -217,7 +216,7 @@ function exportClassificacaoImage() {
   ctx.fillRect(0, 0, canvas.width, canvas.height);
   ctx.fillStyle = "#fbbf24";
   ctx.font = "bold 22px Outfit, sans-serif";
-  ctx.fillText("🏆 Predictor Mundial 2026", 20, 36);
+  ctx.fillText("Predictor Mundial 2026", 20, 36);
   ctx.fillStyle = "#94a3b8";
   ctx.font = "14px Outfit, sans-serif";
   ctx.fillText(new Date().toLocaleString("pt-PT"), 20, 58);
@@ -275,7 +274,7 @@ function renderPresentationSlide(n) {
   const resultados = getResultados();
   const cls = calcClassificacao(resultados);
   const slides = [
-    { title: "🏆 Predictor Parque Biológico", body: "Mundial 2026 · Revelação no Jantar", sub: `${Object.keys(resultados).length} jogos disputados` },
+    { title: "Predictor Parque Biológico", body: "Mundial 2026 · Revelação no Jantar", sub: `${Object.keys(resultados).length} jogos disputados` },
     ...cls.map(s => ({
       title: `${s.pos === 1 ? "🥇" : s.pos === 2 ? "🥈" : s.pos === 3 ? "🥉" : s.pos + "."} ${s.nome}`,
       body: `${s.pts} pontos`,
@@ -333,7 +332,7 @@ function autoFillMataMataFromGroups() {
   }
   saveMataMata(mm);
   renderMataMata(mm);
-  showApiStatus(`✅ R32 preenchido com ${qualified.length} qualificados`, "ok");
+  showApiStatus(`R32 preenchido com ${qualified.length} qualificados`, "ok");
 }
 
 // ─── Pull to refresh ──────────────────────────────────────────────────────────
@@ -370,7 +369,7 @@ async function initFeatures() {
   initPullToRefresh();
   await loadPrognosticos();
   if (healCorruptOverrides()) {
-    showApiStatus("✅ Previsões reparadas automaticamente", "ok");
+    showApiStatus("Previsões reparadas automaticamente", "ok");
     try { renderTab(activeTab); } catch {}
   }
 }

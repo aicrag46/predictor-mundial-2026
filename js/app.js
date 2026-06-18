@@ -34,6 +34,13 @@ function renderProgressBar(done, total, label) {
   </div>`;
 }
 
+function renderPageHeader(title, desc = "") {
+  return `<header class="page-header">
+    <h2 class="page-title">${title}</h2>
+    ${desc ? `<p class="page-desc">${desc}</p>` : ""}
+  </header>`;
+}
+
 // ─── RESULTADOS ──────────────────────────────────────────────────────────────
 function getResultados() {
   const r = dbGet(DB_KEYS.RESULTADOS);
@@ -123,7 +130,7 @@ const MM_ROUNDS = [
   { id: "qf",  name: "Quartos de Final", count: 4,  abbr: "QF"  },
   { id: "sf",  name: "Meias-Final",      count: 2,  abbr: "SF"  },
   { id: "tp",  name: "3.º Lugar",        count: 1,  abbr: "3.º" },
-  { id: "f",   name: "Final",            count: 1,  abbr: "🏆"  },
+  { id: "f",   name: "Final",            count: 1,  abbr: "F"   },
 ];
 const MM_SEQ = ["r32", "r16", "qf", "sf", "f"]; // main bracket (tp is parallel)
 
@@ -242,8 +249,9 @@ function renderResultados(resultados) {
   const container = document.getElementById("resultados-content");
   const totalDone = DADOS.jogos.filter(j => resultados[j.codigo]).length;
 
-  let html = renderResultadosFilters();
-  html += renderProgressBar(totalDone, DADOS.jogos.length, "⚽ Jogos com resultado");
+  let html = renderPageHeader("Resultados", "Introduz o resultado de cada jogo. Formato: 2-1");
+  html += renderResultadosFilters();
+  html += renderProgressBar(totalDone, DADOS.jogos.length, "Jogos com resultado");
 
   html += `<div class="preds-section">
     <div class="preds-gs-scroll">
@@ -257,7 +265,7 @@ function renderResultados(resultados) {
       </colgroup>
       <thead>
         <tr>
-          <th>Cód.</th><th>Jogo</th><th>Resultado</th><th>Estado</th><th>💬</th>
+          <th>Cód.</th><th>Jogo</th><th>Resultado</th><th>Estado</th><th class="th-wa">WA</th>
         </tr>
       </thead>`;
 
@@ -299,7 +307,7 @@ function renderResultados(resultados) {
           <span class="estado-badge ${ft ? "estado-ft" : "estado-pendente"}">${ft ? "FT" : "Pend."}</span>
         </td>
         <td class="td-center res-estado-cell">
-          ${ft ? `<button class="btn-wa-jogo" onclick="showWAModal('${j.codigo}')" title="WhatsApp">💬</button>` : `<span class="muted-dash">—</span>`}
+          ${ft ? `<button class="btn-wa-jogo" onclick="showWAModal('${j.codigo}')" title="Resumo WhatsApp">WA</button>` : `<span class="muted-dash">—</span>`}
         </td>
       </tr>`;
     }
@@ -307,7 +315,7 @@ function renderResultados(resultados) {
   }
 
   html += `</table></div></div>`;
-  if (!visible) html += `<div class="empty-state"><span class="empty-icon">🔍</span><p>Nenhum jogo encontrado</p></div>`;
+  if (!visible) html += `<div class="empty-state"><p>Nenhum jogo encontrado</p><span class="empty-hint">Ajusta os filtros ou pesquisa</span></div>`;
   container.innerHTML = html;
   container.querySelectorAll(".res-input").forEach(inp => {
     inp.addEventListener("change", e => onResultadoChange(e.target));
@@ -352,29 +360,30 @@ function renderClassificacao(resultados) {
   const jogados = DADOS.jogos.filter(j => resultados[j.codigo]).length;
   const container = document.getElementById("classificacao-content");
 
-  let html = `<div class="feat-actions-bar">
-    <button class="btn-feat" onclick="exportClassificacaoImage()">🖼️ Exportar imagem</button>
-    <button class="btn-feat" onclick="exportBackupJSON()">💾 Backup JSON</button>
-    <button class="btn-feat" onclick="openPresentationMode()">🎬 Modo jantar</button>
-    <button class="btn-feat" onclick="shareNative(buildMsgClassificacao(resultados),'Classificação')">📤 Partilhar</button>
+  let html = renderPageHeader("Classificação", "Top 5 não paga jantar · Bottom 5 paga");
+  html += `<div class="feat-actions-bar">
+    <button class="btn-feat" onclick="exportClassificacaoImage()">Exportar imagem</button>
+    <button class="btn-feat" onclick="exportBackupJSON()">Backup JSON</button>
+    <button class="btn-feat" onclick="openPresentationMode()">Modo jantar</button>
+    <button class="btn-feat" onclick="shareNative(buildMsgClassificacao(resultados),'Classificação')">Partilhar</button>
   </div>`;
-  html += renderProgressBar(jogados, DADOS.jogos.length, "⚽ Progresso da competição");
+  html += renderProgressBar(jogados, DADOS.jogos.length, "Progresso da competição");
 
   html += `<div class="preds-section"><div class="preds-gs-scroll">
     <table class="preds-table cls-table">
       <thead><tr>
         <th>#</th><th>Participante</th>
-        <th>Pts</th><th>✅</th><th>⚽</th><th>🎯</th><th>❌</th><th>Jantar</th>
+        <th>Pts</th><th>Ex.</th><th>VE</th><th>Gol.</th><th>0p</th><th>Jantar</th>
       </tr></thead><tbody>`;
 
   for (const s of cls) {
-    const posLabel = s.pos === 1 ? "🥇" : s.pos === 2 ? "🥈" : s.pos === 3 ? "🥉" : s.pos;
+    const posLabel = s.pos;
     html += `<tr class="pos-${s.pos <= 3 ? s.pos : ""} ${s.paga ? "paga-sim" : "paga-nao"}">
       <td class="pos-col">${posLabel}</td>
       <td class="nome-col"><strong>${s.nome}</strong></td>
       <td class="pts-col"><strong>${s.pts}</strong></td>
       <td>${s.exatos}</td><td>${s.ve}</td><td>${s.golos}</td><td>${s.naoPontua}</td>
-      <td><span class="jantar-badge ${s.paga ? "paga" : "nao-paga"}">${s.paga ? "🍽️ PAGA" : "🎉 LIVRE"}</span></td>
+      <td><span class="jantar-badge ${s.paga ? "paga" : "nao-paga"}">${s.paga ? "Paga" : "Livre"}</span></td>
     </tr>`;
   }
 
@@ -386,7 +395,7 @@ function renderClassificacao(resultados) {
     <span class="legenda-item legenda-pts">Exato=5 · VE=2 · Golos=1</span>
   </div>
   <div id="class-history-wrap" class="feat-section">
-    <h3 class="feat-section-title">📈 Evolução da classificação</h3>
+    <h3 class="feat-section-title">Evolução da classificação</h3>
     <div id="class-history"></div>
   </div>`;
   container.innerHTML = html;
@@ -404,10 +413,10 @@ function renderRevisao(resultados) {
     ? DADOS.jogos.filter(j => resultados[j.codigo])
     : DADOS.jogos;
 
-  let html = renderProgressBar(jogados, DADOS.jogos.length, "⚽ Jogos com resultado oficial");
+  let html = renderPageHeader("Revisão", "Matriz de previsões vs resultados reais. A cor indica a pontuação.");
+  html += renderProgressBar(jogados, DADOS.jogos.length, "Jogos com resultado");
 
   html += `<div class="revisao-toolbar">
-    <p class="revisao-hint">Compara a <strong>previsão</strong> de cada jogador com o <strong>resultado real</strong>. A cor indica os pontos ganhos.</p>
     <div class="revisao-filters">
       <button class="btn-feat ${_revFilterPlayed ? "" : "btn-feat-on"}" onclick="_revFilterPlayed=false;renderTab('revisao')">Todos os jogos</button>
       <button class="btn-feat ${_revFilterPlayed ? "btn-feat-on" : ""}" onclick="_revFilterPlayed=true;renderTab('revisao')">Só terminados</button>
@@ -512,7 +521,8 @@ function renderGrupos(resultados) {
       b.pts - a.pts || b.gd - a.gd || b.gm - a.gm || a.e.localeCompare(b.e));
   }
 
-  let html = `<div class="grupos-grid">`;
+  let html = renderPageHeader("Grupos", "Classificação simulada com base nos resultados introduzidos.");
+  html += `<div class="grupos-grid">`;
   for (const g of grupos) {
     const st = standingGrupo(g);
     html += `<div class="grupo-card">
@@ -605,22 +615,23 @@ function renderWhatsapp(resultados) {
   const jogosFeitos = DADOS.jogos.filter(j => resultados[j.codigo]);
   if (!jogosFeitos.length) {
     container.innerHTML = `<div class="wa-empty">
-      Ainda não há resultados.<br>
-      Vai ao separador <strong>⚽ Resultados</strong>, introduz um resultado e clica em <strong>💬</strong> ao lado do jogo para gerar o resumo.
+      ${renderPageHeader("WhatsApp", "Mensagens prontas para partilhar no grupo.")}
+      <p>Ainda não há resultados. Introduz resultados no separador <strong>Resultados</strong> e usa o botão <strong>WA</strong> ao lado de cada jogo.</p>
     </div>`;
     return;
   }
   const msgCls = buildMsgClassificacao(resultados);
-  container.innerHTML = `<div class="wa-container">
+  container.innerHTML = `${renderPageHeader("WhatsApp", "Copia ou envia a classificação. Resumos por jogo via botão WA em Resultados.")}
+  <div class="wa-container">
     <div class="wa-block">
-      <div class="wa-title">📊 Classificação Geral
-        <span class="wa-hint">Para o resumo de cada jogo, clica em 💬 no separador Resultados</span>
+      <div class="wa-title">Classificação geral
+        <span class="wa-hint">Resumo por jogo: botão WA em Resultados</span>
       </div>
       <div class="wa-preview">${waPreview(msgCls)}</div>
       <textarea class="wa-textarea" id="wa-geral" readonly>${msgCls}</textarea>
       <div class="wa-modal-actions">
-        <button class="btn-copy" onclick="copyWA('wa-geral')">📋 Copiar</button>
-        <button class="btn-wa-send" onclick="window.open('https://wa.me/?text='+encodeURIComponent(document.getElementById('wa-geral').value),'_blank')">💬 Abrir no WhatsApp</button>
+        <button class="btn-copy" onclick="copyWA('wa-geral')">Copiar</button>
+        <button class="btn-wa-send" onclick="window.open('https://wa.me/?text='+encodeURIComponent(document.getElementById('wa-geral').value),'_blank')">Abrir no WhatsApp</button>
       </div>
     </div>
   </div>`;
@@ -651,8 +662,8 @@ function copyWAModal() {
   const ta  = document.getElementById("wa-modal-textarea");
   const btn = document.getElementById("wa-modal-copy-btn");
   navigator.clipboard.writeText(ta.value).then(() => {
-    btn.textContent = "✅ Copiado!";
-    setTimeout(() => { btn.textContent = "📋 Copiar"; }, 2500);
+    btn.textContent = "Copiado!";
+    setTimeout(() => { btn.textContent = "Copiar"; }, 2500);
   }).catch(() => { ta.select(); document.execCommand("copy"); });
 }
 
@@ -685,7 +696,7 @@ function copyWA(id) {
   navigator.clipboard.writeText(ta.value).then(() => {
     const btn = ta.nextElementSibling;
     const orig = btn.textContent;
-    btn.textContent = "✅ Copiado!";
+    btn.textContent = "Copiado!";
     setTimeout(() => { btn.textContent = orig; }, 2500);
   }).catch(() => { ta.select(); document.execCommand("copy"); });
 }
@@ -700,7 +711,8 @@ function renderMataMata(mm) {
   const container = document.getElementById("matamata-content");
 
   // Bracket SEMPRE VISÍVEL no topo (auto-actualiza em cada mudança)
-  let html = buildBracketHTML(mm);
+  let html = renderPageHeader("Mata-Mata", "Resultados aos 90 minutos. Em empate, indica quem passa.");
+  html += buildBracketHTML(mm);
 
   // Selector de ronda
   html += `<div class="mm-round-tabs">`;
@@ -714,7 +726,7 @@ function renderMataMata(mm) {
   html += `</div>`;
 
   html += `<div class="mm-actions-bar">
-    <button class="btn-feat" onclick="autoFillMataMataFromGroups()">⚡ Preencher R32 dos grupos</button>
+    <button class="btn-feat" onclick="autoFillMataMataFromGroups()">Preencher R32 dos grupos</button>
   </div>`;
 
   // Editor da ronda activa
@@ -761,7 +773,7 @@ function buildMMCard(game, roundId, idx) {
         <button class="mm-pen-btn" data-round="${roundId}" data-idx="${idx}" data-winner="${esc(game.e1)}">${f1} ${esc(game.e1) || "E1"}</button>
         <button class="mm-pen-btn" data-round="${roundId}" data-idx="${idx}" data-winner="${esc(game.e2)}">${f2} ${esc(game.e2) || "E2"}</button>
       </div>` : ""}
-      ${winner ? `<div class="mm-winner-label">✅ ${FLAGS[winner] || "🏆"} <strong>${winner}</strong> passa</div>` : ""}
+      ${winner ? `<div class="mm-winner-label">${FLAGS[winner] || ""} <strong>${winner}</strong> passa</div>` : ""}
     </div>
 
     <div class="mm-team-block ${e2win ? "team-win" : (hasRes && winner ? "team-lose" : "")}">
@@ -785,7 +797,7 @@ function buildBracketHTML(mm) {
     { id:"r16", name:"Oitavos de Final", count:8,  abbr:"R16" },
     { id:"qf",  name:"Quartos de Final", count:4,  abbr:"QF"  },
     { id:"sf",  name:"Meias-Final",      count:2,  abbr:"SF"  },
-    { id:"f",   name:"Final",            count:1,  abbr:"🏆"  },
+    { id:"f",   name:"Final",            count:1,  abbr:"F"   },
   ];
 
   // ── Cabeçalho de títulos ──────────────────────────────────────────────────
@@ -929,7 +941,7 @@ function getGSPredFor(pi, codigo) {
 function resetPrevisoesOriginais() {
   if (!confirm("Restaurar TODAS as previsões originais da base de dados?\n\nIsto apaga edições manuais na tab Previsões (overrides).")) return;
   dbRemove(DB_KEYS.GS_OVERRIDES);
-  showApiStatus("✅ Previsões originais restauradas", "ok");
+  showApiStatus("Previsões originais restauradas", "ok");
   renderTab(activeTab);
 }
 
@@ -975,7 +987,8 @@ function renderPrevisoes() {
   const pos        = cls.find(s => s.nome === nome)?.pos ?? "?";
 
   // ── Sub-tabs ──────────────────────────────────────────────────────────────
-  let html = `<div class="pp-tabs">`;
+  let html = renderPageHeader("Previsões", "Prognósticos de cada participante. Edita e prime Enter para guardar.");
+  html += `<div class="pp-tabs">`;
   DADOS.participantes.forEach((n, i) => {
     const st = calcParticipante(n, resultados, gsOv);
     html += `<button class="pp-btn ${predsPI === i ? "active" : ""}" onclick="setPredsParticipant(${i})">
@@ -985,27 +998,25 @@ function renderPrevisoes() {
   });
   html += `</div>`;
 
-  // ── Banner ────────────────────────────────────────────────────────────────
+  // ── Player summary ────────────────────────────────────────────────────────
   const paga = cls.find(s => s.nome === nome)?.paga;
-  const posBadge = pos === 1 ? "🥇" : pos === 2 ? "🥈" : pos === 3 ? "🥉" : `${pos}º`;
-  html += `<div class="pp-hero ${paga ? "pp-paga" : "pp-livre"}">
-    <div class="pp-hero-main">
-      <span class="pp-pos-badge">${posBadge}</span>
-      <div class="pp-hero-info">
-        <div class="pp-full-name">${nome}</div>
-        <div class="pp-hero-sub">${paga ? "🍽️ Paga jantar" : "🎉 Não paga jantar"}</div>
-      </div>
-      <div class="pp-hero-pts">${stats.pts}<small>pts</small></div>
+  const posLabel = pos === 1 ? "1º" : pos === 2 ? "2º" : pos === 3 ? "3º" : `${pos}º`;
+  html += `<div class="player-card ${paga ? "player-card--paga" : ""}">
+    <div class="player-card__rank">${posLabel}</div>
+    <div>
+      <div class="player-card__name">${nome}</div>
+      <div class="player-card__meta">${paga ? "Paga jantar" : "Não paga jantar"} · GS ${stats.gsPts} pts${stats.koPts ? ` · KO ${stats.koPts} pts` : ""}</div>
     </div>
-    <div class="stat-chips">
-      <span class="stat-chip chip-gold">⚽ GS ${stats.gsPts}p</span>
-      ${stats.koPts > 0 ? `<span class="stat-chip">⚔️ KO ${stats.koPts}p</span>` : ""}
-      <span class="stat-chip chip-exato">✅ ${stats.exatos}</span>
-      <span class="stat-chip chip-ve">🔵 ${stats.ve}</span>
-      <span class="stat-chip chip-golos">🟡 ${stats.golos}</span>
-      <span class="stat-chip chip-nao">❌ ${stats.naoPontua}</span>
+    <div class="player-card__pts">${stats.pts}<span>pts</span></div>
+    <div class="player-card__stats">
+      <span><strong>${stats.exatos}</strong> exatos</span>
+      <span><strong>${stats.ve}</strong> VE</span>
+      <span><strong>${stats.golos}</strong> golos</span>
+      <span><strong>${stats.naoPontua}</strong> nada</span>
     </div>
-    <button class="btn-feat btn-restore" onclick="resetPrevisoesOriginais()" title="Repor previsões originais">🔄 Restaurar BD</button>
+    <div class="player-card__actions">
+      <button class="btn-feat" onclick="resetPrevisoesOriginais()" title="Repor previsões originais">Restaurar previsões</button>
+    </div>
   </div>`;
 
   // ── Grupo stage ───────────────────────────────────────────────────────────
@@ -1024,8 +1035,8 @@ function renderGSPredSection(pi, nome, resultados, gsOv) {
 
   let html = `<div class="preds-section">
     <div class="preds-section-title">
-      ⚽ Fase de Grupos — 72 jogos
-      <span class="edit-hint">✏️ edita o prognóstico e prime Enter</span>
+      Fase de Grupos — 72 jogos
+      <span class="edit-hint">Edita o prognóstico e prime Enter</span>
     </div>
     <div class="preds-gs-scroll">
     <table class="preds-table preds-flat">
@@ -1106,7 +1117,7 @@ function toggleFlatGroup(tbId) {
 // ── Mata-Mata section ─────────────────────────────────────────────────────────
 function renderKOPredSection(pi, mm) {
   let html = `<div class="preds-section">
-    <div class="preds-section-title">⚔️ Mata-Mata — previsões
+    <div class="preds-section-title">Mata-Mata — previsões
       <span class="edit-hint">Resultado aos 90' + equipa apurada · pontos acumulam</span>
     </div>
     <div class="ko-scoring-info">
@@ -1274,15 +1285,16 @@ function renderRegras() {
   const container = document.getElementById("regras-content");
   container.innerHTML = `
   <div class="regras-wrap">
+    ${renderPageHeader("Regras", "Pontuação oficial do predictor. Grupos: não acumula. Mata-mata: score + apurado acumulam.")}
 
     <div class="regras-card">
-      <h2 class="regras-h2">🏆 Predictor Parque Biológico — Mundial 2026</h2>
+      <h2 class="regras-h2">Predictor Parque Biológico — Mundial 2026</h2>
       <p class="regras-intro">Regras e pontuação oficial. Os pontos <strong>não acumulam</strong> na fase de grupos — só conta a melhor categoria. No mata-mata, o resultado (aos 90') e o apurado <strong>acumulam entre si</strong>.</p>
     </div>
 
     <!-- FASE DE GRUPOS -->
     <div class="regras-card">
-      <h3 class="regras-h3">⚽ Fase de Grupos — pontuação não cumulativa</h3>
+      <h3 class="regras-h3">Fase de Grupos — pontuação não cumulativa</h3>
       <table class="regras-table">
         <thead><tr><th>Tipo</th><th>Condição</th><th>Pontos</th></tr></thead>
         <tbody>
@@ -1292,21 +1304,21 @@ function renderRegras() {
           <tr><td><span class="tipo-pill tipo-nao">Nada</span></td><td>Não acertou nada</td><td class="pts-highlight muted">0</td></tr>
         </tbody>
       </table>
-      <div class="regras-nota">⚠️ Os pontos <strong>não acumulam</strong>. Se acertou o vencedor E os golos de uma equipa, fica só com os 2pts do vencedor.</div>
+      <div class="regras-nota">Os pontos <strong>não acumulam</strong>. Se acertou o vencedor e os golos de uma equipa, fica só com os 2 pts do vencedor.</div>
     </div>
 
     <!-- TABELA MATA-MATA -->
     <div class="regras-card">
-      <h3 class="regras-h3">⚔️ Mata-Mata — pontuação progressiva (score 90' + apurado acumulam)</h3>
+      <h3 class="regras-h3">Mata-Mata — pontuação progressiva (score 90' + apurado acumulam)</h3>
       <div class="regras-scroll">
       <table class="regras-table regras-ko-table">
         <thead>
           <tr>
             <th>Fase</th>
-            <th>✅ Exato</th>
-            <th>🔵 VE</th>
-            <th>🟡 Golos</th>
-            <th>🟢 Apurado</th>
+            <th>Exato</th>
+            <th>VE</th>
+            <th>Golos</th>
+            <th>Apurado</th>
             <th class="pts-max-col">Máximo</th>
           </tr>
         </thead>
@@ -1316,7 +1328,7 @@ function renderRegras() {
           <tr><td>QF — Quartos</td><td>15</td><td>6</td><td>3</td><td>10</td><td class="pts-max">25</td></tr>
           <tr><td>SF — Meias</td><td>20</td><td>8</td><td>4</td><td>15</td><td class="pts-max">35</td></tr>
           <tr><td>3.º/4.º lugar</td><td>25</td><td>10</td><td>5</td><td>15</td><td class="pts-max">40</td></tr>
-          <tr class="regras-final-row"><td>🏆 Final</td><td>35</td><td>15</td><td>6</td><td>15</td><td class="pts-max">50</td></tr>
+          <tr class="regras-final-row"><td>Final</td><td>35</td><td>15</td><td>6</td><td>15</td><td class="pts-max">50</td></tr>
         </tbody>
       </table>
       </div>
@@ -1328,27 +1340,27 @@ function renderRegras() {
 
     <!-- EXEMPLOS FASE DE GRUPOS -->
     <div class="regras-card">
-      <h3 class="regras-h3">📌 Exemplos — Fase de Grupos</h3>
+      <h3 class="regras-h3">Exemplos — Fase de Grupos</h3>
       <div class="regras-exemplos">
 
-        ${exDiv("Resultado exato","França 3-1 Senegal","França 3-1 Senegal","✅ Resultado exato","5 pts","tipo-exato")}
-        ${exDiv("Acertou vencedor","França 3-1 Senegal","França 2-0 Senegal","✅ Vencedor certo · ❌ Não exato","2 pts","tipo-ve")}
-        ${exDiv("Acertou golos de uma equipa","França 3-1 Senegal","França 1-1 Senegal","❌ Apostou empate · ✅ Golos do Senegal: 1","1 pt","tipo-golos")}
-        ${exDiv("Não pontuou","França 3-1 Senegal","França 0-2 Senegal","❌ Nada correto","0 pts","tipo-nao")}
-        ${exDiv("Não acumula","França 3-1 Senegal","França 3-0 Senegal","✅ Vencedor · ✅ Golos França · ❌ Não exato → fica com o melhor","2 pts","tipo-ve")}
+        ${exDiv("Resultado exato","França 3-1 Senegal","França 3-1 Senegal","Resultado exato","5 pts","tipo-exato")}
+        ${exDiv("Acertou vencedor","França 3-1 Senegal","França 2-0 Senegal","Vencedor certo · não exato","2 pts","tipo-ve")}
+        ${exDiv("Acertou golos de uma equipa","França 3-1 Senegal","França 1-1 Senegal","Apostou empate · golos do Senegal: 1","1 pt","tipo-golos")}
+        ${exDiv("Não pontuou","França 3-1 Senegal","França 0-2 Senegal","Nada correto","0 pts","tipo-nao")}
+        ${exDiv("Não acumula","França 3-1 Senegal","França 3-0 Senegal","Vencedor + golos França → fica com o melhor (VE)","2 pts","tipo-ve")}
 
       </div>
     </div>
 
     <!-- EXEMPLOS MATA-MATA -->
     <div class="regras-card">
-      <h3 class="regras-h3">⚔️ Exemplos — Mata-Mata (16 avos)</h3>
+      <h3 class="regras-h3">Exemplos — Mata-Mata (16 avos)</h3>
       <p class="regras-sub">Jogo: Portugal 1-1 Espanha aos 90'. Portugal passa nos penáltis.</p>
       <div class="regras-exemplos">
-        ${exKO("Acertou tudo","1-1","Portugal","1-1","Portugal","✅ Exato 7pts · ✅ Apurado 3pts","10 pts")}
-        ${exKO("Acertou empate + apurado","2-2","Portugal","1-1","Portugal","✅ VE 3pts · ✅ Apurado 3pts","6 pts")}
-        ${exKO("Errou score, acertou apurado","2-0","Portugal","1-1","Portugal","❌ Score 0pts · ✅ Apurado 3pts","3 pts")}
-        ${exKO("Acertou score, errou apurado","1-1","Espanha","1-1","Portugal","✅ Exato 7pts · ❌ Apurado 0pts","7 pts")}
+        ${exKO("Acertou tudo","1-1","Portugal","1-1","Portugal","Exato 7 pts · Apurado 3 pts","10 pts")}
+        ${exKO("Acertou empate + apurado","2-2","Portugal","1-1","Portugal","VE 3 pts · Apurado 3 pts","6 pts")}
+        ${exKO("Errou score, acertou apurado","2-0","Portugal","1-1","Portugal","Score 0 pts · Apurado 3 pts","3 pts")}
+        ${exKO("Acertou score, errou apurado","1-1","Espanha","1-1","Portugal","Exato 7 pts · Apurado 0 pts","7 pts")}
       </div>
     </div>
 
@@ -1674,7 +1686,7 @@ async function doLogin() {
     await dbLoadAll();
     showApp();
   } catch (e) {
-    err.textContent = "❌ " + (e.message || "Credenciais inválidas");
+    err.textContent = e.message || "Credenciais inválidas";
     err.style.display = "block";
     btn.textContent = "Entrar";
     btn.disabled = false;
@@ -1713,7 +1725,7 @@ document.addEventListener("DOMContentLoaded", async () => {
   const note    = document.getElementById("login-note");
 
   if (!dbIsConfigured()) {
-    note.textContent = "⚠️ Modo local (Supabase não configurado)";
+    note.textContent = "Modo local (Supabase não configurado)";
     overlay.style.display = "none";
     initFeatures().then(() => {
       getResultados();

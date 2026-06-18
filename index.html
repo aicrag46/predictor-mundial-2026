@@ -9,16 +9,20 @@
   <title>Predictor Parque Biológico — Mundial 2026</title>
   <link rel="manifest" href="/manifest.json" />
   <link rel="apple-touch-icon" href="/icons/icon-192.svg" />
-  <link rel="stylesheet" href="css/style.css?v=10" />
+  <link rel="preconnect" href="https://fonts.googleapis.com" />
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap" rel="stylesheet" />
+  <link rel="stylesheet" href="css/style.css?v=11" />
+  <link rel="stylesheet" href="css/polish.css?v=11" />
 </head>
 <body>
 
 <!-- ─── LOGIN ─────────────────────────────────────────────────────────────── -->
 <div id="login-overlay">
   <div class="login-box">
-    <div class="login-badge">🏆 FIFA World Cup 2026</div>
+    <div class="login-badge">MUNDIAL 2026</div>
     <h2 class="login-title">Predictor Parque Biológico</h2>
-    <p class="login-sub">🇺🇸 🇨🇦 🇲🇽 · Painel privado</p>
+    <p class="login-sub">Painel privado · USA · CAN · MEX</p>
     <div id="login-error" class="login-error" style="display:none"></div>
     <div class="login-field">
       <label>Email</label>
@@ -43,25 +47,25 @@
 
   <header class="app-header">
     <div class="header-brand">
-      <span class="brand-icon">🏆</span>
+      <span class="brand-icon" aria-hidden="true">P</span>
       <div class="brand-text">
         <h1>Predictor <em>2026</em></h1>
-        <p class="brand-sub">Parque Biológico · 10 jogadores · 72 jogos</p>
+        <p class="brand-sub">Parque Biológico · Mundial</p>
       </div>
     </div>
 
     <div class="header-toolbar">
       <span id="api-status" class="api-status" style="display:none"></span>
       <button class="btn-icon btn-sync" id="btn-sync" onclick="apiFetch()" title="Sincronizar resultados">
-        <span class="btn-icon-svg">🔄</span><span class="btn-label">Sync</span>
+        <span class="btn-icon-svg" aria-hidden="true">↻</span><span class="btn-label">Sync</span>
       </button>
       <span id="header-user" class="header-user" style="display:none"></span>
       <div class="header-menu">
         <button class="btn-icon btn-menu-toggle" id="menu-toggle" onclick="toggleHeaderMenu()" aria-label="Menu">⋮</button>
         <div class="header-dropdown" id="header-dropdown">
-          <button class="dropdown-item danger" onclick="resetResultados();toggleHeaderMenu()">🗑️ Reset Grupos</button>
-          <button class="dropdown-item danger" onclick="resetMataMata();toggleHeaderMenu()">🗑️ Reset Mata-Mata</button>
-          <button class="dropdown-item" id="btn-logout" onclick="doLogout();toggleHeaderMenu()" style="display:none">🚪 Sair</button>
+          <button class="dropdown-item danger" onclick="resetResultados();toggleHeaderMenu()">Reset Grupos</button>
+          <button class="dropdown-item danger" onclick="resetMataMata();toggleHeaderMenu()">Reset Mata-Mata</button>
+          <button class="dropdown-item" id="btn-logout" onclick="doLogout();toggleHeaderMenu()" style="display:none">Sair</button>
         </div>
       </div>
     </div>
@@ -69,14 +73,14 @@
 
   <nav class="tabs-nav" aria-label="Navegação principal">
     <div class="tabs-track">
-      <button class="tab-btn active" data-tab="resultados"    onclick="switchTab('resultados')"><span class="tab-icon">⚽</span><span class="tab-label">Resultados</span></button>
-      <button class="tab-btn"        data-tab="classificacao" onclick="switchTab('classificacao')"><span class="tab-icon">🏅</span><span class="tab-label">Classificação</span></button>
-      <button class="tab-btn"        data-tab="revisao"       onclick="switchTab('revisao')"><span class="tab-icon">📊</span><span class="tab-label">Revisão</span></button>
-      <button class="tab-btn"        data-tab="grupos"        onclick="switchTab('grupos')"><span class="tab-icon">🗂️</span><span class="tab-label">Grupos</span></button>
-      <button class="tab-btn"        data-tab="matamata"      onclick="switchTab('matamata')"><span class="tab-icon">⚔️</span><span class="tab-label">Mata-Mata</span></button>
-      <button class="tab-btn"        data-tab="previsoes"     onclick="switchTab('previsoes')"><span class="tab-icon">🔮</span><span class="tab-label">Previsões</span></button>
-      <button class="tab-btn"        data-tab="regras"        onclick="switchTab('regras')"><span class="tab-icon">📖</span><span class="tab-label">Regras</span></button>
-      <button class="tab-btn"        data-tab="whatsapp"      onclick="switchTab('whatsapp')"><span class="tab-icon">💬</span><span class="tab-label">WhatsApp</span></button>
+      <button class="tab-btn active" data-tab="resultados"    onclick="switchTab('resultados')"><span class="tab-label">Resultados</span></button>
+      <button class="tab-btn"        data-tab="classificacao" onclick="switchTab('classificacao')"><span class="tab-label">Classificação</span></button>
+      <button class="tab-btn"        data-tab="revisao"       onclick="switchTab('revisao')"><span class="tab-label">Revisão</span></button>
+      <button class="tab-btn"        data-tab="grupos"        onclick="switchTab('grupos')"><span class="tab-label">Grupos</span></button>
+      <button class="tab-btn"        data-tab="matamata"      onclick="switchTab('matamata')"><span class="tab-label">Mata-Mata</span></button>
+      <button class="tab-btn"        data-tab="previsoes"     onclick="switchTab('previsoes')"><span class="tab-label">Previsões</span></button>
+      <button class="tab-btn"        data-tab="regras"        onclick="switchTab('regras')"><span class="tab-label">Regras</span></button>
+      <button class="tab-btn"        data-tab="whatsapp"      onclick="switchTab('whatsapp')"><span class="tab-label">WhatsApp</span></button>
     </div>
   </nav>
 
@@ -118,11 +122,11 @@
 
   <!-- Bottom nav mobile -->
   <nav class="mobile-nav" aria-label="Navegação rápida">
-    <button class="mobile-nav-btn active" data-tab="resultados"    onclick="switchTab('resultados')"><span>⚽</span><small>Resultados</small></button>
-    <button class="mobile-nav-btn"        data-tab="classificacao" onclick="switchTab('classificacao')"><span>🏅</span><small>Classif.</small></button>
-    <button class="mobile-nav-btn"        data-tab="revisao"       onclick="switchTab('revisao')"><span>📊</span><small>Revisão</small></button>
-    <button class="mobile-nav-btn"        data-tab="matamata"      onclick="switchTab('matamata')"><span>⚔️</span><small>M-Mata</small></button>
-    <button class="mobile-nav-btn"        data-tab="more"          onclick="openMobileMore()"><span>⋯</span><small>Mais</small></button>
+    <button class="mobile-nav-btn active" data-tab="resultados"    onclick="switchTab('resultados')"><span class="nav-ico">R</span><small>Resultados</small></button>
+    <button class="mobile-nav-btn"        data-tab="classificacao" onclick="switchTab('classificacao')"><span class="nav-ico">C</span><small>Classif.</small></button>
+    <button class="mobile-nav-btn"        data-tab="revisao"       onclick="switchTab('revisao')"><span class="nav-ico">V</span><small>Revisão</small></button>
+    <button class="mobile-nav-btn"        data-tab="matamata"      onclick="switchTab('matamata')"><span class="nav-ico">M</span><small>M-Mata</small></button>
+    <button class="mobile-nav-btn"        data-tab="more"          onclick="openMobileMore()"><span class="nav-ico">+</span><small>Mais</small></button>
   </nav>
 
   <!-- Sheet "Mais" mobile -->
@@ -131,10 +135,10 @@
       <div class="mobile-sheet-handle"></div>
       <h3>Mais opções</h3>
       <div class="mobile-sheet-grid">
-        <button class="sheet-item" data-tab="grupos"    onclick="switchTab('grupos');closeMobileMore()"><span>🗂️</span>Grupos</button>
-        <button class="sheet-item" data-tab="previsoes" onclick="switchTab('previsoes');closeMobileMore()"><span>🔮</span>Previsões</button>
-        <button class="sheet-item" data-tab="regras"    onclick="switchTab('regras');closeMobileMore()"><span>📖</span>Regras</button>
-        <button class="sheet-item" data-tab="whatsapp"  onclick="switchTab('whatsapp');closeMobileMore()"><span>💬</span>WhatsApp</button>
+        <button class="sheet-item" data-tab="grupos"    onclick="switchTab('grupos');closeMobileMore()">Grupos</button>
+        <button class="sheet-item" data-tab="previsoes" onclick="switchTab('previsoes');closeMobileMore()">Previsões</button>
+        <button class="sheet-item" data-tab="regras"    onclick="switchTab('regras');closeMobileMore()">Regras</button>
+        <button class="sheet-item" data-tab="whatsapp"  onclick="switchTab('whatsapp');closeMobileMore()">WhatsApp</button>
       </div>
     </div>
   </div>
@@ -145,7 +149,7 @@
 <div class="wa-modal-overlay" id="conflict-modal">
   <div class="wa-modal-box conflict-box">
     <div class="wa-modal-header">
-      <span>⚠️ Conflito de resultado</span>
+      <span>Conflito de resultado</span>
     </div>
     <div class="wa-modal-body">
       <p id="conflict-title" class="conflict-title"></p>
@@ -167,16 +171,15 @@
 <div class="wa-modal-overlay" id="wa-modal" onclick="if(event.target===this)closeWAModal()">
   <div class="wa-modal-box">
     <div class="wa-modal-header">
-      <span class="wa-modal-icon">💬</span>
       <span class="wa-modal-title-text" id="wa-modal-title">Resumo do Jogo</span>
-      <button class="wa-modal-close" onclick="closeWAModal()">✕</button>
+      <button class="wa-modal-close" onclick="closeWAModal()" aria-label="Fechar">×</button>
     </div>
     <div class="wa-modal-body">
       <div class="wa-preview" id="wa-modal-preview"></div>
       <textarea class="wa-textarea" id="wa-modal-textarea" readonly></textarea>
       <div class="wa-modal-actions">
-        <button class="btn-copy" id="wa-modal-copy-btn" onclick="copyWAModal()">📋 Copiar</button>
-        <button class="btn-wa-send" id="wa-modal-send-btn" onclick="sendWAModal()">💬 Abrir no WhatsApp</button>
+        <button class="btn-copy" id="wa-modal-copy-btn" onclick="copyWAModal()">Copiar</button>
+        <button class="btn-wa-send" id="wa-modal-send-btn" onclick="sendWAModal()">Abrir no WhatsApp</button>
       </div>
     </div>
   </div>

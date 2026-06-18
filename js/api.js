@@ -132,7 +132,7 @@ function applyKnockoutMatch(m, mm, stats) {
 async function apiFetch() {
   if (_apiSyncing) return 0;
   _apiSyncing = true;
-  showApiStatus("🔄 A sincronizar…", "syncing");
+  showApiStatus("A sincronizar…", "syncing");
 
   try {
     const res = await fetch(API_PROXY_URL);
@@ -169,12 +169,12 @@ async function apiFetch() {
     const now = new Date().toLocaleTimeString("pt-PT", { hour: "2-digit", minute: "2-digit" });
     const parts = [`${stats.updated} GS`];
     if (stats.koUpdated) parts.push(`${stats.koUpdated} KO`);
-    showApiStatus(`✅ ${now} · ${parts.join(" · ")}`, "ok");
+    showApiStatus(`${now} · ${parts.join(" · ")}`, "ok");
     return stats.updated + stats.koUpdated;
   } catch (e) {
     console.error("[API]", e);
     const hint = location.protocol === "file:" ? "Usa URL Netlify" : e.message.slice(0, 80);
-    showApiStatus("❌ " + hint, "error");
+    showApiStatus(hint, "error");
     return 0;
   } finally {
     _apiSyncing = false;
