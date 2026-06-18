@@ -20,20 +20,6 @@ const FLAGS = {
 };
 const fl = t => (FLAGS[t] || "🏳") + " " + t;
 
-const GROUP_COLORS = {
-  A:"#ef4444",B:"#f97316",C:"#eab308",D:"#22c55e",E:"#06b6d4",F:"#6366f1",
-  G:"#a855f7",H:"#ec4899",I:"#14b8a6",J:"#f59e0b",K:"#3b82f6",L:"#10b981",
-};
-const gc = g => GROUP_COLORS[g] || "#94a3b8";
-
-function renderProgressBar(done, total, label) {
-  const pct = total ? Math.round((done / total) * 100) : 0;
-  return `<div class="prog-wrap">
-    ${label ? `<div class="prog-head"><span>${label}</span><span class="prog-nums">${done}/${total}</span></div>` : ""}
-    <div class="prog-track"><div class="prog-fill" style="width:${pct}%"></div></div>
-  </div>`;
-}
-
 // ─── RESULTADOS ──────────────────────────────────────────────────────────────
 function getResultados() {
   const r = dbGet(DB_KEYS.RESULTADOS);
@@ -57,13 +43,15 @@ function saveResultados(r) { dbSet(DB_KEYS.RESULTADOS, r); }
 // mm:     estado mata-mata
 // koP:    previsões KO  { [pi]: { [roundId:idx]: {gc,gf,qualifier} } }
 function calcParticipante(nome, resultados, gsOv, mm, koP) {
-  const pi = DADOS.participantes.indexOf(nome);
+  const pi    = DADOS.participantes.indexOf(nome);
+  const progs = DADOS.prognosticos[nome] || {};
   let pts = 0, exatos = 0, ve = 0, golos = 0, naoPontua = 0;
 
   // Fase de grupos
   for (const j of DADOS.jogos) {
-    const p = getGSPredFor(pi, j.codigo);
-    const r = resultados[j.codigo];
+    const ov   = gsOv?.[pi]?.[j.codigo];
+    const p    = ov || progs[j.codigo];
+    const r    = resultados[j.codigo];
     if (!p) continue;
     const tipo = getTipo(p.casa, p.fora, r?.gc, r?.gf);
     pts += getPontos(tipo);
@@ -123,7 +111,7 @@ const MM_ROUNDS = [
   { id: "qf",  name: "Quartos de Final", count: 4,  abbr: "QF"  },
   { id: "sf",  name: "Meias-Final",      count: 2,  abbr: "SF"  },
   { id: "tp",  name: "3.º Lugar",        count: 1,  abbr: "3.º" },
-  { id: "f",   name: "Final",            count: 1,  abbr: "F"   },
+  { id: "f",   name: "Final",            count: 1,  abbr: "🏆"  },
 ];
 const MM_SEQ = ["r32", "r16", "qf", "sf", "f"]; // main bracket (tp is parallel)
 
@@ -177,50 +165,38 @@ function mmPropagate(mm, roundId, gameIdx) {
 let mmActiveRound = "r32";
 
 // ─── TABS ────────────────────────────────────────────────────────────────────
-const PRIMARY_TABS = ["classificacao", "resultados", "previsoes", "mais"];
-const MAIS_TABS = ["revisao", "grupos", "matamata", "regras", "whatsapp"];
-const MAIS_LABELS = {
-  revisao: "Revisão", grupos: "Grupos", matamata: "Mata-Mata",
-  regras: "Regras", whatsapp: "WhatsApp",
-};
-const MAIS_ITEMS = [
-  { id: "revisao",   title: "Revisão",    desc: "Quem pontuou em cada jogo" },
-  { id: "grupos",    title: "Grupos",     desc: "Classificação dos 12 grupos" },
-  { id: "matamata",  title: "Mata-Mata",  desc: "Chave e resultados" },
-  { id: "whatsapp",  title: "WhatsApp",   desc: "Mensagem para o grupo" },
-  { id: "regras",    title: "Regras",     desc: "Como funciona a pontuação" },
-];
-
-let activeTab = "classificacao";
+let activeTab = "resultados";
 
 function switchTab(tab) {
   activeTab = tab;
-  const navTab = PRIMARY_TABS.includes(tab) ? tab : "mais";
-
   document.querySelectorAll(".tab-btn").forEach(b =>
-    b.classList.toggle("active", b.dataset.tab === navTab));
-  document.querySelectorAll(".mobile-nav-btn").forEach(b =>
-    b.classList.toggle("active", b.dataset.tab === navTab));
-
+    b.classList.toggle("active", b.dataset.tab === tab));
+  document.querySelectorAll(".mobile-nav-btn").forEach(b => {
+    const t = b.dataset.tab;
+    if (t === "more") {
+      b.classList.toggle("active", ["grupos","previsoes","regras","whatsapp"].includes(tab));
+    } else {
+      b.classList.toggle("active", t === tab);
+    }
+  });
   document.querySelectorAll(".tab-content").forEach(c =>
     c.classList.toggle("active", c.id === "tab-" + tab));
-
-  const subNav = document.getElementById("sub-nav");
-  if (subNav) {
-    if (MAIS_TABS.includes(tab)) {
-      subNav.style.display = "flex";
-      document.getElementById("sub-nav-title").textContent = MAIS_LABELS[tab] || tab;
-    } else {
-      subNav.style.display = "none";
-    }
-  }
-
   renderTab(tab);
-  window.scrollTo({ top: 0, behavior: "smooth" });
+  // Scroll tab activo para a vista (desktop)
+  const activeBtn = document.querySelector(`.tabs-nav .tab-btn[data-tab="${tab}"]`);
+  activeBtn?.scrollIntoView({ behavior: "smooth", inline: "center", block: "nearest" });
 }
 
 function toggleHeaderMenu() {
   document.getElementById("header-dropdown")?.classList.toggle("open");
+}
+
+function openMobileMore() {
+  document.getElementById("mobile-sheet")?.classList.add("active");
+}
+
+function closeMobileMore() {
+  document.getElementById("mobile-sheet")?.classList.remove("active");
 }
 
 document.addEventListener("click", e => {
@@ -232,28 +208,14 @@ document.addEventListener("click", e => {
 
 function renderTab(tab) {
   const r = getResultados();
-  if      (tab === "classificacao") renderClassificacao(r);
-  else if (tab === "resultados")    renderResultados(r);
-  else if (tab === "previsoes")     renderPrevisoes();
-  else if (tab === "mais")          renderMais();
+  if      (tab === "resultados")    renderResultados(r);
+  else if (tab === "classificacao") renderClassificacao(r);
   else if (tab === "revisao")       renderRevisao(r);
   else if (tab === "grupos")        renderGrupos(r);
   else if (tab === "whatsapp")      renderWhatsapp(r);
   else if (tab === "matamata")      renderMataMata(getMataMata());
+  else if (tab === "previsoes")     renderPrevisoes();
   else if (tab === "regras")        renderRegras();
-}
-
-function renderMais() {
-  const el = document.getElementById("mais-content");
-  if (!el) return;
-  el.innerHTML = `<div class="mais-list">
-    ${MAIS_ITEMS.map(i => `
-      <button type="button" class="mais-item" onclick="switchTab('${i.id}')">
-        <strong>${i.title}</strong>
-        <span>${i.desc}</span>
-      </button>
-    `).join("")}
-  </div>`;
 }
 
 // ─── PARSE ───────────────────────────────────────────────────────────────────
@@ -265,76 +227,43 @@ function parseRes(str) {
 // ─── TAB: RESULTADOS ─────────────────────────────────────────────────────────
 function renderResultados(resultados) {
   const grupos = [...new Set(DADOS.jogos.map(j => j.grupo))];
+  const live = getLiveScores();
   const container = document.getElementById("resultados-content");
-  const totalDone = DADOS.jogos.filter(j => resultados[j.codigo]).length;
-
-  let html = `<div class="page-bar"><span><strong>${totalDone}</strong> / ${DADOS.jogos.length} jogos · escreve 2-1</span></div>`;
-  html += renderResultadosFilters();
-  html += renderProgressBar(totalDone, DADOS.jogos.length, "");
-
-  html += `<div class="preds-section">
-    <div class="preds-gs-scroll">
-    <table class="preds-table preds-flat res-table">
-      <colgroup>
-        <col class="col-cod">
-        <col class="col-jogo">
-        <col class="col-pred">
-        <col class="col-tipo">
-        <col class="col-pts">
-      </colgroup>
-      <thead>
-        <tr>
-          <th>Cód.</th><th>Jogo</th><th>Resultado</th><th>Estado</th><th class="th-wa">WA</th>
-        </tr>
-      </thead>`;
-
+  let html = renderResultadosFilters();
   let visible = 0;
   for (const g of grupos) {
     if (_resFilter.grupo !== "all" && _resFilter.grupo !== g) continue;
     const jogos = DADOS.jogos.filter(j => j.grupo === g);
-    const filtered = jogos.filter(j => matchResFilter(j, resultados[j.codigo]));
+    const filtered = jogos.filter(j => matchResFilter(j, resultados[j.codigo], live[j.codigo]));
     if (!filtered.length) continue;
     const done = jogos.filter(j => resultados[j.codigo]).length;
-    const tbId = `res-tb-${g}`;
-
-    html += `<tbody>
-      <tr class="preds-group-hdr" onclick="toggleFlatGroup('${tbId}')">
-        <td colspan="5">
-          <div class="pgr-inner">
-            <span class="pgr-label">Grupo ${g}</span>
-            <span class="pgr-prog">${done}/${jogos.length} jogos</span>
-            <span class="preds-chevron" id="ch-${tbId}">▾</span>
-          </div>
-        </td>
-      </tr>
-    </tbody>
-    <tbody id="${tbId}">`;
-
+    html += `<div class="grupo-block">
+      <div class="grupo-header">Grupo ${g} <span class="grupo-prog">${done}/${jogos.length}</span></div>
+      <table class="res-table">
+        <thead><tr><th>Cód.</th><th>Jogo</th><th>Resultado</th><th>Estado · 💬</th></tr></thead>
+        <tbody>`;
     for (const j of filtered) {
       visible++;
       const r = resultados[j.codigo];
-      const val = r ? `${r.gc}-${r.gf}` : "";
+      const lv = live[j.codigo];
+      const val = r ? `${r.gc}-${r.gf}` : (lv ? `${lv.gc}-${lv.gf}` : "");
       const ft = r !== undefined;
-      html += `<tr class="${ft ? "row-ft" : ""}">
+      const liveBadge = lv && !ft ? `<span class="estado-badge estado-live">🔴 ${lv.minute || "LIVE"}'</span>` : "";
+      html += `<tr class="${ft ? "row-ft" : lv ? "row-live" : ""}">
         <td><span class="badge-grupo">${j.codigo}</span></td>
-        <td class="jogo-nome-sm">${fl(j.casa)} <span class="vs">×</span> ${fl(j.fora)}</td>
-        <td class="td-center">
-          <input type="text" class="res-input pred-inp ${ft ? "res-filled" : ""}"
-            placeholder="2-1" value="${val}" data-codigo="${j.codigo}" maxlength="7" inputmode="numeric" />
-        </td>
-        <td class="td-center">
-          <span class="estado-badge ${ft ? "estado-ft" : "estado-pendente"}">${ft ? "FT" : "Pend."}</span>
-        </td>
-        <td class="td-center res-estado-cell">
-          ${ft ? `<button class="btn-wa-jogo" onclick="showWAModal('${j.codigo}')" title="Resumo WhatsApp">WA</button>` : `<span class="muted-dash">—</span>`}
+        <td class="jogo-nome">${fl(j.casa)} <span class="vs">vs</span> ${fl(j.fora)}</td>
+        <td><input type="text" class="res-input ${ft ? "res-filled" : lv ? "res-live" : ""}" placeholder="ex: 2-1"
+          value="${val}" data-codigo="${j.codigo}" maxlength="7" /></td>
+        <td class="res-estado-cell">
+          ${liveBadge}
+          <span class="estado-badge ${ft ? "estado-ft" : "estado-pendente"}">${ft ? "✅ FT" : "⏳ PEND."}</span>
+          ${ft ? `<button class="btn-wa-jogo" onclick="showWAModal('${j.codigo}')" title="Resumo WhatsApp">💬</button>` : ""}
         </td>
       </tr>`;
     }
-    html += `</tbody>`;
+    html += `</tbody></table></div>`;
   }
-
-  html += `</table></div></div>`;
-  if (!visible) html += `<div class="empty-state"><p>Nenhum jogo encontrado</p><span class="empty-hint">Ajusta os filtros ou pesquisa</span></div>`;
+  if (!visible) html += `<div class="wa-empty">Nenhum jogo corresponde aos filtros.</div>`;
   container.innerHTML = html;
   container.querySelectorAll(".res-input").forEach(inp => {
     inp.addEventListener("change", e => onResultadoChange(e.target));
@@ -377,121 +306,95 @@ function onResultadoChange(inp) {
 function renderClassificacao(resultados) {
   const cls = calcClassificacao(resultados);
   const jogados = DADOS.jogos.filter(j => resultados[j.codigo]).length;
+  const totalPts = cls[0]?.pts ?? 0;
   const container = document.getElementById("classificacao-content");
-
-  let html = `<div class="page-bar"><span><strong>${jogados}</strong> / ${DADOS.jogos.length} jogos · top 5 livre · bottom 5 paga</span></div>`;
-  html += renderProgressBar(jogados, DADOS.jogos.length, "");
-
-  html += `<div class="preds-section"><div class="preds-gs-scroll">
-    <table class="preds-table cls-table">
-      <thead><tr>
-        <th>#</th><th>Nome</th>
-        <th>Pontos</th><th>Ex.</th><th>VE</th><th>Gol.</th><th>Jantar</th>
-      </tr></thead><tbody>`;
-
+  let html = `<div class="feat-actions-bar">
+    <button class="btn-feat" onclick="exportClassificacaoImage()">🖼️ Exportar imagem</button>
+    <button class="btn-feat" onclick="exportBackupJSON()">💾 Backup JSON</button>
+    <button class="btn-feat" onclick="openPresentationMode()">🎬 Modo jantar</button>
+    <button class="btn-feat" onclick="shareNative(buildMsgClassificacao(resultados),'Classificação')">📤 Partilhar</button>
+  </div>
+  <div class="cls-info">
+    <span>⚽ <strong>${jogados}</strong> / ${DADOS.jogos.length} jogos</span>
+    <span>🏆 Líder: <strong>${cls[0]?.nome ?? "—"}</strong> com <strong>${totalPts} pts</strong></span>
+  </div>
+  <table class="cls-table">
+    <thead><tr>
+      <th>#</th><th>Participante</th>
+      <th title="Pontos Totais">Pts</th>
+      <th title="Exactos (5pts)">✅</th>
+      <th title="Vencedor/Empate (2pts)">⚽</th>
+      <th title="Golos Equipa (1pt)">🎯</th>
+      <th title="Não Pontuou">❌</th>
+      <th>Jantar</th>
+    </tr></thead><tbody>`;
   for (const s of cls) {
-    const posLabel = s.pos;
-    html += `<tr class="pos-${s.pos <= 3 ? s.pos : ""} ${s.paga ? "paga-sim" : "paga-nao"}">
-      <td class="pos-col">${posLabel}</td>
+    const posClass = s.pos <= 3 ? `pos-${s.pos}` : "";
+    html += `<tr class="${posClass} ${s.paga ? "paga-sim" : "paga-nao"}">
+      <td class="pos-col">${s.pos === 1 ? "🥇" : s.pos === 2 ? "🥈" : s.pos === 3 ? "🥉" : s.pos}</td>
       <td class="nome-col"><strong>${s.nome}</strong></td>
       <td class="pts-col"><strong>${s.pts}</strong></td>
-      <td>${s.exatos}</td><td>${s.ve}</td><td>${s.golos}</td>
-      <td><span class="jantar-badge ${s.paga ? "paga" : "nao-paga"}">${s.paga ? "Paga" : "Livre"}</span></td>
+      <td>${s.exatos}</td><td>${s.ve}</td><td>${s.golos}</td><td>${s.naoPontua}</td>
+      <td><span class="jantar-badge ${s.paga ? "paga" : "nao-paga"}">${s.paga ? "🍽️ PAGA" : "🎉 NÃO PAGA"}</span></td>
     </tr>`;
   }
-
-  html += `</tbody></table></div></div>`;
-
-  html += `<div class="cls-legenda">Exato 5 · VE 2 · Golos 1 · Top 5 não paga jantar</div>`;
+  html += `</tbody></table>
+    <div class="cls-legenda">
+      <span class="legenda-item paga-nao-ex">Top 5 — Não paga jantar</span>
+      <span class="legenda-item paga-sim-ex">Bottom 5 — Paga jantar</span>
+      <span class="legenda-item" style="margin-left:auto;color:var(--muted);font-size:.75rem">Pontuação: Exato=5pts · VE=2pts · Golos=1pt</span>
+    </div>
+    <div id="class-history-wrap" class="feat-section"><h3 class="feat-section-title">📈 Evolução da classificação</h3><div id="class-history"></div></div>`;
   container.innerHTML = html;
+  renderClassificationHistory("class-history");
 }
 
-// ─── TAB: REVISÃO ────────────────────────────────────────────────────────────
-let _revFilterPlayed = false;
-
+// ─── TAB: REVISÃO LARGA ──────────────────────────────────────────────────────
 function renderRevisao(resultados) {
   const container = document.getElementById("revisao-content");
   const participantes = DADOS.participantes;
-  const jogados = DADOS.jogos.filter(j => resultados[j.codigo]).length;
-  const jogosVisiveis = _revFilterPlayed
-    ? DADOS.jogos.filter(j => resultados[j.codigo])
-    : DADOS.jogos;
-
-  let html = `<div class="revisao-toolbar">
-    <div class="revisao-filters">
-      <button class="btn-feat ${_revFilterPlayed ? "" : "btn-feat-on"}" onclick="_revFilterPlayed=false;renderTab('revisao')">Todos</button>
-      <button class="btn-feat ${_revFilterPlayed ? "btn-feat-on" : ""}" onclick="_revFilterPlayed=true;renderTab('revisao')">Só terminados</button>
-    </div>
-  </div>`;
-
-  html += `<div class="revisao-legenda revisao-legenda-top">
-    <span class="rev-leg rev-leg-exato">Exato · 5p</span>
-    <span class="rev-leg rev-leg-ve">VE · 2p</span>
-    <span class="rev-leg rev-leg-golos">Golos · 1p</span>
-    <span class="rev-leg rev-leg-nao">Nada · 0p</span>
-    <span class="rev-leg rev-leg-pend">Pendente</span>
-  </div>`;
-
-  html += `<div class="revisao-scroll"><table class="revisao-table">
-    <thead><tr>
-      <th class="sticky-col rev-th-jogo">Jogo · Resultado real</th>
-      ${participantes.map(p => {
-        const parts = p.split(" ");
-        const short = parts.length > 1 ? parts[0] : p.slice(0, 8);
-        return `<th class="rev-th-player" title="${p}">${short}</th>`;
-      }).join("")}
-    </tr></thead><tbody>`;
-
+  let html = `<div class="revisao-scroll"><table class="revisao-table">
+    <thead>
+      <tr>
+        <th class="sticky-col">Jogo / Resultado</th>
+        ${participantes.map(p => `<th class="p-header" title="${p}">${p.split(" ")[0]}</th>`).join("")}
+      </tr>
+    </thead><tbody>`;
   let lastGrupo = "";
-  for (const j of jogosVisiveis) {
+  for (const j of DADOS.jogos) {
     if (j.grupo !== lastGrupo) {
       lastGrupo = j.grupo;
       html += `<tr class="grupo-sep"><td colspan="${participantes.length + 1}">Grupo ${j.grupo}</td></tr>`;
     }
     const r = resultados[j.codigo];
-    html += `<tr class="${r ? "rev-row-ft" : "rev-row-pend"}">
-      <td class="sticky-col">
-        <div class="rev-jogo">
-          <div class="rev-jogo-top">
-            <span class="cod-small">${j.codigo}</span>
-            ${r
-              ? `<span class="res-badge">${r.gc}-${r.gf}</span>`
-              : `<span class="rev-pend-label">Pendente</span>`}
-          </div>
-          <div class="rev-teams">${fl(j.casa)} <span class="vs">×</span> ${fl(j.fora)}</div>
-        </div>
+    html += `<tr>
+      <td class="sticky-col jogo-cell">
+        <span class="cod-small">${j.codigo}</span>
+        ${r ? `<span class="res-badge">${r.gc}-${r.gf}</span>` : `<span class="pendente-dot">·</span>`}
+        <span class="equipas-small">${fl(j.casa)} × ${fl(j.fora)}</span>
       </td>`;
-
     for (let pi2 = 0; pi2 < participantes.length; pi2++) {
+      const p    = participantes[pi2];
       const pred = getGSPredFor(pi2, j.codigo);
-      if (!pred) {
-        html += `<td class="rev-cell rev-empty">—</td>`;
-        continue;
-      }
+      if (!pred) { html += `<td class="tipo-pendente">—</td>`; continue; }
       const tipo = getTipo(pred.casa, pred.fora, r?.gc, r?.gf);
+      const pts  = getPontos(tipo);
       const res  = `${pred.casa}-${pred.fora}`;
-      html += `<td class="rev-cell ${TIPO_CSS[tipo]}" title="${tipoAbr(tipo)}">${res}</td>`;
+      html += `<td class="${TIPO_CSS[tipo]}" title="${p}: ${res} | ${tipo} | ${pts}pts">
+        <span class="prog-val">${res}</span>
+        ${r ? `<span class="pts-small">${pts}p</span>` : ""}
+      </td>`;
     }
     html += `</tr>`;
   }
-
-  // Linha de totais
-  html += `<tr class="rev-totals">
-    <td class="sticky-col rev-totals-label"><strong>Totais</strong><span class="rev-totals-sub">jogos terminados</span></td>`;
-  for (let pi2 = 0; pi2 < participantes.length; pi2++) {
-    let total = 0, n = 0;
-    for (const j of DADOS.jogos) {
-      const r = resultados[j.codigo];
-      if (!r) continue;
-      const pred = getGSPredFor(pi2, j.codigo);
-      if (!pred) continue;
-      total += getPontos(getTipo(pred.casa, pred.fora, r.gc, r.gf));
-      n++;
-    }
-    html += `<td class="rev-total-cell"><strong>${total}</strong><span class="rev-total-sub">${n} jogos</span></td>`;
-  }
-  html += `</tr></tbody></table></div>`;
-
+  html += `</tbody></table></div>
+    <div class="revisao-legenda">
+      <span class="tipo-exato leg">✅ Exato (5pts)</span>
+      <span class="tipo-ve leg">⚽ Venc/Empate (2pts)</span>
+      <span class="tipo-golos leg">🎯 Golos Equipa (1pt)</span>
+      <span class="tipo-nao leg">❌ Não Pontuou (0pts)</span>
+      <span class="tipo-pendente leg">⏳ Pendente</span>
+    </div>`;
   container.innerHTML = html;
 }
 
@@ -614,20 +517,23 @@ function renderWhatsapp(resultados) {
   const container = document.getElementById("whatsapp-content");
   const jogosFeitos = DADOS.jogos.filter(j => resultados[j.codigo]);
   if (!jogosFeitos.length) {
-    container.innerHTML = `<div class="wa-empty"><p>Ainda não há resultados.</p><p>Introduz resultados em <strong>Resultados</strong>.</p></div>`;
+    container.innerHTML = `<div class="wa-empty">
+      Ainda não há resultados.<br>
+      Vai ao separador <strong>⚽ Resultados</strong>, introduz um resultado e clica em <strong>💬</strong> ao lado do jogo para gerar o resumo.
+    </div>`;
     return;
   }
   const msgCls = buildMsgClassificacao(resultados);
   container.innerHTML = `<div class="wa-container">
     <div class="wa-block">
-      <div class="wa-title">Classificação
-        <span class="wa-hint">Resumo por jogo: botão WA em Resultados</span>
+      <div class="wa-title">📊 Classificação Geral
+        <span class="wa-hint">Para o resumo de cada jogo, clica em 💬 no separador Resultados</span>
       </div>
       <div class="wa-preview">${waPreview(msgCls)}</div>
       <textarea class="wa-textarea" id="wa-geral" readonly>${msgCls}</textarea>
       <div class="wa-modal-actions">
-        <button class="btn-copy" onclick="copyWA('wa-geral')">Copiar</button>
-        <button class="btn-wa-send" onclick="window.open('https://wa.me/?text='+encodeURIComponent(document.getElementById('wa-geral').value),'_blank')">Abrir no WhatsApp</button>
+        <button class="btn-copy" onclick="copyWA('wa-geral')">📋 Copiar</button>
+        <button class="btn-wa-send" onclick="window.open('https://wa.me/?text='+encodeURIComponent(document.getElementById('wa-geral').value),'_blank')">💬 Abrir no WhatsApp</button>
       </div>
     </div>
   </div>`;
@@ -658,8 +564,8 @@ function copyWAModal() {
   const ta  = document.getElementById("wa-modal-textarea");
   const btn = document.getElementById("wa-modal-copy-btn");
   navigator.clipboard.writeText(ta.value).then(() => {
-    btn.textContent = "Copiado!";
-    setTimeout(() => { btn.textContent = "Copiar"; }, 2500);
+    btn.textContent = "✅ Copiado!";
+    setTimeout(() => { btn.textContent = "📋 Copiar"; }, 2500);
   }).catch(() => { ta.select(); document.execCommand("copy"); });
 }
 
@@ -692,7 +598,7 @@ function copyWA(id) {
   navigator.clipboard.writeText(ta.value).then(() => {
     const btn = ta.nextElementSibling;
     const orig = btn.textContent;
-    btn.textContent = "Copiado!";
+    btn.textContent = "✅ Copiado!";
     setTimeout(() => { btn.textContent = orig; }, 2500);
   }).catch(() => { ta.select(); document.execCommand("copy"); });
 }
@@ -721,7 +627,7 @@ function renderMataMata(mm) {
   html += `</div>`;
 
   html += `<div class="mm-actions-bar">
-    <button class="btn-feat" onclick="autoFillMataMataFromGroups()">Preencher R32 dos grupos</button>
+    <button class="btn-feat" onclick="autoFillMataMataFromGroups()">⚡ Preencher R32 dos grupos</button>
   </div>`;
 
   // Editor da ronda activa
@@ -768,7 +674,7 @@ function buildMMCard(game, roundId, idx) {
         <button class="mm-pen-btn" data-round="${roundId}" data-idx="${idx}" data-winner="${esc(game.e1)}">${f1} ${esc(game.e1) || "E1"}</button>
         <button class="mm-pen-btn" data-round="${roundId}" data-idx="${idx}" data-winner="${esc(game.e2)}">${f2} ${esc(game.e2) || "E2"}</button>
       </div>` : ""}
-      ${winner ? `<div class="mm-winner-label">${FLAGS[winner] || ""} <strong>${winner}</strong> passa</div>` : ""}
+      ${winner ? `<div class="mm-winner-label">✅ ${FLAGS[winner] || "🏆"} <strong>${winner}</strong> passa</div>` : ""}
     </div>
 
     <div class="mm-team-block ${e2win ? "team-win" : (hasRes && winner ? "team-lose" : "")}">
@@ -792,7 +698,7 @@ function buildBracketHTML(mm) {
     { id:"r16", name:"Oitavos de Final", count:8,  abbr:"R16" },
     { id:"qf",  name:"Quartos de Final", count:4,  abbr:"QF"  },
     { id:"sf",  name:"Meias-Final",      count:2,  abbr:"SF"  },
-    { id:"f",   name:"Final",            count:1,  abbr:"F"   },
+    { id:"f",   name:"Final",            count:1,  abbr:"🏆"  },
   ];
 
   // ── Cabeçalho de títulos ──────────────────────────────────────────────────
@@ -919,24 +825,17 @@ function getGSPredFor(pi, codigo) {
   const nome = DADOS.participantes[pi];
   const base = DADOS.prognosticos[nome]?.[codigo];
   const ov = getGSOverrides()[pi]?.[codigo];
-
-  if (!base && !ov) return null;
-  if (!ov) return base ? { casa: base.casa, fora: base.fora } : null;
-
-  // Ignorar override corrupto (0-0 quando BD tem outro valor)
-  if (base && ov.casa === 0 && ov.fora === 0 && (base.casa !== 0 || base.fora !== 0)) {
-    return { casa: base.casa, fora: base.fora };
+  // Override manual explícito (edição na app)
+  if (ov && (ov.casa !== undefined && ov.fora !== undefined)) {
+    return { casa: ov.casa, fora: ov.fora };
   }
-  if (base && ov.casa === base.casa && ov.fora === base.fora) {
-    return { casa: base.casa, fora: base.fora };
-  }
-  return { casa: ov.casa, fora: ov.fora };
+  return base ? { casa: base.casa, fora: base.fora } : null;
 }
 
 function resetPrevisoesOriginais() {
   if (!confirm("Restaurar TODAS as previsões originais da base de dados?\n\nIsto apaga edições manuais na tab Previsões (overrides).")) return;
   dbRemove(DB_KEYS.GS_OVERRIDES);
-  showApiStatus("Previsões originais restauradas", "ok");
+  showApiStatus("✅ Previsões originais restauradas", "ok");
   renderTab(activeTab);
 }
 
@@ -981,19 +880,31 @@ function renderPrevisoes() {
   const cls        = calcClassificacao(resultados);
   const pos        = cls.find(s => s.nome === nome)?.pos ?? "?";
 
-  const paga = cls.find(s => s.nome === nome)?.paga;
-
-  let html = `<select class="preds-select" onchange="setPredsParticipant(+this.value)">`;
+  // ── Sub-tabs ──────────────────────────────────────────────────────────────
+  let html = `<div class="pp-tabs">`;
   DADOS.participantes.forEach((n, i) => {
     const st = calcParticipante(n, resultados, gsOv);
-    html += `<option value="${i}" ${predsPI === i ? "selected" : ""}>${n} — ${st.pts} pts</option>`;
+    html += `<button class="pp-btn ${predsPI === i ? "active" : ""}" onclick="setPredsParticipant(${i})">
+      <span class="pp-nome">${n.split(" ")[0]}</span>
+      <span class="pp-pts">${st.pts}pts</span>
+    </button>`;
   });
-  html += `</select>`;
+  html += `</div>`;
 
-  html += `<div class="player-summary">
-    <span class="player-summary__name">${nome}</span>
-    <span class="player-summary__pts">${stats.pts} pts</span>
-    <span class="player-summary__meta">${pos}º · ${paga ? "paga jantar" : "livre"} · ${stats.exatos} ex · ${stats.ve} VE</span>
+  // ── Banner ────────────────────────────────────────────────────────────────
+  const paga = cls.find(s => s.nome === nome)?.paga;
+  html += `<div class="pp-banner">
+    <span class="pp-pos-badge ${paga ? "paga-sim" : "paga-nao"}">🏅 ${pos}º</span>
+    <strong class="pp-full-name">${nome}</strong>
+    <span class="pp-stat">⭐ <strong>${stats.pts}</strong> pts</span>
+    <span class="pp-stat pp-stat-sub">⚽ Grupos: ${stats.gsPts}p</span>
+    ${stats.koPts > 0 ? `<span class="pp-stat pp-stat-sub">⚔️ KO: ${stats.koPts}p</span>` : ""}
+    <span class="pp-stat">✅ ${stats.exatos} exatos</span>
+    <span class="pp-stat">🔵 ${stats.ve} VE</span>
+    <span class="pp-stat">🟡 ${stats.golos} golos</span>
+    <span class="pp-stat">❌ ${stats.naoPontua}</span>
+    <span class="pp-jantar ${paga ? "j-paga" : "j-nao"}">${paga ? "🍽️ PAGA" : "🎉 NÃO PAGA"}</span>
+    <button class="btn-feat" onclick="resetPrevisoesOriginais()" title="Repor previsões originais da BD">🔄 Restaurar BD</button>
   </div>`;
 
   // ── Grupo stage ───────────────────────────────────────────────────────────
@@ -1006,14 +917,14 @@ function renderPrevisoes() {
   attachPredsEvents(container);
 }
 
-// ── Group stage section — tabela vertical por grupo ─────────────────────────
+// ── Group stage section — única tabela com tbody por grupo ────────────────────
 function renderGSPredSection(pi, nome, resultados, gsOv) {
   const grupos = [...new Set(DADOS.jogos.map(j => j.grupo))];
 
   let html = `<div class="preds-section">
     <div class="preds-section-title">
-      Fase de Grupos — 72 jogos
-      <span class="edit-hint">Edita o prognóstico e prime Enter</span>
+      ⚽ Fase de Grupos — 72 jogos
+      <span class="edit-hint">✏️ edita o prognóstico e prime Enter</span>
     </div>
     <div class="preds-gs-scroll">
     <table class="preds-table preds-flat">
@@ -1037,11 +948,12 @@ function renderGSPredSection(pi, nome, resultados, gsOv) {
     let gpts = 0, gj = 0;
     for (const j of jogos) {
       const pred = getGSPredFor(pi, j.codigo);
-      const r = resultados[j.codigo];
+      const r    = resultados[j.codigo];
       if (r && pred) { gpts += getPontos(getTipo(pred.casa, pred.fora, r.gc, r.gf)); gj++; }
     }
     const tbId = `gs-tb-${pi}-${g}`;
 
+    // Linha de cabeçalho de grupo (clicável para colapsar)
     html += `<tbody>
       <tr class="preds-group-hdr" onclick="toggleFlatGroup('${tbId}')">
         <td colspan="6">
@@ -1057,9 +969,9 @@ function renderGSPredSection(pi, nome, resultados, gsOv) {
 
     for (const j of jogos) {
       const pred = getGSPredFor(pi, j.codigo);
-      const r = resultados[j.codigo];
+      const r    = resultados[j.codigo];
       const tipo = pred ? getTipo(pred.casa, pred.fora, r?.gc, r?.gf) : "Pendente";
-      const pts = getPontos(tipo);
+      const pts  = getPontos(tipo);
       const isOv = gsOv[pi]?.[j.codigo];
 
       html += `<tr>
@@ -1068,7 +980,7 @@ function renderGSPredSection(pi, nome, resultados, gsOv) {
         <td class="td-center">
           <input class="pred-inp gs-pred-inp ${isOv ? "pred-edited" : ""}" type="text"
             value="${pred ? `${pred.casa}-${pred.fora}` : ""}"
-            placeholder="0-0" data-pi="${pi}" data-codigo="${j.codigo}" maxlength="7" inputmode="numeric" />
+            placeholder="0-0" data-pi="${pi}" data-codigo="${j.codigo}" maxlength="7" />
         </td>
         <td class="real-cell td-center">${r ? `${r.gc}-${r.gf}` : "—"}</td>
         <td class="td-center">${r ? `<span class="tipo-pill ${TIPO_CSS[tipo]}">${tipoAbr(tipo)}</span>` : `<span class="muted-dash">—</span>`}</td>
@@ -1094,7 +1006,7 @@ function toggleFlatGroup(tbId) {
 // ── Mata-Mata section ─────────────────────────────────────────────────────────
 function renderKOPredSection(pi, mm) {
   let html = `<div class="preds-section">
-    <div class="preds-section-title">Mata-Mata — previsões
+    <div class="preds-section-title">⚔️ Mata-Mata — previsões
       <span class="edit-hint">Resultado aos 90' + equipa apurada · pontos acumulam</span>
     </div>
     <div class="ko-scoring-info">
@@ -1214,12 +1126,7 @@ function onGSPredChange(inp) {
   } else {
     const p = parseRes(val);
     if (!p) { inp.classList.add("res-error"); setTimeout(() => inp.classList.remove("res-error"), 2000); return; }
-    const base = DADOS.prognosticos[DADOS.participantes[pi]]?.[codigo];
-    if (base && p.gc === base.casa && p.gf === base.fora) {
-      delete ov[pi][codigo];
-    } else {
-      ov[pi][codigo] = { casa: p.gc, fora: p.gf };
-    }
+    ov[pi][codigo] = { casa: p.gc, fora: p.gf };
   }
   saveGSOverrides(ov);
   renderPrevisoes();
@@ -1264,13 +1171,13 @@ function renderRegras() {
   <div class="regras-wrap">
 
     <div class="regras-card">
-      <h2 class="regras-h2">Predictor Parque Biológico — Mundial 2026</h2>
+      <h2 class="regras-h2">🏆 Predictor Parque Biológico — Mundial 2026</h2>
       <p class="regras-intro">Regras e pontuação oficial. Os pontos <strong>não acumulam</strong> na fase de grupos — só conta a melhor categoria. No mata-mata, o resultado (aos 90') e o apurado <strong>acumulam entre si</strong>.</p>
     </div>
 
     <!-- FASE DE GRUPOS -->
     <div class="regras-card">
-      <h3 class="regras-h3">Fase de Grupos — pontuação não cumulativa</h3>
+      <h3 class="regras-h3">⚽ Fase de Grupos — pontuação não cumulativa</h3>
       <table class="regras-table">
         <thead><tr><th>Tipo</th><th>Condição</th><th>Pontos</th></tr></thead>
         <tbody>
@@ -1280,21 +1187,21 @@ function renderRegras() {
           <tr><td><span class="tipo-pill tipo-nao">Nada</span></td><td>Não acertou nada</td><td class="pts-highlight muted">0</td></tr>
         </tbody>
       </table>
-      <div class="regras-nota">Os pontos <strong>não acumulam</strong>. Se acertou o vencedor e os golos de uma equipa, fica só com os 2 pts do vencedor.</div>
+      <div class="regras-nota">⚠️ Os pontos <strong>não acumulam</strong>. Se acertou o vencedor E os golos de uma equipa, fica só com os 2pts do vencedor.</div>
     </div>
 
     <!-- TABELA MATA-MATA -->
     <div class="regras-card">
-      <h3 class="regras-h3">Mata-Mata — pontuação progressiva (score 90' + apurado acumulam)</h3>
+      <h3 class="regras-h3">⚔️ Mata-Mata — pontuação progressiva (score 90' + apurado acumulam)</h3>
       <div class="regras-scroll">
       <table class="regras-table regras-ko-table">
         <thead>
           <tr>
             <th>Fase</th>
-            <th>Exato</th>
-            <th>VE</th>
-            <th>Golos</th>
-            <th>Apurado</th>
+            <th>✅ Exato</th>
+            <th>🔵 VE</th>
+            <th>🟡 Golos</th>
+            <th>🟢 Apurado</th>
             <th class="pts-max-col">Máximo</th>
           </tr>
         </thead>
@@ -1304,7 +1211,7 @@ function renderRegras() {
           <tr><td>QF — Quartos</td><td>15</td><td>6</td><td>3</td><td>10</td><td class="pts-max">25</td></tr>
           <tr><td>SF — Meias</td><td>20</td><td>8</td><td>4</td><td>15</td><td class="pts-max">35</td></tr>
           <tr><td>3.º/4.º lugar</td><td>25</td><td>10</td><td>5</td><td>15</td><td class="pts-max">40</td></tr>
-          <tr class="regras-final-row"><td>Final</td><td>35</td><td>15</td><td>6</td><td>15</td><td class="pts-max">50</td></tr>
+          <tr class="regras-final-row"><td>🏆 Final</td><td>35</td><td>15</td><td>6</td><td>15</td><td class="pts-max">50</td></tr>
         </tbody>
       </table>
       </div>
@@ -1316,27 +1223,27 @@ function renderRegras() {
 
     <!-- EXEMPLOS FASE DE GRUPOS -->
     <div class="regras-card">
-      <h3 class="regras-h3">Exemplos — Fase de Grupos</h3>
+      <h3 class="regras-h3">📌 Exemplos — Fase de Grupos</h3>
       <div class="regras-exemplos">
 
-        ${exDiv("Resultado exato","França 3-1 Senegal","França 3-1 Senegal","Resultado exato","5 pts","tipo-exato")}
-        ${exDiv("Acertou vencedor","França 3-1 Senegal","França 2-0 Senegal","Vencedor certo · não exato","2 pts","tipo-ve")}
-        ${exDiv("Acertou golos de uma equipa","França 3-1 Senegal","França 1-1 Senegal","Apostou empate · golos do Senegal: 1","1 pt","tipo-golos")}
-        ${exDiv("Não pontuou","França 3-1 Senegal","França 0-2 Senegal","Nada correto","0 pts","tipo-nao")}
-        ${exDiv("Não acumula","França 3-1 Senegal","França 3-0 Senegal","Vencedor + golos França → fica com o melhor (VE)","2 pts","tipo-ve")}
+        ${exDiv("Resultado exato","França 3-1 Senegal","França 3-1 Senegal","✅ Resultado exato","5 pts","tipo-exato")}
+        ${exDiv("Acertou vencedor","França 3-1 Senegal","França 2-0 Senegal","✅ Vencedor certo · ❌ Não exato","2 pts","tipo-ve")}
+        ${exDiv("Acertou golos de uma equipa","França 3-1 Senegal","França 1-1 Senegal","❌ Apostou empate · ✅ Golos do Senegal: 1","1 pt","tipo-golos")}
+        ${exDiv("Não pontuou","França 3-1 Senegal","França 0-2 Senegal","❌ Nada correto","0 pts","tipo-nao")}
+        ${exDiv("Não acumula","França 3-1 Senegal","França 3-0 Senegal","✅ Vencedor · ✅ Golos França · ❌ Não exato → fica com o melhor","2 pts","tipo-ve")}
 
       </div>
     </div>
 
     <!-- EXEMPLOS MATA-MATA -->
     <div class="regras-card">
-      <h3 class="regras-h3">Exemplos — Mata-Mata (16 avos)</h3>
+      <h3 class="regras-h3">⚔️ Exemplos — Mata-Mata (16 avos)</h3>
       <p class="regras-sub">Jogo: Portugal 1-1 Espanha aos 90'. Portugal passa nos penáltis.</p>
       <div class="regras-exemplos">
-        ${exKO("Acertou tudo","1-1","Portugal","1-1","Portugal","Exato 7 pts · Apurado 3 pts","10 pts")}
-        ${exKO("Acertou empate + apurado","2-2","Portugal","1-1","Portugal","VE 3 pts · Apurado 3 pts","6 pts")}
-        ${exKO("Errou score, acertou apurado","2-0","Portugal","1-1","Portugal","Score 0 pts · Apurado 3 pts","3 pts")}
-        ${exKO("Acertou score, errou apurado","1-1","Espanha","1-1","Portugal","Exato 7 pts · Apurado 0 pts","7 pts")}
+        ${exKO("Acertou tudo","1-1","Portugal","1-1","Portugal","✅ Exato 7pts · ✅ Apurado 3pts","10 pts")}
+        ${exKO("Acertou empate + apurado","2-2","Portugal","1-1","Portugal","✅ VE 3pts · ✅ Apurado 3pts","6 pts")}
+        ${exKO("Errou score, acertou apurado","2-0","Portugal","1-1","Portugal","❌ Score 0pts · ✅ Apurado 3pts","3 pts")}
+        ${exKO("Acertou score, errou apurado","1-1","Espanha","1-1","Portugal","✅ Exato 7pts · ❌ Apurado 0pts","7 pts")}
       </div>
     </div>
 
@@ -1662,7 +1569,7 @@ async function doLogin() {
     await dbLoadAll();
     showApp();
   } catch (e) {
-    err.textContent = e.message || "Credenciais inválidas";
+    err.textContent = "❌ " + (e.message || "Credenciais inválidas");
     err.style.display = "block";
     btn.textContent = "Entrar";
     btn.disabled = false;
@@ -1684,13 +1591,13 @@ function showApp() {
   const u = dbCurrentUser();
   if (u) {
     const el = document.getElementById("header-user");
-    el.textContent = (u.email || "").split("@")[0];
+    el.textContent = "👤 " + (u.email || "").split("@")[0];
     el.style.display = "inline-flex";
     document.getElementById("btn-logout").style.display = "block";
   }
   initFeatures().then(() => {
     getResultados();
-    switchTab("classificacao");
+    switchTab("resultados");
     apiStartAutoSync(5 * 60 * 1000);
   });
 }
@@ -1701,11 +1608,11 @@ document.addEventListener("DOMContentLoaded", async () => {
   const note    = document.getElementById("login-note");
 
   if (!dbIsConfigured()) {
-    note.textContent = "Modo local (Supabase não configurado)";
+    note.textContent = "⚠️ Modo local (Supabase não configurado)";
     overlay.style.display = "none";
     initFeatures().then(() => {
       getResultados();
-      switchTab("classificacao");
+      switchTab("resultados");
     });
     return;
   }

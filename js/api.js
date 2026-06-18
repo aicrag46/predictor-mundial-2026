@@ -1,4 +1,4 @@
-// ─── FOOTBALL-DATA.ORG AUTO-SYNC (grupos + mata-mata) ────────────────────────
+// ─── FOOTBALL-DATA.ORG AUTO-SYNC (grupos + mata-mata + live) ─────────────────
 
 const API_TEAM_MAP = {
   "Mexico": "México", "South Africa": "África do Sul", "South Korea": "Coreia do Sul",
@@ -37,7 +37,7 @@ function apiMapTeam(name) { return API_TEAM_MAP[name] || name; }
 let _apiSyncing = false;
 let _apiInterval = null;
 
-const API_PROXY_URL = "/.netlify/functions/football-results?status=FINISHED";
+const API_PROXY_URL = "/.netlify/functions/football-results?status=FINISHED,IN_PLAY,PAUSED";
 
 function findGroupGame(homePT, awayPT) {
   return DADOS.jogos.find(j =>
@@ -46,14 +46,20 @@ function findGroupGame(homePT, awayPT) {
 }
 
 function parseApiScore(m) {
-  if (m.status !== "FINISHED") return null;
-  const gc = m.score?.fullTime?.home;
-  const gf = m.score?.fullTime?.away;
+  const st = m.status;
+  let gc, gf;
+  if (st === "IN_PLAY" || st === "PAUSED") {
+    gc = m.score?.regularTime?.home ?? m.score?.fullTime?.home;
+    gf = m.score?.regularTime?.away ?? m.score?.fullTime?.away;
+  } else {
+    gc = m.score?.fullTime?.home;
+    gf = m.score?.fullTime?.away;
+  }
   if (gc === null || gc === undefined || gf === null || gf === undefined) return null;
-  return { gc, gf };
+  return { gc, gf, live: st === "IN_PLAY" || st === "PAUSED", finished: st === "FINISHED" };
 }
 
-function applyGroupMatch(m, resultados, stats) {
+function applyGroupMatch(m, resultados, liveScores, stats) {
   const homePT = apiMapTeam(m.homeTeam?.shortName || m.homeTeam?.name || "");
   const awayPT = apiMapTeam(m.awayTeam?.shortName || m.awayTeam?.name || "");
   const sc = parseApiScore(m);
@@ -66,6 +72,14 @@ function applyGroupMatch(m, resultados, stats) {
   if (jogo.casa === awayPT && jogo.fora === homePT) {
     gcFinal = sc.gf; gfFinal = sc.gc;
   }
+
+  if (sc.live) {
+    liveScores[jogo.codigo] = { gc: gcFinal, gf: gfFinal, minute: m.minute, status: m.status };
+    stats.live++;
+    return;
+  }
+
+  if (!sc.finished) return;
 
   const existing = resultados[jogo.codigo];
   const incoming = { gc: gcFinal, gf: gfFinal, _ts: Date.now(), _api: true };
@@ -96,7 +110,7 @@ function applyKnockoutMatch(m, mm, stats) {
   const homePT = apiMapTeam(m.homeTeam?.shortName || m.homeTeam?.name || "");
   const awayPT = apiMapTeam(m.awayTeam?.shortName || m.awayTeam?.name || "");
   const sc = parseApiScore(m);
-  if (!sc) return;
+  if (!sc || !sc.finished) return;
 
   let gc = sc.gc, gf = sc.gf;
   const rounds = ["r32", "r16", "qf", "sf", "tp", "f"];
@@ -132,7 +146,7 @@ function applyKnockoutMatch(m, mm, stats) {
 async function apiFetch() {
   if (_apiSyncing) return 0;
   _apiSyncing = true;
-  showApiStatus("A sincronizar…", "syncing");
+  showApiStatus("🔄 A sincronizar…", "syncing");
 
   try {
     const res = await fetch(API_PROXY_URL);
@@ -146,16 +160,19 @@ async function apiFetch() {
     const matches = json.matches || [];
 
     const resultados = getResultados();
+    const liveScores = {};
     const mm = getMataMata();
-    const stats = { updated: 0, koUpdated: 0, conflicts: 0 };
+    const stats = { updated: 0, koUpdated: 0, live: 0, conflicts: 0 };
 
     for (const m of matches) {
       if (m.stage === "GROUP_STAGE" || !m.stage) {
-        applyGroupMatch(m, resultados, stats);
+        applyGroupMatch(m, resultados, liveScores, stats);
       } else {
         applyKnockoutMatch(m, mm, stats);
       }
     }
+
+    dbSet(DB_KEYS.LIVE_SCORES, liveScores);
 
     if (stats.updated > 0) saveResultados(resultados);
     if (stats.koUpdated > 0) saveMataMata(mm);
@@ -169,12 +186,13 @@ async function apiFetch() {
     const now = new Date().toLocaleTimeString("pt-PT", { hour: "2-digit", minute: "2-digit" });
     const parts = [`${stats.updated} GS`];
     if (stats.koUpdated) parts.push(`${stats.koUpdated} KO`);
-    showApiStatus(`${now} · ${parts.join(" · ")}`, "ok");
+    if (stats.live) parts.push(`${stats.live} live`);
+    showApiStatus(`✅ ${now} · ${parts.join(" · ")}`, "ok");
     return stats.updated + stats.koUpdated;
   } catch (e) {
     console.error("[API]", e);
     const hint = location.protocol === "file:" ? "Usa URL Netlify" : e.message.slice(0, 80);
-    showApiStatus(hint, "error");
+    showApiStatus("❌ " + hint, "error");
     return 0;
   } finally {
     _apiSyncing = false;

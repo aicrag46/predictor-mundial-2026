@@ -1,7 +1,7 @@
-const CACHE = "predictor-v10";
+const CACHE = "predictor-restore-v1";
 
-// JS, HTML e CSS: network-first (evita cache antigo)
-const NETWORK_FIRST = ["/js/", "/css/", "/index.html"];
+// JS e HTML: network-first (evita cache antigo sem previsões)
+const NETWORK_FIRST = ["/js/", "/index.html"];
 
 self.addEventListener("install", e => {
   e.waitUntil(self.skipWaiting());
