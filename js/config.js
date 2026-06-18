@@ -5,4 +5,4 @@ const SUPABASE_ANON_KEY = "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBh
 // ─── CONFIGURAÇÃO API DE RESULTADOS (football-data.org) ───────────────────────
 // Registo gratuito em: https://www.football-data.org/client/register
 // Depois de registares, cola aqui o token que recebeste por email:
-const FOOTBALL_DATA_TOKEN = "XXXXX"; // ← substitui pelo teu token
+const FOOTBALL_DATA_TOKEN = "982c4ec1f3fb4f9f877d9ce22be6ba93";
