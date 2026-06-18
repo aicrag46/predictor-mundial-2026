@@ -4,10 +4,14 @@
 // Todos os dados ficam em cache em memória para que o app seja síncrono.
 
 const DB_KEYS = {
-  RESULTADOS:   "resultados",
-  MATAMATA:     "matamata",
-  GS_OVERRIDES: "gs_overrides",
-  KO_PREDS:     "ko_preds",
+  RESULTADOS:    "resultados",
+  MATAMATA:      "matamata",
+  GS_OVERRIDES:  "gs_overrides",
+  KO_PREDS:      "ko_preds",
+  PROGNOSTICOS:  "prognosticos",
+  CLASS_HISTORY: "class_history",
+  LIVE_SCORES:   "live_scores",
+  BACKUPS:       "backups_meta",
 };
 
 let _sb        = null;   // cliente Supabase

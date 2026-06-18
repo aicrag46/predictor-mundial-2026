@@ -1,0 +1,355 @@
+// ─── FEATURES AVANÇADAS ──────────────────────────────────────────────────────
+
+let _resFilter = { q: "", grupo: "all", estado: "all" };
+let _presentationActive = false;
+let _pendingConflicts = [];
+
+// ─── Prognósticos protegidos (Supabase) ───────────────────────────────────────
+async function loadPrognosticos() {
+  if (DADOS.prognosticos && Object.keys(DADOS.prognosticos).length >= 10) return true;
+
+  let p = dbGet(DB_KEYS.PROGNOSTICOS);
+  if (p && Object.keys(p).length >= 10) {
+    DADOS.prognosticos = p;
+    return true;
+  }
+  return false;
+}
+
+// ─── Histórico classificação ──────────────────────────────────────────────────
+function saveClassificationSnapshot(resultados) {
+  const cls = calcClassificacao(resultados);
+  const snap = {
+    ts: Date.now(),
+    date: new Date().toISOString(),
+    jogos: Object.keys(resultados).length,
+    ranking: cls.map(s => ({ nome: s.nome, pts: s.pts, pos: s.pos })),
+  };
+  const hist = dbGet(DB_KEYS.CLASS_HISTORY) || [];
+  const last = hist[hist.length - 1];
+  if (last && last.jogos === snap.jogos && last.ranking[0]?.pts === snap.ranking[0]?.pts) return;
+  hist.push(snap);
+  if (hist.length > 60) hist.splice(0, hist.length - 60);
+  dbSet(DB_KEYS.CLASS_HISTORY, hist);
+}
+
+function renderClassificationHistory(containerId) {
+  const el = document.getElementById(containerId);
+  if (!el) return;
+  const hist = dbGet(DB_KEYS.CLASS_HISTORY) || [];
+  if (hist.length < 2) {
+    el.innerHTML = `<p class="feat-hint">Histórico disponível após várias sincronizações.</p>`;
+    return;
+  }
+  const leader = DADOS.participantes[0] ? DADOS.participantes : [];
+  let html = `<div class="history-chart"><canvas id="history-canvas" height="120"></canvas></div>`;
+  html += `<div class="history-list">`;
+  hist.slice(-8).reverse().forEach(h => {
+    const d = new Date(h.ts).toLocaleString("pt-PT", { day: "2-digit", month: "short", hour: "2-digit", minute: "2-digit" });
+    html += `<div class="history-row"><span class="history-date">${d}</span><span>${h.jogos} jogos</span><span class="history-leader">🥇 ${h.ranking[0]?.nome || "—"} (${h.ranking[0]?.pts}pts)</span></div>`;
+  });
+  html += `</div>`;
+  el.innerHTML = html;
+  drawHistoryChart(hist, leader);
+}
+
+function drawHistoryChart(hist, participants) {
+  const canvas = document.getElementById("history-canvas");
+  if (!canvas || !hist.length) return;
+  const ctx = canvas.getContext("2d");
+  const w = canvas.parentElement.clientWidth || 400;
+  canvas.width = w;
+  const h = 120;
+  const slice = hist.slice(-12);
+  const top3 = participants.slice(0, 3);
+  const colors = ["#fbbf24", "#22d3ee", "#34d399"];
+  ctx.clearRect(0, 0, w, h);
+  slice.forEach((snap, si) => {
+    top3.forEach((nome, pi) => {
+      const entry = snap.ranking.find(r => r.nome === nome);
+      if (!entry) return;
+      const x = (si / Math.max(slice.length - 1, 1)) * (w - 40) + 20;
+      const y = h - 20 - (entry.pts / Math.max(snap.ranking[0]?.pts || 1, 1)) * (h - 40);
+      ctx.fillStyle = colors[pi];
+      ctx.beginPath();
+      ctx.arc(x, y, 4, 0, Math.PI * 2);
+      ctx.fill();
+      if (si > 0) {
+        const prev = slice[si - 1].ranking.find(r => r.nome === nome);
+        if (prev) {
+          const px = ((si - 1) / Math.max(slice.length - 1, 1)) * (w - 40) + 20;
+          const py = h - 20 - (prev.pts / Math.max(slice[si - 1].ranking[0]?.pts || 1, 1)) * (h - 40);
+          ctx.strokeStyle = colors[pi];
+          ctx.globalAlpha = 0.5;
+          ctx.lineWidth = 2;
+          ctx.beginPath();
+          ctx.moveTo(px, py);
+          ctx.lineTo(x, y);
+          ctx.stroke();
+          ctx.globalAlpha = 1;
+        }
+      }
+    });
+  });
+}
+
+// ─── Filtros Resultados ───────────────────────────────────────────────────────
+function renderResultadosFilters() {
+  const grupos = [...new Set(DADOS.jogos.map(j => j.grupo))].sort();
+  return `<div class="feat-toolbar" id="res-filters">
+    <div class="feat-search-wrap">
+      <span>🔍</span>
+      <input type="search" id="res-filter-q" placeholder="Equipa ou código…" value="${_resFilter.q}"
+        oninput="_resFilter.q=this.value.toLowerCase();renderTab('resultados')">
+    </div>
+    <select class="feat-select" id="res-filter-grupo" onchange="_resFilter.grupo=this.value;renderTab('resultados')">
+      <option value="all" ${_resFilter.grupo === "all" ? "selected" : ""}>Todos grupos</option>
+      ${grupos.map(g => `<option value="${g}" ${_resFilter.grupo === g ? "selected" : ""}>Grupo ${g}</option>`).join("")}
+    </select>
+    <select class="feat-select" id="res-filter-estado" onchange="_resFilter.estado=this.value;renderTab('resultados')">
+      <option value="all" ${_resFilter.estado === "all" ? "selected" : ""}>Todos</option>
+      <option value="ft" ${_resFilter.estado === "ft" ? "selected" : ""}>✅ Terminados</option>
+      <option value="pend" ${_resFilter.estado === "pend" ? "selected" : ""}>⏳ Pendentes</option>
+      <option value="live" ${_resFilter.estado === "live" ? "selected" : ""}>🔴 Ao vivo</option>
+    </select>
+  </div>`;
+}
+
+function matchResFilter(j, r, live) {
+  const q = _resFilter.q;
+  if (q && !(`${j.casa} ${j.fora} ${j.codigo}`.toLowerCase().includes(q))) return false;
+  if (_resFilter.grupo !== "all" && j.grupo !== _resFilter.grupo) return false;
+  if (_resFilter.estado === "ft" && !r) return false;
+  if (_resFilter.estado === "pend" && r) return false;
+  if (_resFilter.estado === "live" && !live) return false;
+  return true;
+}
+
+function getLiveScores() {
+  return dbGet(DB_KEYS.LIVE_SCORES) || {};
+}
+
+// ─── Conflitos API vs manual ──────────────────────────────────────────────────
+function queueConflict(codigo, jogo, existing, incoming) {
+  _pendingConflicts.push({ codigo, jogo, existing, incoming });
+}
+
+function showNextConflict() {
+  if (!_pendingConflicts.length) return;
+  const c = _pendingConflicts[0];
+  const j = c.jogo;
+  const modal = document.getElementById("conflict-modal");
+  if (!modal) return;
+  document.getElementById("conflict-title").textContent =
+    `${j.codigo}: ${j.casa} vs ${j.fora}`;
+  document.getElementById("conflict-manual").textContent =
+    `✋ Manter manual (${c.existing.gc}-${c.existing.gf})`;
+  document.getElementById("conflict-api").textContent =
+    `🔄 Usar API (${c.incoming.gc}-${c.incoming.gf})`;
+  modal.classList.add("active");
+  modal.dataset.codigo = c.codigo;
+}
+
+function resolveConflict(useApi) {
+  const modal = document.getElementById("conflict-modal");
+  const cod = modal?.dataset.codigo;
+  const c = _pendingConflicts.find(x => x.codigo === cod);
+  if (!c) return;
+  const resultados = getResultados();
+  if (useApi) {
+    resultados[c.codigo] = { ...c.incoming, _ts: Date.now(), _api: true };
+  } else {
+    resultados[c.codigo] = { ...c.existing, _manual: true, _ts: Date.now() };
+  }
+  saveResultados(resultados);
+  _pendingConflicts.shift();
+  modal.classList.remove("active");
+  if (_pendingConflicts.length) showNextConflict();
+  else renderTab(activeTab);
+}
+
+// ─── Web Share API ────────────────────────────────────────────────────────────
+function shareNative(text, title) {
+  if (navigator.share) {
+    navigator.share({ title: title || "Predictor 2026", text }).catch(() => copyFallback(text));
+  } else {
+    copyFallback(text);
+  }
+}
+function copyFallback(text) {
+  navigator.clipboard.writeText(text).then(() => alert("Copiado!")).catch(() => {});
+}
+
+// ─── Export classificação ─────────────────────────────────────────────────────
+function exportClassificacaoImage() {
+  const resultados = getResultados();
+  const cls = calcClassificacao(resultados);
+  const canvas = document.createElement("canvas");
+  canvas.width = 600;
+  canvas.height = 80 + cls.length * 36;
+  const ctx = canvas.getContext("2d");
+  ctx.fillStyle = "#0a0f1e";
+  ctx.fillRect(0, 0, canvas.width, canvas.height);
+  ctx.fillStyle = "#fbbf24";
+  ctx.font = "bold 22px Outfit, sans-serif";
+  ctx.fillText("🏆 Predictor Mundial 2026", 20, 36);
+  ctx.fillStyle = "#94a3b8";
+  ctx.font = "14px Outfit, sans-serif";
+  ctx.fillText(new Date().toLocaleString("pt-PT"), 20, 58);
+  cls.forEach((s, i) => {
+    const y = 90 + i * 36;
+    ctx.fillStyle = s.paga ? "#fb7185" : "#34d399";
+    ctx.font = "16px Outfit, sans-serif";
+    ctx.fillText(`${s.pos}. ${s.nome}`, 20, y);
+    ctx.fillStyle = "#fbbf24";
+    ctx.textAlign = "right";
+    ctx.fillText(`${s.pts} pts`, 580, y);
+    ctx.textAlign = "left";
+  });
+  canvas.toBlob(blob => {
+    const a = document.createElement("a");
+    a.href = URL.createObjectURL(blob);
+    a.download = `classificacao_${Date.now()}.png`;
+    a.click();
+  });
+}
+
+function exportBackupJSON() {
+  const backup = {
+    exported: new Date().toISOString(),
+    resultados: getResultados(),
+    matamata: getMataMata(),
+    gs_overrides: getGSOverrides(),
+    ko_preds: getKOPredsAll(),
+    class_history: dbGet(DB_KEYS.CLASS_HISTORY) || [],
+  };
+  const blob = new Blob([JSON.stringify(backup, null, 2)], { type: "application/json" });
+  const a = document.createElement("a");
+  a.href = URL.createObjectURL(blob);
+  a.download = `predictor_backup_${new Date().toISOString().slice(0, 10)}.json`;
+  a.click();
+  dbSet(DB_KEYS.BACKUPS, { last: backup.exported, keys: Object.keys(backup.resultados).length });
+}
+
+// ─── Modo Apresentação (jantar) ─────────────────────────────────────────────
+function openPresentationMode() {
+  _presentationActive = true;
+  const overlay = document.getElementById("presentation-overlay");
+  if (!overlay) return;
+  overlay.classList.add("active");
+  renderPresentationSlide(0);
+}
+
+function closePresentationMode() {
+  _presentationActive = false;
+  document.getElementById("presentation-overlay")?.classList.remove("active");
+}
+
+let _presSlide = 0;
+function renderPresentationSlide(n) {
+  const resultados = getResultados();
+  const cls = calcClassificacao(resultados);
+  const slides = [
+    { title: "🏆 Predictor Parque Biológico", body: "Mundial 2026 · Revelação no Jantar", sub: `${Object.keys(resultados).length} jogos disputados` },
+    ...cls.map(s => ({
+      title: `${s.pos === 1 ? "🥇" : s.pos === 2 ? "🥈" : s.pos === 3 ? "🥉" : s.pos + "."} ${s.nome}`,
+      body: `${s.pts} pontos`,
+      sub: s.paga ? "🍽️ Paga o jantar" : "🎉 Não paga!",
+    })),
+  ];
+  _presSlide = Math.max(0, Math.min(n, slides.length - 1));
+  const s = slides[_presSlide];
+  const el = document.getElementById("presentation-content");
+  if (!el) return;
+  el.innerHTML = `
+    <div class="pres-slide">
+      <h2 class="pres-title">${s.title}</h2>
+      <p class="pres-body">${s.body}</p>
+      <p class="pres-sub">${s.sub || ""}</p>
+    </div>
+    <div class="pres-nav">
+      <button onclick="renderPresentationSlide(${_presSlide - 1})" ${ _presSlide === 0 ? "disabled" : ""}>← Anterior</button>
+      <span>${_presSlide + 1} / ${slides.length}</span>
+      <button onclick="renderPresentationSlide(${_presSlide + 1})" ${ _presSlide >= slides.length - 1 ? "disabled" : ""}>Seguinte →</button>
+    </div>`;
+}
+
+// ─── Auto-preencher Mata-Mata (top 2 por grupo → R32) ───────────────────────
+function autoFillMataMataFromGroups() {
+  if (!confirm("Preencher R32 com 1.º e 2.º de cada grupo (ordem A→L)? Equipas existentes podem ser substituídas.")) return;
+  const resultados = getResultados();
+  const grupos = [...new Set(DADOS.jogos.map(j => j.grupo))].sort();
+  const qualified = [];
+
+  for (const g of grupos) {
+    const jogos = DADOS.jogos.filter(j => j.grupo === g);
+    const equipas = new Set();
+    jogos.forEach(j => { equipas.add(j.casa); equipas.add(j.fora); });
+    const stats = {};
+    equipas.forEach(e => { stats[e] = { e, pts: 0, gd: 0, gm: 0 }; });
+    for (const j of jogos) {
+      const r = resultados[j.codigo];
+      if (!r) continue;
+      const { gc, gf } = r;
+      const sc = stats[j.casa], sf = stats[j.fora];
+      sc.gm += gc; sc.gd += gc - gf;
+      sf.gm += gf; sf.gd += gf - gc;
+      if (gc > gf) sc.pts += 3; else if (gc < gf) sf.pts += 3; else { sc.pts++; sf.pts++; }
+    }
+    const st = Object.values(stats).sort((a, b) => b.pts - a.pts || b.gd - a.gd || b.gm - a.gm);
+    if (st[0]) qualified.push(st[0].e);
+    if (st[1]) qualified.push(st[1].e);
+  }
+
+  const mm = getMataMata();
+  for (let i = 0; i < Math.min(16, Math.floor(qualified.length / 2)); i++) {
+    mm.r32[i].e1 = qualified[i * 2] || "";
+    mm.r32[i].e2 = qualified[i * 2 + 1] || "";
+  }
+  saveMataMata(mm);
+  renderMataMata(mm);
+  showApiStatus(`✅ R32 preenchido com ${qualified.length} qualificados`, "ok");
+}
+
+// ─── Pull to refresh ──────────────────────────────────────────────────────────
+function initPullToRefresh() {
+  let startY = 0, pulling = false;
+  const indicator = document.getElementById("pull-indicator");
+  document.addEventListener("touchstart", e => {
+    if (window.scrollY <= 0) startY = e.touches[0].clientY;
+  }, { passive: true });
+  document.addEventListener("touchmove", e => {
+    if (startY && e.touches[0].clientY - startY > 80 && window.scrollY <= 0) {
+      pulling = true;
+      if (indicator) { indicator.style.opacity = "1"; indicator.textContent = "↻ Larga para sincronizar"; }
+    }
+  }, { passive: true });
+  document.addEventListener("touchend", () => {
+    if (pulling) apiFetch();
+    pulling = false;
+    startY = 0;
+    if (indicator) setTimeout(() => { indicator.style.opacity = "0"; }, 600);
+  });
+}
+
+// ─── PWA ──────────────────────────────────────────────────────────────────────
+function initPWA() {
+  if ("serviceWorker" in navigator) {
+    navigator.serviceWorker.register("/sw.js").catch(() => {});
+  }
+}
+
+// ─── Init all features ────────────────────────────────────────────────────────
+async function initFeatures() {
+  initPWA();
+  initPullToRefresh();
+  if (!await loadPrognosticos()) {
+    try {
+      const r = await fetch("/prognosticos.json");
+      if (r.ok) DADOS.prognosticos = await r.json();
+    } catch {}
+  }
+  if (!DADOS.prognosticos || Object.keys(DADOS.prognosticos).length < 10) {
+    showApiStatus("⚠️ Corre: npm run upload:prognosticos", "warn");
+  }
+}

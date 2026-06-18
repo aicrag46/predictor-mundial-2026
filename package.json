@@ -1,0 +1,14 @@
+{
+  "name": "predictor-mundial-2026",
+  "private": true,
+  "scripts": {
+    "build:data": "node scripts/split-data.js",
+    "build:players": "node gerar_previsoes_html.js",
+    "build": "npm run build:data && npm run build:players",
+    "upload:prognosticos": "node scripts/upload-prognosticos.js",
+    "test": "node tests/scoring.test.js"
+  },
+  "devDependencies": {
+    "@supabase/supabase-js": "^2.49.0"
+  }
+}

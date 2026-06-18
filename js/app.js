@@ -36,57 +36,7 @@ function getResultados() {
 }
 function saveResultados(r) { dbSet(DB_KEYS.RESULTADOS, r); }
 
-// ─── SCORING FASE DE GRUPOS (não cumulativo) ─────────────────────────────────
-function vit(a, b) { return a > b ? "c" : b > a ? "f" : "e"; }
-
-function getTipo(pgc, pgf, rgc, rgf) {
-  if (rgc === null || rgc === undefined) return "Pendente";
-  if (pgc === rgc && pgf === rgf) return "Exato";
-  if (vit(pgc, pgf) === vit(rgc, rgf)) return "Vencedor/Empate";
-  if (pgc === rgc || pgf === rgf) return "Golos Equipa";
-  return "Não Pontuou";
-}
-
-function getPontos(tipo) {
-  return { "Exato": 5, "Vencedor/Empate": 2, "Golos Equipa": 1, "Não Pontuou": 0, "Pendente": 0 }[tipo] ?? 0;
-}
-
-// ─── SCORING MATA-MATA (acumulativo: score90 + apurado independentes) ─────────
-// Pontuação por fase, conforme tabela oficial
-const KO_PONTOS = {
-  r32:   { exato: 7,  ve: 3,  golos: 1, qual: 3  },
-  r16:   { exato: 10, ve: 4,  golos: 2, qual: 5  },
-  qf:    { exato: 15, ve: 6,  golos: 3, qual: 10 },
-  sf:    { exato: 20, ve: 8,  golos: 4, qual: 15 },
-  tp:    { exato: 25, ve: 10, golos: 5, qual: 15 },
-  f:     { exato: 35, ve: 15, golos: 6, qual: 15 },
-};
-
-// Retorna { tipoScore, scorePts, qualMatch, qualPts, pts }
-// - tipoScore: tipo do resultado aos 90' (não cumulativo)
-// - qualMatch: se acertou a equipa apurada
-// - pts: scorePts + qualPts (acumulam entre si)
-function calcKO(roundId, pgc, pgf, pqual, rgc, rgf, rqual) {
-  if (rgc === null || rgc === undefined) {
-    return { tipoScore: "Pendente", scorePts: 0, qualMatch: false, qualPts: 0, pts: 0 };
-  }
-  const tbl = KO_PONTOS[roundId] || KO_PONTOS.r32;
-
-  // Score aos 90 minutos (não cumulativo)
-  const tipoScore = getTipo(pgc, pgf, rgc, rgf);
-  const scorePts  = { "Exato": tbl.exato, "Vencedor/Empate": tbl.ve, "Golos Equipa": tbl.golos, "Não Pontuou": 0, "Pendente": 0 }[tipoScore] ?? 0;
-
-  // Apurado (independente e acumulativo)
-  const qualMatch = Boolean(rqual && pqual && pqual === rqual);
-  const qualPts   = qualMatch ? tbl.qual : 0;
-
-  return { tipoScore, scorePts, qualMatch, qualPts, pts: scorePts + qualPts };
-}
-
-// Alias legado (usado nalgumas comparações — devolve apenas tipo do score)
-function getTipoKO(pgc, pgf, pqual, rgc, rgf, rqual) {
-  return calcKO("r32", pgc, pgf, pqual, rgc, rgf, rqual).tipoScore;
-}
+// Scoring em js/scoring.js
 
 // ─── CÁLCULO POR PARTICIPANTE ─────────────────────────────────────────────────
 // gsOv:   overrides GS  { [pi]: { [codigo]: {casa,fora} } }
@@ -277,33 +227,43 @@ function parseRes(str) {
 // ─── TAB: RESULTADOS ─────────────────────────────────────────────────────────
 function renderResultados(resultados) {
   const grupos = [...new Set(DADOS.jogos.map(j => j.grupo))];
+  const live = getLiveScores();
   const container = document.getElementById("resultados-content");
-  let html = "";
+  let html = renderResultadosFilters();
+  let visible = 0;
   for (const g of grupos) {
+    if (_resFilter.grupo !== "all" && _resFilter.grupo !== g) continue;
     const jogos = DADOS.jogos.filter(j => j.grupo === g);
+    const filtered = jogos.filter(j => matchResFilter(j, resultados[j.codigo], live[j.codigo]));
+    if (!filtered.length) continue;
     const done = jogos.filter(j => resultados[j.codigo]).length;
     html += `<div class="grupo-block">
       <div class="grupo-header">Grupo ${g} <span class="grupo-prog">${done}/${jogos.length}</span></div>
       <table class="res-table">
-        <thead><tr><th>Cód.</th><th>Jogo</th><th>Resultado</th><th>Estado · 💬 Resumo WA</th></tr></thead>
+        <thead><tr><th>Cód.</th><th>Jogo</th><th>Resultado</th><th>Estado · 💬</th></tr></thead>
         <tbody>`;
-    for (const j of jogos) {
+    for (const j of filtered) {
+      visible++;
       const r = resultados[j.codigo];
-      const val = r ? `${r.gc}-${r.gf}` : "";
+      const lv = live[j.codigo];
+      const val = r ? `${r.gc}-${r.gf}` : (lv ? `${lv.gc}-${lv.gf}` : "");
       const ft = r !== undefined;
-      html += `<tr class="${ft ? "row-ft" : ""}">
+      const liveBadge = lv && !ft ? `<span class="estado-badge estado-live">🔴 ${lv.minute || "LIVE"}'</span>` : "";
+      html += `<tr class="${ft ? "row-ft" : lv ? "row-live" : ""}">
         <td><span class="badge-grupo">${j.codigo}</span></td>
         <td class="jogo-nome">${fl(j.casa)} <span class="vs">vs</span> ${fl(j.fora)}</td>
-        <td><input type="text" class="res-input ${ft ? "res-filled" : ""}" placeholder="ex: 2-1"
+        <td><input type="text" class="res-input ${ft ? "res-filled" : lv ? "res-live" : ""}" placeholder="ex: 2-1"
           value="${val}" data-codigo="${j.codigo}" maxlength="7" /></td>
         <td class="res-estado-cell">
+          ${liveBadge}
           <span class="estado-badge ${ft ? "estado-ft" : "estado-pendente"}">${ft ? "✅ FT" : "⏳ PEND."}</span>
-          ${ft ? `<button class="btn-wa-jogo" onclick="showWAModal('${j.codigo}')" title="Resumo WhatsApp deste jogo">💬</button>` : ""}
+          ${ft ? `<button class="btn-wa-jogo" onclick="showWAModal('${j.codigo}')" title="Resumo WhatsApp">💬</button>` : ""}
         </td>
       </tr>`;
     }
     html += `</tbody></table></div>`;
   }
+  if (!visible) html += `<div class="wa-empty">Nenhum jogo corresponde aos filtros.</div>`;
   container.innerHTML = html;
   container.querySelectorAll(".res-input").forEach(inp => {
     inp.addEventListener("change", e => onResultadoChange(e.target));
@@ -332,7 +292,7 @@ function onResultadoChange(inp) {
     setTimeout(() => { inp.classList.remove("res-error"); inp.title = ""; }, 2000);
     return;
   }
-  resultados[cod] = { ...parsed, _ts: Date.now() };
+  resultados[cod] = { ...parsed, _ts: Date.now(), _manual: true };
   saveResultados(resultados);
   renderTab(activeTab);
   // Sempre manter WhatsApp atualizado (mesmo quando noutro tab)
@@ -348,7 +308,13 @@ function renderClassificacao(resultados) {
   const jogados = DADOS.jogos.filter(j => resultados[j.codigo]).length;
   const totalPts = cls[0]?.pts ?? 0;
   const container = document.getElementById("classificacao-content");
-  let html = `<div class="cls-info">
+  let html = `<div class="feat-actions-bar">
+    <button class="btn-feat" onclick="exportClassificacaoImage()">🖼️ Exportar imagem</button>
+    <button class="btn-feat" onclick="exportBackupJSON()">💾 Backup JSON</button>
+    <button class="btn-feat" onclick="openPresentationMode()">🎬 Modo jantar</button>
+    <button class="btn-feat" onclick="shareNative(buildMsgClassificacao(resultados),'Classificação')">📤 Partilhar</button>
+  </div>
+  <div class="cls-info">
     <span>⚽ <strong>${jogados}</strong> / ${DADOS.jogos.length} jogos</span>
     <span>🏆 Líder: <strong>${cls[0]?.nome ?? "—"}</strong> com <strong>${totalPts} pts</strong></span>
   </div>
@@ -376,9 +342,11 @@ function renderClassificacao(resultados) {
     <div class="cls-legenda">
       <span class="legenda-item paga-nao-ex">Top 5 — Não paga jantar</span>
       <span class="legenda-item paga-sim-ex">Bottom 5 — Paga jantar</span>
-      <span class="legenda-item" style="margin-left:auto;color:var(--text-muted);font-size:.75rem">Pontuação: Exato=5pts · VE=2pts · Golos=1pt</span>
-    </div>`;
+      <span class="legenda-item" style="margin-left:auto;color:var(--muted);font-size:.75rem">Pontuação: Exato=5pts · VE=2pts · Golos=1pt</span>
+    </div>
+    <div id="class-history-wrap" class="feat-section"><h3 class="feat-section-title">📈 Evolução da classificação</h3><div id="class-history"></div></div>`;
   container.innerHTML = html;
+  renderClassificationHistory("class-history");
 }
 
 // ─── TAB: REVISÃO LARGA ──────────────────────────────────────────────────────
@@ -603,8 +571,11 @@ function copyWAModal() {
 
 function sendWAModal() {
   const text = document.getElementById("wa-modal-textarea").value;
-  const url  = "https://wa.me/?text=" + encodeURIComponent(text);
-  window.open(url, "_blank");
+  if (navigator.share) {
+    shareNative(text, document.getElementById("wa-modal-title")?.textContent);
+  } else {
+    window.open("https://wa.me/?text=" + encodeURIComponent(text), "_blank");
+  }
 }
 
 // Render a WhatsApp-like preview of the message
@@ -654,6 +625,10 @@ function renderMataMata(mm) {
     </button>`;
   }
   html += `</div>`;
+
+  html += `<div class="mm-actions-bar">
+    <button class="btn-feat" onclick="autoFillMataMataFromGroups()">⚡ Preencher R32 dos grupos</button>
+  </div>`;
 
   // Editor da ronda activa
   const cfg = MM_ROUNDS.find(r => r.id === mmActiveRound);
@@ -1608,10 +1583,11 @@ function showApp() {
     el.style.display = "inline-flex";
     document.getElementById("btn-logout").style.display = "block";
   }
-  getResultados();
-  switchTab("resultados");
-  // Arrancar sincronização automática de resultados (a cada 5 min)
-  apiStartAutoSync(5 * 60 * 1000);
+  initFeatures().then(() => {
+    getResultados();
+    switchTab("resultados");
+    apiStartAutoSync(5 * 60 * 1000);
+  });
 }
 
 // ─── INIT ─────────────────────────────────────────────────────────────────────
@@ -1620,11 +1596,12 @@ document.addEventListener("DOMContentLoaded", async () => {
   const note    = document.getElementById("login-note");
 
   if (!dbIsConfigured()) {
-    // Supabase não configurado → modo local (funciona como antes)
     note.textContent = "⚠️ Modo local (Supabase não configurado)";
     overlay.style.display = "none";
-    getResultados();
-    switchTab("resultados");
+    initFeatures().then(() => {
+      getResultados();
+      switchTab("resultados");
+    });
     return;
   }
 

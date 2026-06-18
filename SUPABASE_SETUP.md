@@ -54,6 +54,22 @@ ALTER PUBLICATION supabase_realtime ADD TABLE app_state;
 
 ---
 
+## Passo 3b — Enviar prognósticos (proteção de dados)
+
+Os prognósticos **já não vão no site público**. Correr uma vez no Mac:
+
+```bash
+npm install
+npm run build:data
+SUPABASE_URL="https://xxx.supabase.co" \
+SUPABASE_ANON_KEY="eyJ..." \
+SUPABASE_EMAIL="o-teu@email.com" \
+SUPABASE_PASSWORD="a-tua-password" \
+npm run upload:prognosticos
+```
+
+---
+
 ## Passo 3 — Criar o teu utilizador
 
 1. No menu esquerdo vai a **Authentication** → **Users**

@@ -10,6 +10,8 @@
   <link rel="preconnect" href="https://fonts.googleapis.com" />
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
   <link href="https://fonts.googleapis.com/css2?family=Outfit:wght@300;400;500;600;700;800;900&family=JetBrains+Mono:wght@500;700&display=swap" rel="stylesheet" />
+  <link rel="manifest" href="/manifest.json" />
+  <link rel="apple-touch-icon" href="/icons/icon-192.svg" />
   <link rel="stylesheet" href="css/style.css" />
 </head>
 <body>
@@ -46,6 +48,8 @@
     <p class="login-note" id="login-note">A verificar sessão…</p>
   </div>
 </div>
+
+<div id="pull-indicator" class="pull-indicator">↻ Sincronizar</div>
 
 <div class="app-shell">
 
@@ -152,6 +156,28 @@
 
 </div>
 
+<!-- Modal conflito API vs manual -->
+<div class="wa-modal-overlay" id="conflict-modal">
+  <div class="wa-modal-box conflict-box">
+    <div class="wa-modal-header">
+      <span>⚠️ Conflito de resultado</span>
+    </div>
+    <div class="wa-modal-body">
+      <p id="conflict-title" class="conflict-title"></p>
+      <div class="conflict-options">
+        <button class="btn-feat" id="conflict-manual" onclick="resolveConflict(false)"></button>
+        <button class="btn-wa-send" id="conflict-api" onclick="resolveConflict(true)"></button>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- Modo apresentação (jantar) -->
+<div class="presentation-overlay" id="presentation-overlay">
+  <button class="pres-close" onclick="closePresentationMode()">✕</button>
+  <div id="presentation-content"></div>
+</div>
+
 <!-- Modal WhatsApp -->
 <div class="wa-modal-overlay" id="wa-modal" onclick="if(event.target===this)closeWAModal()">
   <div class="wa-modal-box">
@@ -173,9 +199,11 @@
 
 <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2/dist/umd/supabase.js"></script>
 <script src="js/config.js"></script>
+<script src="js/scoring.js"></script>
 <script src="js/db.js"></script>
 <script src="js/api.js"></script>
-<script src="js/data.js"></script>
+<script src="js/features.js"></script>
+<script src="js/data-public.js"></script>
 <script src="js/app.js"></script>
 </body>
 </html>
