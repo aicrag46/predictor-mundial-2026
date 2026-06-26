@@ -943,13 +943,17 @@ function toggleFlatGroup(tbId) {
 
 // ── Mata-Mata section ─────────────────────────────────────────────────────────
 function renderKOPredSection(pi, mm) {
+  const selectedRound = koTemplateRound || "r32";
   let html = `<div class="preds-section">
     <div class="preds-section-title">⚔️ Mata-Mata — previsões
       <span class="edit-hint">Resultado aos 90' + equipa apurada · pontos acumulam</span>
     </div>
     <div class="ko-template-actions">
-      <button class="btn-feat" onclick="copyKOTemplateForCurrentPlayer()">📤 Copiar template KO</button>
-      <button class="btn-feat" onclick="importKOPredsFromPrivateMessage()">📥 Importar mensagem KO</button>
+      <select class="feat-select ko-round-select" onchange="setKOTemplateRound(this.value)">
+        ${MM_ROUNDS.map(r => `<option value="${r.id}" ${selectedRound === r.id ? "selected" : ""}>${roundCodeFromId(r.id)} — ${r.name}</option>`).join("")}
+      </select>
+      <button class="btn-feat" onclick="copyKOTemplateForCurrentPlayer()">📤 Copiar template da fase</button>
+      <button class="btn-feat" onclick="importKOPredsFromPrivateMessage()">📥 Importar mensagem da fase</button>
     </div>
     <div class="ko-scoring-info">
       Score (90') e Apurado pontuam <strong>independentemente e acumulam</strong>.
@@ -1046,6 +1050,11 @@ function roundIdFromCode(code) {
   return { R32: "r32", R16: "r16", QF: "qf", SF: "sf", TP: "tp", F: "f" }[code.toUpperCase()] || null;
 }
 
+let koTemplateRound = "r32";
+function setKOTemplateRound(roundId) {
+  koTemplateRound = roundId;
+}
+
 function normalizeTeamName(s) {
   return (s || "")
     .replace(/^[^\p{L}\p{N}]+/u, "")
@@ -1054,43 +1063,42 @@ function normalizeTeamName(s) {
     .trim();
 }
 
-function buildKOTemplateForPlayer(pi) {
+function buildKOTemplateForPlayer(pi, roundId = koTemplateRound) {
   const nome = DADOS.participantes[pi] || `Jogador ${pi + 1}`;
   const mm = getMataMata();
   const all = getKOPredsAll();
   const preds = all[pi] || {};
   const lines = [];
+  const round = MM_ROUNDS.find(r => r.id === roundId) || MM_ROUNDS[0];
 
-  lines.push("PREDICTOR 2026 — TEMPLATE MATA-MATA");
+  lines.push(`PREDICTOR 2026 — TEMPLATE MATA-MATA (${roundCodeFromId(round.id)})`);
   lines.push(`Jogador: ${nome}`);
   lines.push("");
 
-  for (const round of MM_ROUNDS) {
-    lines.push(`[${roundCodeFromId(round.id)}] ${round.name}`);
-    const games = mm[round.id] || [];
-    games.forEach((game, idx) => {
-      const key = `${round.id}:${idx}`;
-      const pred = preds[key] || {};
-      const code = `${roundCodeFromId(round.id)}-${String(idx + 1).padStart(2, "0")}`;
-      const score = (pred.gc !== null && pred.gc !== undefined && pred.gf !== null && pred.gf !== undefined)
-        ? `${pred.gc}-${pred.gf}`
-        : "x-x";
-      const qualifier = pred.qualifier || "<Equipa>";
-      const e1 = game.e1 || "TBD";
-      const e2 = game.e2 || "TBD";
-      lines.push(`${code} | Score90: ${score} | Apurado: ${qualifier} | Jogo: ${e1} vs ${e2}`);
-    });
-    lines.push("");
-  }
+  lines.push(`[${roundCodeFromId(round.id)}] ${round.name}`);
+  const games = mm[round.id] || [];
+  games.forEach((game, idx) => {
+    const key = `${round.id}:${idx}`;
+    const pred = preds[key] || {};
+    const code = `${roundCodeFromId(round.id)}-${String(idx + 1).padStart(2, "0")}`;
+    const score = (pred.gc !== null && pred.gc !== undefined && pred.gf !== null && pred.gf !== undefined)
+      ? `${pred.gc}-${pred.gf}`
+      : "x-x";
+    const qualifier = pred.qualifier || "<Equipa>";
+    const e1 = game.e1 || "TBD";
+    const e2 = game.e2 || "TBD";
+    lines.push(`${code} | Score90: ${score} | Apurado: ${qualifier} | Jogo: ${e1} vs ${e2}`);
+  });
+  lines.push("");
 
   lines.push("Regras: Score90 é o resultado aos 90 minutos. Apurado é quem passa.");
   return lines.join("\n");
 }
 
 function copyKOTemplateForCurrentPlayer() {
-  const text = buildKOTemplateForPlayer(predsPI);
+  const text = buildKOTemplateForPlayer(predsPI, koTemplateRound);
   navigator.clipboard.writeText(text).then(() => {
-    showApiStatus("✅ Template KO copiado", "ok");
+    showApiStatus(`✅ Template ${roundCodeFromId(koTemplateRound)} copiado`, "ok");
   }).catch(() => {
     alert(text);
   });
@@ -1114,7 +1122,8 @@ function parseKOMessageLine(line) {
 }
 
 function importKOPredsFromPrivateMessage() {
-  const raw = window.prompt("Cola aqui a mensagem privada do jogador (template KO):");
+  const round = MM_ROUNDS.find(r => r.id === koTemplateRound) || MM_ROUNDS[0];
+  const raw = window.prompt(`Cola aqui a mensagem privada do jogador (${roundCodeFromId(round.id)}):`);
   if (!raw || !raw.trim()) return;
 
   const mm = getMataMata();
@@ -1143,6 +1152,10 @@ function importKOPredsFromPrivateMessage() {
       errors.push(`Linha ${i + 1}: jogo inválido (${row})`);
       return;
     }
+    if (roundId !== koTemplateRound) {
+      errors.push(`Linha ${i + 1}: ronda ${m[1].toUpperCase()} inválida. Agora só aceitamos ${roundCodeFromId(koTemplateRound)}.`);
+      return;
+    }
 
     const game = games[idx];
     const qualifier = resolveQualifier(qualifierRaw, game);
@@ -1169,7 +1182,7 @@ function importKOPredsFromPrivateMessage() {
   if (errors.length) {
     alert(`Importadas ${imported} linhas com ${errors.length} erro(s).\n\n${errors.join("\n")}`);
   } else {
-    showApiStatus(`✅ Importadas ${imported} previsões KO`, "ok");
+    showApiStatus(`✅ Importadas ${imported} previsões ${roundCodeFromId(koTemplateRound)}`, "ok");
   }
 }
 

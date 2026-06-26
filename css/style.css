@@ -892,6 +892,9 @@ body {
   border-bottom: 1px solid var(--glass-border);
   background: rgba(0, 0, 0, 0.2);
 }
+.ko-round-select {
+  min-width: 180px;
+}
 .ko-badge { background: var(--bg4); color: var(--muted); }
 .jogo-nome-sm { font-size: .8rem; white-space: nowrap; }
 .real-cell { color: var(--muted); font-family: var(--mono); font-size: .82rem; }
