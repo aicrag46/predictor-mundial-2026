@@ -37,7 +37,34 @@ function apiMapTeam(name) { return API_TEAM_MAP[name] || name; }
 let _apiSyncing = false;
 let _apiInterval = null;
 
-const API_PROXY_URL = "/.netlify/functions/football-results?status=FINISHED,IN_PLAY,PAUSED";
+function getApiProxyCandidates() {
+  const status = "FINISHED,IN_PLAY,PAUSED";
+  const netlify = `/.netlify/functions/football-results?status=${encodeURIComponent(status)}`;
+  const vercel = `/api/football-results?status=${encodeURIComponent(status)}`;
+  // Preferir endpoint nativo da plataforma atual, com fallback para o outro.
+  return location.hostname.includes("netlify.app") ? [netlify, vercel] : [vercel, netlify];
+}
+
+async function fetchViaProxy() {
+  const candidates = getApiProxyCandidates();
+  let lastErr = null;
+
+  for (const url of candidates) {
+    try {
+      const res = await fetch(url);
+      if (!res.ok) {
+        // Em fallback, ignorar 404/405 e tentar próximo endpoint.
+        if (res.status === 404 || res.status === 405) continue;
+      }
+      return res;
+    } catch (e) {
+      lastErr = e;
+    }
+  }
+
+  if (lastErr) throw lastErr;
+  throw new Error("Nenhum endpoint de sync disponível");
+}
 
 function findGroupGame(homePT, awayPT) {
   return DADOS.jogos.find(j =>
@@ -149,7 +176,7 @@ async function apiFetch() {
   showApiStatus("🔄 A sincronizar…", "syncing");
 
   try {
-    const res = await fetch(API_PROXY_URL);
+    const res = await fetchViaProxy();
     if (!res.ok) {
       const txt = await res.text();
       let msg = txt.slice(0, 120);

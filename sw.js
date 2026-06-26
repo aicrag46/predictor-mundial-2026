@@ -16,7 +16,7 @@ self.addEventListener("activate", e => {
 
 self.addEventListener("fetch", e => {
   if (e.request.method !== "GET") return;
-  if (e.request.url.includes("/.netlify/functions/")) return;
+  if (e.request.url.includes("/.netlify/functions/") || e.request.url.includes("/api/")) return;
 
   const url = e.request.url;
   const networkFirst = NETWORK_FIRST.some(p => url.includes(p));
