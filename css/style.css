@@ -884,6 +884,14 @@ body {
   padding: 10px 18px; font-size: .72rem; color: var(--muted);
   background: var(--emerald-dim); border-bottom: 1px solid var(--glass-border);
 }
+.ko-template-actions {
+  display: flex;
+  gap: 8px;
+  flex-wrap: wrap;
+  padding: 10px 16px;
+  border-bottom: 1px solid var(--glass-border);
+  background: rgba(0, 0, 0, 0.2);
+}
 .ko-badge { background: var(--bg4); color: var(--muted); }
 .jogo-nome-sm { font-size: .8rem; white-space: nowrap; }
 .real-cell { color: var(--muted); font-family: var(--mono); font-size: .82rem; }

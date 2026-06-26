@@ -947,6 +947,10 @@ function renderKOPredSection(pi, mm) {
     <div class="preds-section-title">⚔️ Mata-Mata — previsões
       <span class="edit-hint">Resultado aos 90' + equipa apurada · pontos acumulam</span>
     </div>
+    <div class="ko-template-actions">
+      <button class="btn-feat" onclick="copyKOTemplateForCurrentPlayer()">📤 Copiar template KO</button>
+      <button class="btn-feat" onclick="importKOPredsFromPrivateMessage()">📥 Importar mensagem KO</button>
+    </div>
     <div class="ko-scoring-info">
       Score (90') e Apurado pontuam <strong>independentemente e acumulam</strong>.
       Máximos: R32=10 · R16=15 · QF=25 · SF=35 · 3.º=40 · Final=50
@@ -1032,6 +1036,141 @@ function renderKOPredSection(pi, mm) {
 // ── Helpers ───────────────────────────────────────────────────────────────────
 function tipoAbr(tipo) {
   return { "Exato":"Exato","Vencedor/Empate":"VE","Golos Equipa":"Golos","Não Pontuou":"Nada","Pendente":"Pend." }[tipo] ?? tipo;
+}
+
+function roundCodeFromId(roundId) {
+  return { r32: "R32", r16: "R16", qf: "QF", sf: "SF", tp: "TP", f: "F" }[roundId] || roundId.toUpperCase();
+}
+
+function roundIdFromCode(code) {
+  return { R32: "r32", R16: "r16", QF: "qf", SF: "sf", TP: "tp", F: "f" }[code.toUpperCase()] || null;
+}
+
+function normalizeTeamName(s) {
+  return (s || "")
+    .replace(/^[^\p{L}\p{N}]+/u, "")
+    .replace(/[^\p{L}\p{N}\s.'-]+$/u, "")
+    .replace(/\s+/g, " ")
+    .trim();
+}
+
+function buildKOTemplateForPlayer(pi) {
+  const nome = DADOS.participantes[pi] || `Jogador ${pi + 1}`;
+  const mm = getMataMata();
+  const all = getKOPredsAll();
+  const preds = all[pi] || {};
+  const lines = [];
+
+  lines.push("PREDICTOR 2026 — TEMPLATE MATA-MATA");
+  lines.push(`Jogador: ${nome}`);
+  lines.push("");
+
+  for (const round of MM_ROUNDS) {
+    lines.push(`[${roundCodeFromId(round.id)}] ${round.name}`);
+    const games = mm[round.id] || [];
+    games.forEach((game, idx) => {
+      const key = `${round.id}:${idx}`;
+      const pred = preds[key] || {};
+      const code = `${roundCodeFromId(round.id)}-${String(idx + 1).padStart(2, "0")}`;
+      const score = (pred.gc !== null && pred.gc !== undefined && pred.gf !== null && pred.gf !== undefined)
+        ? `${pred.gc}-${pred.gf}`
+        : "x-x";
+      const qualifier = pred.qualifier || "<Equipa>";
+      const e1 = game.e1 || "TBD";
+      const e2 = game.e2 || "TBD";
+      lines.push(`${code} | Score90: ${score} | Apurado: ${qualifier} | Jogo: ${e1} vs ${e2}`);
+    });
+    lines.push("");
+  }
+
+  lines.push("Regras: Score90 é o resultado aos 90 minutos. Apurado é quem passa.");
+  return lines.join("\n");
+}
+
+function copyKOTemplateForCurrentPlayer() {
+  const text = buildKOTemplateForPlayer(predsPI);
+  navigator.clipboard.writeText(text).then(() => {
+    showApiStatus("✅ Template KO copiado", "ok");
+  }).catch(() => {
+    alert(text);
+  });
+}
+
+function resolveQualifier(rawQualifier, game) {
+  const clean = normalizeTeamName(rawQualifier);
+  const raw = clean.toLowerCase();
+  const teams = [game.e1, game.e2].filter(Boolean);
+  if (!raw) return null;
+  if (!teams.length) return clean;
+  const match = teams.find(t => normalizeTeamName(t).toLowerCase() === raw);
+  return match || null;
+}
+
+function parseKOMessageLine(line) {
+  const strict = line.match(/^(R32|R16|QF|SF|TP|F)\s*-\s*(\d{1,2})\s*\|\s*Score90\s*:\s*(\d+)\s*[-–]\s*(\d+)\s*\|\s*Apurado\s*:\s*([^|]+)(?:\||$)/i);
+  if (strict) return strict;
+  const compact = line.match(/^(R32|R16|QF|SF|TP|F)\s*-\s*(\d{1,2})\s*\|\s*(\d+)\s*[-–]\s*(\d+)\s*\|\s*([^|]+)$/i);
+  return compact;
+}
+
+function importKOPredsFromPrivateMessage() {
+  const raw = window.prompt("Cola aqui a mensagem privada do jogador (template KO):");
+  if (!raw || !raw.trim()) return;
+
+  const mm = getMataMata();
+  const all = getKOPredsAll();
+  if (!all[predsPI]) all[predsPI] = {};
+
+  let imported = 0;
+  const errors = [];
+  const lines = raw.split(/\r?\n/);
+
+  lines.forEach((line, i) => {
+    const row = line.trim();
+    if (!row || row.startsWith("PREDICTOR") || row.startsWith("Jogador:") || row.startsWith("[")) return;
+
+    const m = parseKOMessageLine(row);
+    if (!m) return;
+
+    const roundId = roundIdFromCode(m[1]);
+    const idx = Number(m[2]) - 1;
+    const gc = Number(m[3]);
+    const gf = Number(m[4]);
+    const qualifierRaw = m[5].trim();
+
+    const games = mm[roundId];
+    if (!roundId || !games || idx < 0 || idx >= games.length) {
+      errors.push(`Linha ${i + 1}: jogo inválido (${row})`);
+      return;
+    }
+
+    const game = games[idx];
+    const qualifier = resolveQualifier(qualifierRaw, game);
+    if (!qualifier) {
+      errors.push(`Linha ${i + 1}: apurado inválido "${qualifierRaw}" em ${roundCodeFromId(roundId)}-${String(idx + 1).padStart(2, "0")}`);
+      return;
+    }
+
+    all[predsPI][`${roundId}:${idx}`] = {
+      ...all[predsPI][`${roundId}:${idx}`],
+      gc, gf, qualifier
+    };
+    imported++;
+  });
+
+  if (!imported) {
+    alert(errors.length ? `Nenhuma previsão importada.\n\n${errors.join("\n")}` : "Nenhuma linha válida encontrada para importar.");
+    return;
+  }
+
+  saveKOPredsAll(all);
+  renderPrevisoes();
+
+  if (errors.length) {
+    alert(`Importadas ${imported} linhas com ${errors.length} erro(s).\n\n${errors.join("\n")}`);
+  } else {
+    showApiStatus(`✅ Importadas ${imported} previsões KO`, "ok");
+  }
 }
 
 function togglePredGroup(hdr) {
