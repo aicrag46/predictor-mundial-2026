@@ -349,7 +349,10 @@ function renderClassificacao(resultados) {
 function renderRevisao(resultados) {
   const container = document.getElementById("revisao-content");
   const participantes = DADOS.participantes;
-  let html = `<div class="revisao-scroll"><table class="revisao-table">
+  let html = `<div class="feat-actions-bar">
+    <button class="btn-feat" onclick="exportRevisaoPDF()">🧾 Exportar Revisão PDF</button>
+  </div>
+  <div class="revisao-scroll"><table class="revisao-table">
     <thead>
       <tr>
         <th class="sticky-col">Jogo / Resultado</th>
@@ -392,6 +395,81 @@ function renderRevisao(resultados) {
       <span class="tipo-pendente leg">⏳ Pendente</span>
     </div>`;
   container.innerHTML = html;
+}
+
+function exportRevisaoPDF() {
+  const resultados = getResultados();
+  const participantes = DADOS.participantes;
+
+  let rows = "";
+  let lastGrupo = "";
+  for (const j of DADOS.jogos) {
+    if (j.grupo !== lastGrupo) {
+      lastGrupo = j.grupo;
+      rows += `<tr class="grp"><td colspan="${participantes.length + 2}">Grupo ${j.grupo}</td></tr>`;
+    }
+    const r = resultados[j.codigo];
+    rows += `<tr>
+      <td class="jogo-col"><strong>${j.codigo}</strong><br>${j.casa} × ${j.fora}</td>
+      <td class="real-col">${r ? `${r.gc}-${r.gf}` : "—"}</td>`;
+
+    for (let pi2 = 0; pi2 < participantes.length; pi2++) {
+      const pred = getGSPredFor(pi2, j.codigo);
+      if (!pred) {
+        rows += `<td>—</td>`;
+        continue;
+      }
+      const tipo = getTipo(pred.casa, pred.fora, r?.gc, r?.gf);
+      const pts = getPontos(tipo);
+      const label = `${pred.casa}-${pred.fora}${r ? ` · ${pts}p` : ""}`;
+      rows += `<td>${label}</td>`;
+    }
+    rows += `</tr>`;
+  }
+
+  const html = `<!doctype html><html lang="pt"><head><meta charset="utf-8">
+  <title>Revisão Completa — Predictor 2026</title>
+  <style>
+    @page { size: A3 landscape; margin: 8mm; }
+    body { font-family: Arial, sans-serif; color: #111; font-size: 8px; }
+    h1 { margin: 0 0 6px; font-size: 16px; }
+    .meta { margin-bottom: 8px; color: #444; font-size: 10px; }
+    table { width: 100%; border-collapse: collapse; table-layout: fixed; }
+    th, td { border: 1px solid #d0d7de; padding: 3px 4px; text-align: center; vertical-align: middle; }
+    th { background: #f2f4f7; font-size: 8px; }
+    .jogo-col { text-align: left; width: 180px; font-size: 8px; }
+    .real-col { width: 56px; font-weight: 700; }
+    .grp td { background: #eef2ff; font-weight: 700; text-align: left; font-size: 9px; }
+    .topbar { display: flex; justify-content: space-between; align-items: center; margin-bottom: 8px; }
+    .btn { border: 1px solid #aaa; background: #fff; border-radius: 6px; padding: 6px 10px; cursor: pointer; font-size: 10px; }
+    @media print { .btn { display: none; } }
+  </style></head><body>
+  <div class="topbar">
+    <div>
+      <h1>Revisão Completa — Predictor Parque Biológico</h1>
+      <div class="meta">72 jogos · 10 jogadores · 720 previsões · ${new Date().toLocaleString("pt-PT")}</div>
+    </div>
+    <button class="btn" onclick="window.print()">Imprimir / Guardar PDF</button>
+  </div>
+  <table>
+    <thead>
+      <tr>
+        <th class="jogo-col">Jogo</th>
+        <th class="real-col">Real</th>
+        ${participantes.map(p => `<th>${p.split(" ")[0]}</th>`).join("")}
+      </tr>
+    </thead>
+    <tbody>${rows}</tbody>
+  </table>
+  </body></html>`;
+
+  const w = window.open("", "_blank");
+  if (!w) {
+    alert("Não foi possível abrir a janela de exportação. Verifica se o browser bloqueou popups.");
+    return;
+  }
+  w.document.write(html);
+  w.document.close();
 }
 
 // ─── TAB: WHATSAPP ───────────────────────────────────────────────────────────
