@@ -629,6 +629,8 @@ function setMMRound(id) {
 
 function renderMataMata(mm) {
   const container = document.getElementById("matamata-content");
+  const repaired = repairMataMataState(mm);
+  if (repaired) saveMataMata(mm);
 
   // Bracket SEMPRE VISÍVEL no topo (auto-actualiza em cada mudança)
   let html = buildBracketHTML(mm);
@@ -659,8 +661,310 @@ function renderMataMata(mm) {
   });
   html += `</div></div>`;
 
+  html += renderKOMataMataReview(mm);
+
   container.innerHTML = html;
   attachMMEvents(container, mm);
+}
+
+function cleanTeamName(name) {
+  return (name || "").trim();
+}
+
+function repairMataMataState(mm) {
+  let changed = false;
+
+  // 1) Limpar espaços/lixo de nomes vazios guardados
+  for (const round of MM_ROUNDS) {
+    const games = mm[round.id] || [];
+    games.forEach(game => {
+      const e1 = cleanTeamName(game.e1);
+      const e2 = cleanTeamName(game.e2);
+      if (game.e1 !== e1) { game.e1 = e1; changed = true; }
+      if (game.e2 !== e2) { game.e2 = e2; changed = true; }
+      if (game.pen_winner && ![e1, e2].includes(game.pen_winner)) {
+        game.pen_winner = null;
+        changed = true;
+      }
+    });
+  }
+
+  // 2) Auto-reparar R32 quando há muitos jogos só com equipa 1
+  const brokenR32 = (mm.r32 || []).filter(g => cleanTeamName(g.e1) && !cleanTeamName(g.e2)).length;
+  if (brokenR32 >= 4) {
+    const qualified = computeGroupQualified(getResultados());
+    if (qualified.length >= 32) {
+      for (let i = 0; i < 16; i++) {
+        const game = mm.r32[i];
+        if (!game) continue;
+        const e1 = qualified[i * 2] || "";
+        const e2 = qualified[i * 2 + 1] || "";
+        if (game.e1 !== e1 || game.e2 !== e2) {
+          // Só reescreve emparelhamento se o jogo ainda não tem resultado oficial
+          if (game.gc === null || game.gc === undefined || game.gf === null || game.gf === undefined) {
+            game.e1 = e1;
+            game.e2 = e2;
+            game.pen_winner = null;
+            changed = true;
+          }
+        }
+      }
+    }
+  }
+
+  return changed;
+}
+
+function renderKOMataMataReview(mm) {
+  const participantes = DADOS.participantes;
+  let html = `<div class="mm-section mm-review-section">
+    <div class="mm-section-header">
+      <h2 class="mm-section-title">📊 Revisão Mata-Mata</h2>
+      <span class="mm-hint">Vês por jogo: previsão de cada jogador, pontos de score 90', pontos de apurado e total.</span>
+    </div>
+    <div class="feat-actions-bar mm-review-actions">
+      ${MM_ROUNDS.map(r => `<button class="btn-feat" onclick="exportKOReviewPDF('${r.id}')">🧾 Exportar PDF ${roundCodeFromId(r.id)}</button>`).join("")}
+    </div>
+    <div class="revisao-scroll"><table class="revisao-table ko-review-table">
+      <thead>
+        <tr>
+          <th class="sticky-col">Jogo / Resultado</th>
+          ${participantes.map(p => `<th class="p-header" title="${p}">${p.split(" ")[0]}</th>`).join("")}
+        </tr>
+      </thead><tbody>`;
+
+  for (const round of MM_ROUNDS) {
+    const games = mm[round.id] || [];
+    if (!games.length) continue;
+    html += `<tr class="grupo-sep"><td colspan="${participantes.length + 1}">${round.name}</td></tr>`;
+
+    games.forEach((game, idx) => {
+      const hasRes = game.gc !== null && game.gc !== undefined && game.gf !== null && game.gf !== undefined;
+      const winner = mmWinner(game);
+      const code = `${roundCodeFromId(round.id)}-${String(idx + 1).padStart(2, "0")}`;
+      const e1 = game.e1 || "TBD";
+      const e2 = game.e2 || "TBD";
+
+      html += `<tr>
+        <td class="sticky-col jogo-cell">
+          <span class="cod-small">${code}</span>
+          ${hasRes ? `<span class="res-badge">${game.gc}-${game.gf}</span>` : `<span class="pendente-dot">·</span>`}
+          <span class="equipas-small">${fl(e1)} × ${fl(e2)}${winner ? ` · ✅ ${winner}` : ""}</span>
+          <button class="btn-wa-jogo ko-resumo-btn" onclick="showWAModalKO('${round.id}', ${idx})" title="Resumo do jogo Mata-Mata">💬</button>
+        </td>`;
+
+      for (let pi = 0; pi < participantes.length; pi++) {
+        const pred = getKOPredFor(pi, round.id, idx);
+        if (!pred || pred.gc === null || pred.gc === undefined || pred.gf === null || pred.gf === undefined) {
+          html += `<td class="tipo-pendente">—</td>`;
+          continue;
+        }
+
+        let tipo = "Pendente";
+        let scorePts = 0;
+        let qualPts = 0;
+        let totalPts = 0;
+
+        if (hasRes) {
+          const ko = calcKO(round.id, pred.gc, pred.gf, pred.qualifier, game.gc, game.gf, winner);
+          tipo = ko.tipoScore;
+          scorePts = ko.scorePts;
+          qualPts = ko.qualPts;
+          totalPts = ko.pts;
+        }
+
+        const predScore = `${pred.gc}-${pred.gf}`;
+        const predQual = pred.qualifier || "—";
+        html += `<td class="${TIPO_CSS[tipo]}" title="Score90: ${predScore} | Apurado: ${predQual} | Score: ${scorePts}p | Apurado: ${qualPts}p | Total: ${totalPts}p">
+          <span class="prog-val">${predScore}</span>
+          <span class="ko-pred-qual">${predQual}</span>
+          ${hasRes ? `<span class="pts-small">S:${scorePts} + A:${qualPts} = ${totalPts}p</span>` : ""}
+        </td>`;
+      }
+
+      html += `</tr>`;
+    });
+  }
+
+  html += `</tbody></table></div>
+    <div class="revisao-legenda">
+      <span class="tipo-exato leg">✅ Exato no score</span>
+      <span class="tipo-ve leg">⚽ Venc./Empate no score</span>
+      <span class="tipo-golos leg">🎯 Golos no score</span>
+      <span class="tipo-nao leg">❌ Score sem pontos</span>
+      <span class="tipo-pendente leg">⏳ Resultado pendente</span>
+      <span class="leg">S = pontos do score 90' · A = pontos do apurado</span>
+    </div>
+  </div>`;
+
+  return html;
+}
+
+function exportKOReviewPDF(roundId) {
+  const round = MM_ROUNDS.find(r => r.id === roundId);
+  if (!round) return;
+
+  const mm = getMataMata();
+  const games = mm[roundId] || [];
+  const participantes = DADOS.participantes;
+  const pontosRound = KO_PONTOS[roundId] || KO_PONTOS.r32;
+  const maxPts = pontosRound.exato + pontosRound.qual;
+
+  let rows = "";
+  games.forEach((game, idx) => {
+    const hasRes = game.gc !== null && game.gc !== undefined && game.gf !== null && game.gf !== undefined;
+    const winner = mmWinner(game);
+    const code = `${roundCodeFromId(roundId)}-${String(idx + 1).padStart(2, "0")}`;
+    const jogoLabel = `${game.e1 || "TBD"} × ${game.e2 || "TBD"}`;
+
+    rows += `<tr>
+      <td class="jogo-col"><strong>${code}</strong><br>${jogoLabel}</td>
+      <td class="real-col">${hasRes ? `${game.gc}-${game.gf}` : "—"}</td>
+      <td class="real-col">${winner || "—"}</td>`;
+
+    for (let pi = 0; pi < participantes.length; pi++) {
+      const pred = getKOPredFor(pi, roundId, idx);
+      if (!pred || pred.gc === null || pred.gc === undefined || pred.gf === null || pred.gf === undefined) {
+        rows += `<td>—</td>`;
+        continue;
+      }
+
+      const predScore = `${pred.gc}-${pred.gf}`;
+      const predQual = pred.qualifier || "—";
+      if (!hasRes) {
+        rows += `<td>${predScore} · ${predQual}</td>`;
+        continue;
+      }
+
+      const ko = calcKO(roundId, pred.gc, pred.gf, pred.qualifier, game.gc, game.gf, winner);
+      rows += `<td>${predScore} · ${predQual}<br><span class="mini">S:${ko.scorePts} + A:${ko.qualPts} = ${ko.pts}p</span></td>`;
+    }
+
+    rows += `</tr>`;
+  });
+
+  const html = `<!doctype html><html lang="pt"><head><meta charset="utf-8">
+  <title>Revisão Mata-Mata ${roundCodeFromId(roundId)} — Predictor 2026</title>
+  <style>
+    @page { size: A3 landscape; margin: 8mm; }
+    body { font-family: Arial, sans-serif; color: #111; font-size: 8px; }
+    h1 { margin: 0 0 6px; font-size: 16px; }
+    .meta { margin-bottom: 8px; color: #444; font-size: 10px; line-height: 1.4; }
+    table { width: 100%; border-collapse: collapse; table-layout: fixed; }
+    th, td { border: 1px solid #d0d7de; padding: 3px 4px; text-align: center; vertical-align: middle; }
+    th { background: #f2f4f7; font-size: 8px; }
+    .jogo-col { text-align: left; width: 180px; font-size: 8px; }
+    .real-col { width: 72px; font-weight: 700; }
+    .topbar { display: flex; justify-content: space-between; align-items: center; margin-bottom: 8px; }
+    .btn { border: 1px solid #aaa; background: #fff; border-radius: 6px; padding: 6px 10px; cursor: pointer; font-size: 10px; }
+    .mini { font-size: 7px; color: #4b5563; }
+    @media print { .btn { display: none; } }
+  </style></head><body>
+  <div class="topbar">
+    <div>
+      <h1>Revisão Mata-Mata — ${round.name} (${roundCodeFromId(roundId)})</h1>
+      <div class="meta">
+        ${games.length} jogos · ${participantes.length} jogadores · ${games.length * participantes.length} previsões · ${new Date().toLocaleString("pt-PT")}<br>
+        Pontos ${roundCodeFromId(roundId)}: Exato=${pontosRound.exato} · VE=${pontosRound.ve} · Golos=${pontosRound.golos} · Apurado=${pontosRound.qual} · Máx=${maxPts}
+      </div>
+    </div>
+    <button class="btn" onclick="window.print()">Imprimir / Guardar PDF</button>
+  </div>
+  <table>
+    <thead>
+      <tr>
+        <th class="jogo-col">Jogo</th>
+        <th class="real-col">Real 90'</th>
+        <th class="real-col">Apurado real</th>
+        ${participantes.map(p => `<th>${p.split(" ")[0]}</th>`).join("")}
+      </tr>
+    </thead>
+    <tbody>${rows}</tbody>
+  </table>
+  </body></html>`;
+
+  const w = window.open("", "_blank");
+  if (!w) {
+    alert("Não foi possível abrir a janela de exportação. Verifica se o browser bloqueou popups.");
+    return;
+  }
+  w.document.write(html);
+  w.document.close();
+}
+
+function buildMsgKOGame(roundId, idx) {
+  const round = MM_ROUNDS.find(r => r.id === roundId);
+  const mm = getMataMata();
+  const game = mm?.[roundId]?.[idx];
+  if (!round || !game) return "";
+
+  const code = `${roundCodeFromId(roundId)}-${String(idx + 1).padStart(2, "0")}`;
+  const e1 = game.e1 || "TBD";
+  const e2 = game.e2 || "TBD";
+  const f1 = FLAGS[e1] || "🏳";
+  const f2 = FLAGS[e2] || "🏳";
+  const hasRes = game.gc !== null && game.gc !== undefined && game.gf !== null && game.gf !== undefined;
+  const winner = mmWinner(game);
+
+  let msg = "";
+  msg += `🌍 *MUNDIAL 2026 — RESUMO MATA-MATA*\n\n`;
+  msg += `${SEP}\n`;
+  msg += `⚔️ *${round.name}* · ${code}\n`;
+  msg += `${f1} *${e1}${hasRes ? ` ${game.gc} – ${game.gf}` : " vs"} ${e2}* ${f2}\n`;
+  if (hasRes) {
+    msg += `Apurado: *${winner || "—"}*\n`;
+  } else {
+    msg += `_Jogo sem resultado oficial ainda_\n`;
+  }
+  msg += `${SEP}\n\n`;
+  msg += "```\n";
+
+  for (let pi = 0; pi < DADOS.participantes.length; pi++) {
+    const p = DADOS.participantes[pi];
+    const name = p.split(" ")[0].substring(0, 10).padEnd(11);
+    const pred = getKOPredFor(pi, roundId, idx);
+
+    if (!pred || pred.gc === null || pred.gc === undefined || pred.gf === null || pred.gf === undefined) {
+      msg += `⏳ ${name} sem previsão\n`;
+      continue;
+    }
+
+    const predScore = `${pred.gc}-${pred.gf}`.padEnd(5);
+    const predQual = (pred.qualifier || "—").substring(0, 14).padEnd(14);
+
+    if (!hasRes) {
+      msg += `📝 ${name} ${predScore} | ${predQual}\n`;
+      continue;
+    }
+
+    const ko = calcKO(roundId, pred.gc, pred.gf, pred.qualifier, game.gc, game.gf, winner);
+    const emScore = TIPO_EM[ko.tipoScore] || "•";
+    const qualFlag = ko.qualMatch ? "🟢" : "⚪";
+    const pts = `${ko.pts}p`.padStart(3);
+    msg += `${emScore}${qualFlag} ${name} ${predScore} | ${predQual} S${ko.scorePts}+A${ko.qualPts} = ${pts}\n`;
+  }
+
+  msg += "```\n\n";
+  const tbl = KO_PONTOS[roundId] || KO_PONTOS.r32;
+  msg += `_Pontuação ${roundCodeFromId(roundId)}: Exato=${tbl.exato} · VE=${tbl.ve} · Golos=${tbl.golos} · Apurado=${tbl.qual}_`;
+  return msg;
+}
+
+function showWAModalKO(roundId, idx) {
+  const mm = getMataMata();
+  const round = MM_ROUNDS.find(r => r.id === roundId);
+  const game = mm?.[roundId]?.[idx];
+  if (!round || !game) return;
+
+  const code = `${roundCodeFromId(roundId)}-${String(Number(idx) + 1).padStart(2, "0")}`;
+  const msg = buildMsgKOGame(roundId, Number(idx));
+  const title = `${code} · ${game.e1 || "TBD"} vs ${game.e2 || "TBD"}`;
+
+  const modal = document.getElementById("wa-modal");
+  document.getElementById("wa-modal-title").textContent = title;
+  document.getElementById("wa-modal-preview").innerHTML = waPreview(msg);
+  document.getElementById("wa-modal-textarea").value = msg;
+  modal.classList.add("active");
 }
 
 function buildMMCard(game, roundId, idx) {
@@ -669,8 +973,10 @@ function buildMMCard(game, roundId, idx) {
   const isDraw = hasRes && game.gc === game.gf && !game.pen_winner;
   const e1win = winner === game.e1 && game.e1;
   const e2win = winner === game.e2 && game.e2;
-  const f1 = FLAGS[game.e1] || (game.e1 ? "🏳" : "");
-  const f2 = FLAGS[game.e2] || (game.e2 ? "🏳" : "");
+  const e1 = cleanTeamName(game.e1);
+  const e2 = cleanTeamName(game.e2);
+  const f1 = FLAGS[e1] || (e1 ? "🏳" : "");
+  const f2 = FLAGS[e2] || (e2 ? "🏳" : "");
   const scoreVal = hasRes ? `${game.gc}-${game.gf}` : "";
 
   return `<div class="mm-card ${winner ? "mm-done" : ""}" id="mmc-${roundId}-${idx}">
@@ -678,7 +984,7 @@ function buildMMCard(game, roundId, idx) {
 
     <div class="mm-team-block ${e1win ? "team-win" : (hasRes && winner ? "team-lose" : "")}">
       <span class="mm-team-flag">${f1}</span>
-      <input class="mm-team-inp" placeholder="Equipa 1" value="${esc(game.e1)}"
+      <input class="mm-team-inp" placeholder="Equipa 1" value="${esc(e1)}"
         data-round="${roundId}" data-idx="${idx}" data-field="e1" />
     </div>
 
@@ -687,15 +993,15 @@ function buildMMCard(game, roundId, idx) {
         value="${scoreVal}" data-round="${roundId}" data-idx="${idx}" maxlength="7" />
       ${isDraw ? `<div class="mm-pen-row">
         <span class="mm-pen-label">⏱ AET/PEN — passa:</span>
-        <button class="mm-pen-btn" data-round="${roundId}" data-idx="${idx}" data-winner="${esc(game.e1)}">${f1} ${esc(game.e1) || "E1"}</button>
-        <button class="mm-pen-btn" data-round="${roundId}" data-idx="${idx}" data-winner="${esc(game.e2)}">${f2} ${esc(game.e2) || "E2"}</button>
+        <button class="mm-pen-btn" data-round="${roundId}" data-idx="${idx}" data-winner="${esc(e1)}">${f1} ${esc(e1) || "E1"}</button>
+        <button class="mm-pen-btn" data-round="${roundId}" data-idx="${idx}" data-winner="${esc(e2)}">${f2} ${esc(e2) || "E2"}</button>
       </div>` : ""}
       ${winner ? `<div class="mm-winner-label">✅ ${FLAGS[winner] || "🏆"} <strong>${winner}</strong> passa</div>` : ""}
     </div>
 
     <div class="mm-team-block ${e2win ? "team-win" : (hasRes && winner ? "team-lose" : "")}">
       <span class="mm-team-flag">${f2}</span>
-      <input class="mm-team-inp" placeholder="Equipa 2" value="${esc(game.e2)}"
+      <input class="mm-team-inp" placeholder="Equipa 2" value="${esc(e2)}"
         data-round="${roundId}" data-idx="${idx}" data-field="e2" />
     </div>
   </div>`;
@@ -736,12 +1042,14 @@ function buildBracketHTML(mm) {
     mm[r.id].forEach((g, idx) => {
       const w    = mmWinner(g);
       const done = g.gc !== null && g.gf !== null;
-      const f1   = FLAGS[g.e1] || (g.e1 ? "🏳":"");
-      const f2   = FLAGS[g.e2] || (g.e2 ? "🏳":"");
+      const e1   = cleanTeamName(g.e1);
+      const e2   = cleanTeamName(g.e2);
+      const f1   = FLAGS[e1] || (e1 ? "🏳":"");
+      const f2   = FLAGS[e2] || (e2 ? "🏳":"");
       body += `<div class="bgame ${done?"bgame-done":""}" onclick="setMMRound('${r.id}')" title="Jogo ${idx+1} · clica para editar">
-        <div class="brow ${w===g.e1&&g.e1?"bwin":done&&w?"blose":""}">${f1} <span>${g.e1||"TBD"}</span></div>
+        <div class="brow ${w===e1&&e1?"bwin":done&&w?"blose":""}">${f1} <span>${e1||"TBD"}</span></div>
         <div class="bscore">${done?`${g.gc}–${g.gf}`:"·"}</div>
-        <div class="brow ${w===g.e2&&g.e2?"bwin":done&&w?"blose":""}">${f2} <span>${g.e2||"TBD"}</span></div>
+        <div class="brow ${w===e2&&e2?"bwin":done&&w?"blose":""}">${f2} <span>${e2||"TBD"}</span></div>
       </div>`;
     });
     body += `</div>`;
@@ -759,13 +1067,15 @@ function buildBracketHTML(mm) {
   const tp   = mm.tp[0];
   const tpW  = mmWinner(tp);
   const tpD  = tp.gc !== null;
-  const tf1  = FLAGS[tp.e1] || (tp.e1 ? "🏳":"");
-  const tf2  = FLAGS[tp.e2] || (tp.e2 ? "🏳":"");
+  const tpe1 = cleanTeamName(tp.e1);
+  const tpe2 = cleanTeamName(tp.e2);
+  const tf1  = FLAGS[tpe1] || (tpe1 ? "🏳":"");
+  const tf2  = FLAGS[tpe2] || (tpe2 ? "🏳":"");
   body += `<div class="bcol bcol-tp" style="width:${CW}px;height:${H}px">
     <div class="bgame ${tpD?"bgame-done":""}" onclick="setMMRound('tp')" title="3.º Lugar · clica para editar">
-      <div class="brow ${tpW===tp.e1&&tp.e1?"bwin":tpD&&tpW?"blose":""}">${tf1} <span>${tp.e1||"TBD"}</span></div>
+      <div class="brow ${tpW===tpe1&&tpe1?"bwin":tpD&&tpW?"blose":""}">${tf1} <span>${tpe1||"TBD"}</span></div>
       <div class="bscore">${tpD?`${tp.gc}–${tp.gf}`:"·"}</div>
-      <div class="brow ${tpW===tp.e2&&tp.e2?"bwin":tpD&&tpW?"blose":""}">${tf2} <span>${tp.e2||"TBD"}</span></div>
+      <div class="brow ${tpW===tpe2&&tpe2?"bwin":tpD&&tpW?"blose":""}">${tf2} <span>${tpe2||"TBD"}</span></div>
     </div>
   </div>`;
 

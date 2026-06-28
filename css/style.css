@@ -524,6 +524,16 @@ body {
 }
 .prog-val  { display: block; font-weight: 700; font-size: .78rem; }
 .pts-small { font-size: .6rem; opacity: .75; margin-top: 2px; display: block; }
+.ko-pred-qual { display: block; font-size: .62rem; opacity: .9; margin-top: 1px; }
+.mm-review-section { margin-top: 16px; }
+.mm-review-actions { margin-bottom: 12px; }
+.ko-resumo-btn {
+  margin-left: auto;
+  width: 28px;
+  height: 28px;
+  font-size: .78rem;
+  flex-shrink: 0;
+}
 
 .tipo-exato {
   background: linear-gradient(105deg, #14532d, #16a34a 42%, #4ade80 52%, #16a34a 62%, #14532d);
