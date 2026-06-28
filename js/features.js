@@ -272,17 +272,18 @@ function renderPresentationSlide(n) {
     </div>`;
 }
 
-// ─── Auto-preencher Mata-Mata (top 2 por grupo → R32) ───────────────────────
+// ─── Auto-preencher Mata-Mata (top 2 + 8 melhores terceiros → R32) ──────────
 function computeGroupQualified(resultados) {
   const grupos = [...new Set(DADOS.jogos.map(j => j.grupo))].sort();
-  const qualified = [];
+  const directQualified = [];
+  const thirdPlaced = [];
 
   for (const g of grupos) {
     const jogos = DADOS.jogos.filter(j => j.grupo === g);
     const equipas = new Set();
     jogos.forEach(j => { equipas.add(j.casa); equipas.add(j.fora); });
     const stats = {};
-    equipas.forEach(e => { stats[e] = { e, pts: 0, gd: 0, gm: 0 }; });
+    equipas.forEach(e => { stats[e] = { e, pts: 0, gd: 0, gm: 0, g }; });
     for (const j of jogos) {
       const r = resultados[j.codigo];
       if (!r) continue;
@@ -294,14 +295,25 @@ function computeGroupQualified(resultados) {
       else if (gc < gf) sf.pts += 3;
       else { sc.pts++; sf.pts++; }
     }
-    const st = Object.values(stats).sort((a, b) => b.pts - a.pts || b.gd - a.gd || b.gm - a.gm);
-    if (st[0]) qualified.push(st[0].e);
-    if (st[1]) qualified.push(st[1].e);
+    const st = Object.values(stats).sort((a, b) =>
+      b.pts - a.pts || b.gd - a.gd || b.gm - a.gm || a.e.localeCompare(b.e)
+    );
+    if (st[0]) directQualified.push(st[0].e);
+    if (st[1]) directQualified.push(st[1].e);
+    if (st[2]) thirdPlaced.push(st[2]);
   }
-  return qualified;
+
+  const bestThirds = thirdPlaced
+    .sort((a, b) =>
+      b.pts - a.pts || b.gd - a.gd || b.gm - a.gm || a.g.localeCompare(b.g)
+    )
+    .slice(0, 8)
+    .map(t => t.e);
+
+  return [...directQualified, ...bestThirds];
 }
 
-/** Actualiza R32 com 1.º e 2.º de cada grupo (corre ao guardar resultados). */
+/** Actualiza R32 com 1.º/2.º + 8 melhores terceiros (corre ao guardar resultados). */
 function syncMataMataFromGroups(opts = {}) {
   const resultados = getResultados();
   const qualified = computeGroupQualified(resultados);

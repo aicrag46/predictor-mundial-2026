@@ -1074,6 +1074,10 @@ function buildKOTemplateForPlayer(pi, roundId = koTemplateRound) {
   lines.push(`PREDICTOR 2026 — TEMPLATE MATA-MATA (${roundCodeFromId(round.id)})`);
   lines.push(`Jogador: ${nome}`);
   lines.push("");
+  lines.push("Preenche apenas Score90 e Apurado.");
+  lines.push("Exemplo:");
+  lines.push(`${roundCodeFromId(round.id)}-01 | México vs África do Sul | Score90: 2-1 | Apurado: México`);
+  lines.push("");
 
   lines.push(`[${roundCodeFromId(round.id)}] ${round.name}`);
   const games = mm[round.id] || [];
@@ -1087,7 +1091,7 @@ function buildKOTemplateForPlayer(pi, roundId = koTemplateRound) {
     const qualifier = pred.qualifier || "<Equipa>";
     const e1 = game.e1 || "TBD";
     const e2 = game.e2 || "TBD";
-    lines.push(`${code} | Score90: ${score} | Apurado: ${qualifier} | Jogo: ${e1} vs ${e2}`);
+    lines.push(`${code} | ${e1} vs ${e2} | Score90: ${score} | Apurado: ${qualifier}`);
   });
   lines.push("");
 
@@ -1115,6 +1119,8 @@ function resolveQualifier(rawQualifier, game) {
 }
 
 function parseKOMessageLine(line) {
+  const gameFirst = line.match(/^(R32|R16|QF|SF|TP|F)\s*-\s*(\d{1,2})\s*\|\s*([^|]+?)\s+vs\s+([^|]+?)\s*\|\s*Score90\s*:\s*(\d+)\s*[-–]\s*(\d+)\s*\|\s*Apurado\s*:\s*([^|]+)$/i);
+  if (gameFirst) return [gameFirst[0], gameFirst[1], gameFirst[2], gameFirst[5], gameFirst[6], gameFirst[7]];
   const strict = line.match(/^(R32|R16|QF|SF|TP|F)\s*-\s*(\d{1,2})\s*\|\s*Score90\s*:\s*(\d+)\s*[-–]\s*(\d+)\s*\|\s*Apurado\s*:\s*([^|]+)(?:\||$)/i);
   if (strict) return strict;
   const compact = line.match(/^(R32|R16|QF|SF|TP|F)\s*-\s*(\d{1,2})\s*\|\s*(\d+)\s*[-–]\s*(\d+)\s*\|\s*([^|]+)$/i);

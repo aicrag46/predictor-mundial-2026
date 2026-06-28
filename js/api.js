@@ -38,7 +38,7 @@ let _apiSyncing = false;
 let _apiInterval = null;
 
 function getApiProxyCandidates() {
-  const status = "FINISHED,IN_PLAY,PAUSED";
+  const status = "FINISHED,IN_PLAY,PAUSED,TIMED,SCHEDULED";
   const netlify = `/.netlify/functions/football-results?status=${encodeURIComponent(status)}`;
   const vercel = `/api/football-results?status=${encodeURIComponent(status)}`;
   // Preferir endpoint nativo da plataforma atual, com fallback para o outro.
@@ -130,44 +130,78 @@ function apiWinnerTeam(m, homePT, awayPT) {
   return null;
 }
 
-function applyKnockoutMatch(m, mm, stats) {
-  const stage = m.stage;
-  if (!KO_STAGES.has(stage) && stage !== "PLAYOFFS") return;
+function stageToRoundId(stage) {
+  return {
+    ROUND_OF_32: "r32",
+    LAST_32: "r32",
+    PLAYOFFS: "r32",
+    LAST_16: "r16",
+    QUARTER_FINALS: "qf",
+    SEMI_FINALS: "sf",
+    THIRD_PLACE: "tp",
+    FINAL: "f",
+  }[stage] || null;
+}
 
-  const homePT = apiMapTeam(m.homeTeam?.shortName || m.homeTeam?.name || "");
-  const awayPT = apiMapTeam(m.awayTeam?.shortName || m.awayTeam?.name || "");
-  const sc = parseApiScore(m);
-  if (!sc || !sc.finished) return;
+function syncKnockoutFixturesFromApi(matches, mm, stats) {
+  const byRound = { r32: [], r16: [], qf: [], sf: [], tp: [], f: [] };
 
-  let gc = sc.gc, gf = sc.gf;
+  for (const m of matches) {
+    const rid = stageToRoundId(m.stage);
+    if (!rid || !byRound[rid]) continue;
+    byRound[rid].push(m);
+  }
+
+  let changed = false;
   const rounds = ["r32", "r16", "qf", "sf", "tp", "f"];
 
   for (const rid of rounds) {
-    if (!mm[rid]) continue;
-    mm[rid].forEach((game, idx) => {
-      if (!game.e1 && !game.e2) return;
-      const match =
-        (game.e1 === homePT && game.e2 === awayPT) ||
-        (game.e1 === awayPT && game.e2 === homePT);
-      if (!match) return;
+    const list = byRound[rid]
+      .sort((a, b) => (a.utcDate || "").localeCompare(b.utcDate || "") || (a.id || 0) - (b.id || 0));
 
-      let gcF = gc, gfF = gf;
-      if (game.e1 === awayPT && game.e2 === homePT) { gcF = gf; gfF = gc; }
+    list.forEach((m, idx) => {
+      const game = mm[rid]?.[idx];
+      if (!game) return;
 
-      if (game.gc === gcF && game.gf === gfF) return;
+      const homePT = apiMapTeam(m.homeTeam?.shortName || m.homeTeam?.name || "");
+      const awayPT = apiMapTeam(m.awayTeam?.shortName || m.awayTeam?.name || "");
+      if (!homePT || !awayPT) return;
 
-      game.gc = gcF;
-      game.gf = gfF;
-      if (gcF === gfF) {
-        const winner = apiWinnerTeam(m, homePT, awayPT);
-        game.pen_winner = winner || game.pen_winner;
-      } else {
-        game.pen_winner = null;
+      if (game.e1 !== homePT || game.e2 !== awayPT) {
+        game.e1 = homePT;
+        game.e2 = awayPT;
+        changed = true;
+        stats.koFixtures = (stats.koFixtures || 0) + 1;
       }
-      mmPropagate(mm, rid, idx);
-      stats.koUpdated++;
+
+      const sc = parseApiScore(m);
+      if (!sc || !sc.finished) return;
+
+      if (game.gc !== sc.gc || game.gf !== sc.gf) {
+        game.gc = sc.gc;
+        game.gf = sc.gf;
+        changed = true;
+        stats.koUpdated++;
+      }
+
+      if (sc.gc === sc.gf) {
+        const winner = apiWinnerTeam(m, homePT, awayPT);
+        if (winner && game.pen_winner !== winner) {
+          game.pen_winner = winner;
+          changed = true;
+        }
+      } else if (game.pen_winner !== null) {
+        game.pen_winner = null;
+        changed = true;
+      }
+
+      if (game.gc !== null && game.gf !== null) {
+        mmPropagate(mm, rid, idx);
+      }
     });
   }
+
+  return changed;
 }
 
 async function apiFetch() {
@@ -189,20 +223,19 @@ async function apiFetch() {
     const resultados = getResultados();
     const liveScores = {};
     const mm = getMataMata();
-    const stats = { updated: 0, koUpdated: 0, live: 0, conflicts: 0 };
+    const stats = { updated: 0, koUpdated: 0, koFixtures: 0, live: 0, conflicts: 0 };
 
     for (const m of matches) {
       if (m.stage === "GROUP_STAGE" || !m.stage) {
         applyGroupMatch(m, resultados, liveScores, stats);
-      } else {
-        applyKnockoutMatch(m, mm, stats);
       }
     }
+    const koChanged = syncKnockoutFixturesFromApi(matches, mm, stats);
 
     dbSet(DB_KEYS.LIVE_SCORES, liveScores);
 
     if (stats.updated > 0) saveResultados(resultados);
-    if (stats.koUpdated > 0) saveMataMata(mm);
+    if (koChanged || stats.koUpdated > 0) saveMataMata(mm);
 
     saveClassificationSnapshot(resultados);
 
@@ -212,6 +245,7 @@ async function apiFetch() {
 
     const now = new Date().toLocaleTimeString("pt-PT", { hour: "2-digit", minute: "2-digit" });
     const parts = [`${stats.updated} GS`];
+    if (stats.koFixtures) parts.push(`${stats.koFixtures} KO jogos`);
     if (stats.koUpdated) parts.push(`${stats.koUpdated} KO`);
     if (stats.live) parts.push(`${stats.live} live`);
     showApiStatus(`✅ ${now} · ${parts.join(" · ")}`, "ok");
