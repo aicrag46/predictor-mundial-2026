@@ -75,12 +75,20 @@ function findGroupGame(homePT, awayPT) {
 function parseApiScore(m) {
   const st = m.status;
   let gc, gf;
+
+  // Para o nosso jogo, Score90 = resultado aos 90 minutos.
+  // Em eliminatórias com prolongamento/penáltis, usar sempre regularTime.
+  const rtHome = m.score?.regularTime?.home;
+  const rtAway = m.score?.regularTime?.away;
+  const ftHome = m.score?.fullTime?.home;
+  const ftAway = m.score?.fullTime?.away;
+
   if (st === "IN_PLAY" || st === "PAUSED") {
-    gc = m.score?.regularTime?.home ?? m.score?.fullTime?.home;
-    gf = m.score?.regularTime?.away ?? m.score?.fullTime?.away;
+    gc = rtHome ?? ftHome;
+    gf = rtAway ?? ftAway;
   } else {
-    gc = m.score?.fullTime?.home;
-    gf = m.score?.fullTime?.away;
+    gc = rtHome ?? ftHome;
+    gf = rtAway ?? ftAway;
   }
   if (gc === null || gc === undefined || gf === null || gf === undefined) return null;
   return { gc, gf, live: st === "IN_PLAY" || st === "PAUSED", finished: st === "FINISHED" };

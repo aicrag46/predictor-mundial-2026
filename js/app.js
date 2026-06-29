@@ -668,7 +668,16 @@ function renderMataMata(mm) {
 }
 
 function cleanTeamName(name) {
-  return (name || "").trim();
+  const raw = (name || "").replace(/\s+/g, " ").trim();
+  if (!raw) return "";
+  if (/^(tbd|pendente|por definir)$/i.test(raw)) return "";
+  if (/^[.\-–—•·_×x]+$/u.test(raw)) return "";
+  if (!/[\p{L}\p{N}]/u.test(raw)) return "";
+  return raw;
+}
+
+function hasValidTeamName(name) {
+  return Boolean(cleanTeamName(name));
 }
 
 function repairMataMataState(mm) {
@@ -690,7 +699,7 @@ function repairMataMataState(mm) {
   }
 
   // 2) Auto-reparar R32 quando há muitos jogos só com equipa 1
-  const brokenR32 = (mm.r32 || []).filter(g => cleanTeamName(g.e1) && !cleanTeamName(g.e2)).length;
+  const brokenR32 = (mm.r32 || []).filter(g => hasValidTeamName(g.e1) && !hasValidTeamName(g.e2)).length;
   if (brokenR32 >= 4) {
     const qualified = computeGroupQualified(getResultados());
     if (qualified.length >= 32) {
