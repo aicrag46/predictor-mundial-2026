@@ -116,7 +116,48 @@ const MM_ROUNDS = [
   { id: "tp",  name: "3.º Lugar",        count: 1,  abbr: "3.º" },
   { id: "f",   name: "Final",            count: 1,  abbr: "🏆"  },
 ];
-const MM_SEQ = ["r32", "r16", "qf", "sf", "f"]; // main bracket (tp is parallel)
+const MM_BRACKET_MAP = {
+  // Mapeamento oficial do caminho do bracket (não é sequencial por índice)
+  // Fonte: bracket FIFA 2026 (R32 matchups -> R16 fixtures)
+  r32: {
+    0:  { nextRound: "r16", nextGame: 1, slot: 0 }, // R32-01 -> R16-02
+    1:  { nextRound: "r16", nextGame: 2, slot: 0 }, // R32-02 -> R16-03
+    2:  { nextRound: "r16", nextGame: 0, slot: 0 }, // R32-03 -> R16-01
+    3:  { nextRound: "r16", nextGame: 1, slot: 1 }, // R32-04 -> R16-02
+    4:  { nextRound: "r16", nextGame: 2, slot: 1 }, // R32-05 -> R16-03
+    5:  { nextRound: "r16", nextGame: 0, slot: 1 }, // R32-06 -> R16-01
+    6:  { nextRound: "r16", nextGame: 3, slot: 0 }, // R32-07 -> R16-04
+    7:  { nextRound: "r16", nextGame: 3, slot: 1 }, // R32-08 -> R16-04
+    8:  { nextRound: "r16", nextGame: 5, slot: 0 }, // R32-09 -> R16-06
+    9:  { nextRound: "r16", nextGame: 5, slot: 1 }, // R32-10 -> R16-06
+    10: { nextRound: "r16", nextGame: 4, slot: 0 }, // R32-11 -> R16-05
+    11: { nextRound: "r16", nextGame: 4, slot: 1 }, // R32-12 -> R16-05
+    12: { nextRound: "r16", nextGame: 7, slot: 0 }, // R32-13 -> R16-08
+    13: { nextRound: "r16", nextGame: 6, slot: 0 }, // R32-14 -> R16-07
+    14: { nextRound: "r16", nextGame: 6, slot: 1 }, // R32-15 -> R16-07
+    15: { nextRound: "r16", nextGame: 7, slot: 1 }, // R32-16 -> R16-08
+  },
+  r16: {
+    0: { nextRound: "qf", nextGame: 0, slot: 0 }, // R16-01 -> QF-01
+    1: { nextRound: "qf", nextGame: 0, slot: 1 }, // R16-02 -> QF-01
+    2: { nextRound: "qf", nextGame: 2, slot: 0 }, // R16-03 -> QF-03
+    3: { nextRound: "qf", nextGame: 2, slot: 1 }, // R16-04 -> QF-03
+    4: { nextRound: "qf", nextGame: 1, slot: 0 }, // R16-05 -> QF-02
+    5: { nextRound: "qf", nextGame: 1, slot: 1 }, // R16-06 -> QF-02
+    6: { nextRound: "qf", nextGame: 3, slot: 0 }, // R16-07 -> QF-04
+    7: { nextRound: "qf", nextGame: 3, slot: 1 }, // R16-08 -> QF-04
+  },
+  qf: {
+    0: { nextRound: "sf", nextGame: 0, slot: 0 }, // QF-01 -> SF-01
+    1: { nextRound: "sf", nextGame: 0, slot: 1 }, // QF-02 -> SF-01
+    2: { nextRound: "sf", nextGame: 1, slot: 0 }, // QF-03 -> SF-02
+    3: { nextRound: "sf", nextGame: 1, slot: 1 }, // QF-04 -> SF-02
+  },
+  sf: {
+    0: { nextRound: "f", nextGame: 0, slot: 0 },  // SF-01 -> Final
+    1: { nextRound: "f", nextGame: 0, slot: 1 },  // SF-02 -> Final
+  },
+};
 
 function getMataMata() {
   const s = dbGet(DB_KEYS.MATAMATA);
@@ -152,17 +193,29 @@ function mmPropagate(mm, roundId, gameIdx) {
   const game = mm[roundId][gameIdx];
   const winner = mmWinner(game);
   const loser  = mmLoser(game);
-  const mi = MM_SEQ.indexOf(roundId);
+  let changed = false;
 
-  if (mi >= 0 && mi < MM_SEQ.length - 1 && winner) {
-    const nextRound = MM_SEQ[mi + 1];
-    const nextGame  = Math.floor(gameIdx / 2);
-    const slot      = gameIdx % 2;
-    mm[nextRound][nextGame][slot === 0 ? "e1" : "e2"] = winner;
+  const link = MM_BRACKET_MAP[roundId]?.[gameIdx];
+  if (link && winner) {
+    const next = mm[link.nextRound]?.[link.nextGame];
+    if (next) {
+      const field = link.slot === 0 ? "e1" : "e2";
+      if (next[field] !== winner) {
+        next[field] = winner;
+        changed = true;
+      }
+    }
   }
   if (roundId === "sf") {
-    if (loser) mm.tp[0][gameIdx === 0 ? "e1" : "e2"] = loser;
+    if (loser) {
+      const field = gameIdx === 0 ? "e1" : "e2";
+      if (mm.tp[0][field] !== loser) {
+        mm.tp[0][field] = loser;
+        changed = true;
+      }
+    }
   }
+  return changed;
 }
 
 let mmActiveRound = "r32";
@@ -720,6 +773,17 @@ function repairMataMataState(mm) {
       }
     }
   }
+
+  // 3) Reaplicar propagação oficial para todos os jogos já concluídos
+  //    (corrige bracket antigo que tenha sido gerado com ordem sequencial incorreta).
+  ["r32", "r16", "qf", "sf"].forEach(rid => {
+    const games = mm[rid] || [];
+    games.forEach((game, idx) => {
+      if (game.gc !== null && game.gc !== undefined && game.gf !== null && game.gf !== undefined) {
+        if (mmPropagate(mm, rid, idx)) changed = true;
+      }
+    });
+  });
 
   return changed;
 }
