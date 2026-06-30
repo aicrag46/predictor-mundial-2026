@@ -723,6 +723,7 @@ function renderMataMata(mm) {
 function cleanTeamName(name) {
   const raw = (name || "").replace(/\s+/g, " ").trim();
   if (!raw) return "";
+  if (/^equipa\s*\d+$/i.test(raw)) return "";
   if (/^(tbd|pendente|por definir)$/i.test(raw)) return "";
   if (/^[.\-–—•·_×x]+$/u.test(raw)) return "";
   if (!/[\p{L}\p{N}]/u.test(raw)) return "";
@@ -774,13 +775,57 @@ function repairMataMataState(mm) {
     }
   }
 
-  // 3) Reaplicar propagação oficial para todos os jogos já concluídos
-  //    (corrige bracket antigo que tenha sido gerado com ordem sequencial incorreta).
+  // 3) Recompor rondas derivadas (R16+) apenas a partir dos vencedores válidos.
+  //    Isto remove "lixo" antigo de mapeamentos incorretos (ex.: Equipa2, emparelhamentos errados).
+  if (rebuildDerivedKnockoutRounds(mm)) changed = true;
+
+  return changed;
+}
+
+function rebuildDerivedKnockoutRounds(mm) {
+  let changed = false;
+  const expected = {
+    r16: Array.from({ length: 8 }, () => ({ e1: "", e2: "" })),
+    qf:  Array.from({ length: 4 }, () => ({ e1: "", e2: "" })),
+    sf:  Array.from({ length: 2 }, () => ({ e1: "", e2: "" })),
+    f:   Array.from({ length: 1 }, () => ({ e1: "", e2: "" })),
+    tp:  Array.from({ length: 1 }, () => ({ e1: "", e2: "" })),
+  };
+
+  // Propagar vencedores pelos links oficiais
   ["r32", "r16", "qf", "sf"].forEach(rid => {
+    (mm[rid] || []).forEach((game, idx) => {
+      const link = MM_BRACKET_MAP[rid]?.[idx];
+      const winner = mmWinner(game);
+      if (link && winner && expected[link.nextRound]?.[link.nextGame]) {
+        expected[link.nextRound][link.nextGame][link.slot === 0 ? "e1" : "e2"] = winner;
+      }
+      if (rid === "sf") {
+        const loser = mmLoser(game);
+        if (loser) expected.tp[0][idx === 0 ? "e1" : "e2"] = loser;
+      }
+    });
+  });
+
+  // Aplicar expected; quando slot muda/limpa, invalidar score para evitar inconsistências.
+  ["r16", "qf", "sf", "f", "tp"].forEach(rid => {
     const games = mm[rid] || [];
     games.forEach((game, idx) => {
-      if (game.gc !== null && game.gc !== undefined && game.gf !== null && game.gf !== undefined) {
-        if (mmPropagate(mm, rid, idx)) changed = true;
+      const exp = expected[rid]?.[idx] || { e1: "", e2: "" };
+      const nextE1 = cleanTeamName(exp.e1);
+      const nextE2 = cleanTeamName(exp.e2);
+      const curE1 = cleanTeamName(game.e1);
+      const curE2 = cleanTeamName(game.e2);
+
+      if (curE1 !== nextE1 || curE2 !== nextE2) {
+        game.e1 = nextE1;
+        game.e2 = nextE2;
+        if (game.gc !== null || game.gf !== null || game.pen_winner !== null) {
+          game.gc = null;
+          game.gf = null;
+          game.pen_winner = null;
+        }
+        changed = true;
       }
     });
   });
