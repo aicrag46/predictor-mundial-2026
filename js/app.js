@@ -807,7 +807,11 @@ function rebuildDerivedKnockoutRounds(mm) {
     });
   });
 
-  // Aplicar expected; quando slot muda/limpa, invalidar score para evitar inconsistências.
+  // Aplicar expected; só corrige um slot quando já há um vencedor calculado
+  // e diferente do que lá está (correção genuína de emparelhamento).
+  // Nunca apaga um nome válido só porque a ronda anterior ainda não tem
+  // resultado suficiente para o recalcular (ex.: nomes inseridos manualmente,
+  // ou faltam jogos da ronda anterior por preencher).
   ["r16", "qf", "sf", "f", "tp"].forEach(rid => {
     const games = mm[rid] || [];
     games.forEach((game, idx) => {
@@ -817,14 +821,20 @@ function rebuildDerivedKnockoutRounds(mm) {
       const curE1 = cleanTeamName(game.e1);
       const curE2 = cleanTeamName(game.e2);
 
-      if (curE1 !== nextE1 || curE2 !== nextE2) {
-        game.e1 = nextE1;
-        game.e2 = nextE2;
-        if (game.gc !== null || game.gf !== null || game.pen_winner !== null) {
-          game.gc = null;
-          game.gf = null;
-          game.pen_winner = null;
-        }
+      const e1Wrong = nextE1 && curE1 !== nextE1;
+      const e2Wrong = nextE2 && curE2 !== nextE2;
+
+      if (e1Wrong || e2Wrong) {
+        if (e1Wrong) game.e1 = nextE1;
+        if (e2Wrong) game.e2 = nextE2;
+        game.gc = null;
+        game.gf = null;
+        game.pen_winner = null;
+        changed = true;
+      } else if (game.e1 !== curE1 || game.e2 !== curE2) {
+        // Só normaliza formatação (trim/limpeza), sem tocar no resultado.
+        game.e1 = curE1;
+        game.e2 = curE2;
         changed = true;
       }
     });
