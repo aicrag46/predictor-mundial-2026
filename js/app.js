@@ -406,10 +406,10 @@ function renderClassificacao(resultados) {
     <thead><tr>
       <th>#</th><th>Participante</th>
       <th title="Pontos Totais">Pts</th>
-      <th title="Exactos (5pts)">✅</th>
-      <th title="Vencedor/Empate (2pts)">⚽</th>
-      <th title="Golos Equipa (1pt)">🎯</th>
-      <th title="Não Pontuou">❌</th>
+      <th title="Exactos (grupos + mata-mata)">✅</th>
+      <th title="Vencedor/Empate (grupos + mata-mata)">⚽</th>
+      <th title="Golos Equipa (grupos + mata-mata)">🎯</th>
+      <th title="Não Pontuou (grupos + mata-mata)">❌</th>
       <th>Jantar</th>
     </tr></thead><tbody>`;
   for (const s of cls) {
@@ -1319,8 +1319,12 @@ function onMMPen(btn) {
 }
 
 function resetMataMata() {
-  if (!confirm("Apagar todos os dados do Mata-Mata?")) return;
+  if (!confirm("Apagar todos os dados do Mata-Mata, incluindo as previsões de TODOS os jogadores? Esta ação não pode ser desfeita.")) return;
   dbRemove(DB_KEYS.MATAMATA);
+  // As previsões guardadas (KO_PREDS) ficam órfãs se o bracket for
+  // reconstruído do zero — sem isto, reapareceriam presas a equipas
+  // diferentes assim que os jogos de grupos fossem recalculados.
+  dbRemove(DB_KEYS.KO_PREDS);
   mmActiveRound = "r32";
   renderMataMata(initMataMata());
 }
@@ -2165,7 +2169,7 @@ function gerarConsentimento() {
     let koSection = "";
     if (koKeys.length > 0) {
       const roundNames = { r32:"Round of 32 (16 avos)", r16:"Oitavos de Final", qf:"Quartos de Final", sf:"Meias-Final", tp:"3.º Lugar", f:"Final" };
-      const mm = getMM();
+      const mm = getMataMata();
       const koRows = MM_ROUNDS.map(round => {
         const games = mm[round.id] || [];
         const rows = games.map((game, idx) => {

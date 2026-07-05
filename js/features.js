@@ -71,7 +71,11 @@ function renderClassificationHistory(containerId) {
     el.innerHTML = `<p class="feat-hint">Histórico disponível após várias sincronizações.</p>`;
     return;
   }
-  const leader = DADOS.participantes[0] ? DADOS.participantes : [];
+  // Top 3 pelo ranking mais recente — não a ordem em que os jogadores
+  // aparecem em DADOS.participantes (isso mostrava sempre os 3 primeiros
+  // da lista, não os 3 líderes reais).
+  const lastRanking = hist[hist.length - 1]?.ranking || [];
+  const top3 = lastRanking.slice(0, 3).map(r => r.nome);
   let html = `<div class="history-chart"><canvas id="history-canvas" height="120"></canvas></div>`;
   html += `<div class="history-list">`;
   hist.slice(-8).reverse().forEach(h => {
@@ -80,7 +84,7 @@ function renderClassificationHistory(containerId) {
   });
   html += `</div>`;
   el.innerHTML = html;
-  drawHistoryChart(hist, leader);
+  drawHistoryChart(hist, top3);
 }
 
 function drawHistoryChart(hist, participants) {
