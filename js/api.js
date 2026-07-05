@@ -166,15 +166,35 @@ function syncKnockoutFixturesFromApi(matches, mm, stats) {
   for (const rid of rounds) {
     const list = byRound[rid]
       .sort((a, b) => (a.utcDate || "").localeCompare(b.utcDate || "") || (a.id || 0) - (b.id || 0));
+    const games = mm[rid] || [];
+    const usedIdx = new Set();
 
-    list.forEach((m, idx) => {
-      const game = mm[rid]?.[idx];
-      if (!game) return;
-
+    list.forEach(m => {
       const homePT = apiMapTeam(m.homeTeam?.shortName || m.homeTeam?.name || "");
       const awayPT = apiMapTeam(m.awayTeam?.shortName || m.awayTeam?.name || "");
       if (!homePT || !awayPT) return;
 
+      // A ordem cronológica da API não corresponde à numeração oficial do
+      // bracket (MM_BRACKET_MAP). Por isso, em vez de assumir que a posição
+      // idx da API é o mesmo slot do nosso bracket, procuramos primeiro o
+      // jogo que já tem exactamente este par de equipas (emparelhamento já
+      // calculado a partir da ronda anterior).
+      let idx = games.findIndex((g, i) =>
+        !usedIdx.has(i) &&
+        ((cleanTeamName(g.e1) === homePT && cleanTeamName(g.e2) === awayPT) ||
+         (cleanTeamName(g.e1) === awayPT && cleanTeamName(g.e2) === homePT)));
+
+      // Se ainda não há emparelhamento conhecido (ex.: ronda anterior por
+      // terminar), usar o primeiro slot totalmente vazio como bootstrap —
+      // nunca substituir um emparelhamento já definido por um par diferente.
+      if (idx === -1) {
+        idx = games.findIndex((g, i) =>
+          !usedIdx.has(i) && !hasValidTeamName(g.e1) && !hasValidTeamName(g.e2));
+      }
+      if (idx === -1) return;
+      usedIdx.add(idx);
+
+      const game = games[idx];
       if (game.e1 !== homePT || game.e2 !== awayPT) {
         game.e1 = homePT;
         game.e2 = awayPT;

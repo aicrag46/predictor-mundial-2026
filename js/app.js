@@ -205,6 +205,14 @@ function mmPropagate(mm, roundId, gameIdx) {
     if (next) {
       const field = link.slot === 0 ? "e1" : "e2";
       if (next[field] !== winner) {
+        // O apurado deste slot mudou (ex.: correcção de um resultado
+        // anterior) — qualquer resultado já inserido nesse jogo seguinte
+        // pertence às equipas antigas, por isso deixa de ser válido.
+        if (next.gc !== null || next.gf !== null || next.pen_winner !== null) {
+          next.gc = null;
+          next.gf = null;
+          next.pen_winner = null;
+        }
         next[field] = winner;
         changed = true;
       }
@@ -214,6 +222,11 @@ function mmPropagate(mm, roundId, gameIdx) {
     if (loser) {
       const field = gameIdx === 0 ? "e1" : "e2";
       if (mm.tp[0][field] !== loser) {
+        if (mm.tp[0].gc !== null || mm.tp[0].gf !== null || mm.tp[0].pen_winner !== null) {
+          mm.tp[0].gc = null;
+          mm.tp[0].gf = null;
+          mm.tp[0].pen_winner = null;
+        }
         mm.tp[0][field] = loser;
         changed = true;
       }
@@ -234,7 +247,7 @@ function switchTab(tab) {
   document.querySelectorAll(".mobile-nav-btn").forEach(b => {
     const t = b.dataset.tab;
     if (t === "more") {
-      b.classList.toggle("active", ["previsoes","regras","whatsapp"].includes(tab));
+      b.classList.toggle("active", ["revisao-mm","previsoes","regras","whatsapp"].includes(tab));
     } else {
       b.classList.toggle("active", t === tab);
     }
@@ -273,6 +286,7 @@ function renderTab(tab) {
   else if (tab === "revisao")       renderRevisao(r);
   else if (tab === "whatsapp")      renderWhatsapp(r);
   else if (tab === "matamata")      renderMataMata(getMataMata());
+  else if (tab === "revisao-mm")    renderRevisaoMM(getMataMata());
   else if (tab === "previsoes")     renderPrevisoes();
   else if (tab === "regras")        renderRegras();
 }
@@ -718,10 +732,14 @@ function renderMataMata(mm) {
   });
   html += `</div></div>`;
 
-  html += renderKOMataMataReview(mm);
-
   container.innerHTML = html;
   attachMMEvents(container, mm);
+}
+
+function renderRevisaoMM(mm) {
+  const container = document.getElementById("revisao-mm-content");
+  if (!container) return;
+  container.innerHTML = renderKOMataMataReview(mm);
 }
 
 function cleanTeamName(name) {
@@ -1474,6 +1492,7 @@ function renderKOPredSection(pi, mm) {
       </select>
       <button class="btn-feat" onclick="copyKOTemplateForCurrentPlayer()">📤 Copiar template da fase</button>
       <button class="btn-feat" onclick="importKOPredsFromPrivateMessage()">📥 Importar mensagem da fase</button>
+      <button class="btn-feat" onclick="importKOPredsBulk()">📥📥 Importar todos os jogadores</button>
     </div>
     <div class="ko-scoring-info">
       Score (90') e Apurado pontuam <strong>independentemente e acumulam</strong>.
@@ -1710,6 +1729,109 @@ function importKOPredsFromPrivateMessage() {
   } else {
     showApiStatus(`✅ Importadas ${imported} previsões ${roundCodeFromId(koTemplateRound)}`, "ok");
   }
+}
+
+function findParticipantIndex(rawName) {
+  const clean = normalizeTeamName(rawName).toLowerCase();
+  if (!clean) return -1;
+  let idx = DADOS.participantes.findIndex(p => p.toLowerCase() === clean);
+  if (idx === -1) idx = DADOS.participantes.findIndex(p => p.toLowerCase().split(" ")[0] === clean);
+  if (idx === -1) idx = DADOS.participantes.findIndex(p => p.toLowerCase().startsWith(clean));
+  return idx;
+}
+
+// Divide um texto colado com vários jogadores em blocos, um por jogador.
+// Reconhece um cabeçalho de jogador numa linha do tipo "Nome:", "**Nome:**"
+// ou "Nome (nota qualquer):" — nunca uma linha de jogo (essas têm "|").
+function splitKOBulkByPlayer(raw) {
+  const headerRe = /^\*{0,2}\s*([\p{L}][\p{L}\s]*?)\s*(?:\(.*\))?\s*:\s*\*{0,2}\s*$/u;
+  const lines = raw.split(/\r?\n/);
+  const blocks = [];
+  let current = null;
+  for (const line of lines) {
+    const row = line.trim();
+    if (!row) continue;
+    const header = !row.includes("|") ? row.match(headerRe) : null;
+    if (header) {
+      current = { name: header[1].trim(), lines: [] };
+      blocks.push(current);
+    } else if (current) {
+      current.lines.push(row);
+    }
+  }
+  return blocks;
+}
+
+// Importa previsões de mata-mata de VÁRIOS jogadores de uma só vez.
+// Cada jogo é validado exactamente como no import individual
+// (parseKOMessageLine + resolveQualifier), por isso um emparelhamento
+// errado ou apurado inválido fica reportado em vez de guardado às cegas.
+function importKOPredsBulk() {
+  const raw = window.prompt(
+    "Cola aqui as previsões de VÁRIOS jogadores.\n" +
+    "Cada jogador começa numa linha própria com \"Nome:\", seguida das linhas de jogo (aceita qualquer ronda R32/R16/QF/SF/TP/F, misturadas)."
+  );
+  if (!raw || !raw.trim()) return;
+
+  const mm = getMataMata();
+  const all = getKOPredsAll();
+  const blocks = splitKOBulkByPlayer(raw);
+
+  if (!blocks.length) {
+    alert("Não encontrei nenhum cabeçalho de jogador (ex: \"José:\") no texto colado.");
+    return;
+  }
+
+  let totalImported = 0;
+  const report = [];
+
+  for (const { name, lines } of blocks) {
+    const pi = findParticipantIndex(name);
+    if (pi === -1) {
+      report.push(`⚠️ "${name}": jogador não encontrado — ignorado.`);
+      continue;
+    }
+    if (!all[pi]) all[pi] = {};
+
+    let imported = 0;
+    const errors = [];
+    lines.forEach((row, i) => {
+      const m = parseKOMessageLine(row);
+      if (!m) return;
+
+      const roundId = roundIdFromCode(m[1]);
+      const idx = Number(m[2]) - 1;
+      const gc = Number(m[3]);
+      const gf = Number(m[4]);
+      const qualifierRaw = m[5].trim();
+
+      const games = mm[roundId];
+      if (!roundId || !games || idx < 0 || idx >= games.length) {
+        errors.push(`linha ${i + 1}: jogo inválido (${row})`);
+        return;
+      }
+
+      const game = games[idx];
+      const qualifier = resolveQualifier(qualifierRaw, game);
+      if (!qualifier) {
+        errors.push(`linha ${i + 1}: apurado inválido "${qualifierRaw}" em ${roundCodeFromId(roundId)}-${String(idx + 1).padStart(2, "0")} (${game.e1 || "TBD"} × ${game.e2 || "TBD"})`);
+        return;
+      }
+
+      all[pi][`${roundId}:${idx}`] = {
+        ...all[pi][`${roundId}:${idx}`],
+        gc, gf, qualifier,
+      };
+      imported++;
+    });
+
+    totalImported += imported;
+    report.push(`${imported ? "✅" : "⚠️"} ${DADOS.participantes[pi]}: ${imported} previsões${errors.length ? ` · ${errors.length} erro(s):\n   ${errors.join("\n   ")}` : ""}`);
+  }
+
+  saveKOPredsAll(all);
+  renderPrevisoes();
+  alert(`Importação em lote\n\n${report.join("\n")}\n\nTotal: ${totalImported} previsões importadas.`);
 }
 
 function togglePredGroup(hdr) {

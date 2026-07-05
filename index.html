@@ -6,7 +6,7 @@
   <meta name="theme-color" content="#030712" />
   <meta name="apple-mobile-web-app-capable" content="yes" />
   <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent" />
-  <meta name="app-build" content="ko-bracket-fix-v8" />
+  <meta name="app-build" content="ko-bulk-import-v11" />
   <title>Predictor Parque Biológico — Mundial 2026</title>
   <link rel="preconnect" href="https://fonts.googleapis.com" />
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
@@ -89,6 +89,7 @@
       <button class="tab-btn"        data-tab="classificacao" onclick="switchTab('classificacao')"><span class="tab-icon">🏅</span><span class="tab-label">Classificação</span></button>
       <button class="tab-btn"        data-tab="revisao"       onclick="switchTab('revisao')"><span class="tab-icon">📊</span><span class="tab-label">Revisão</span></button>
       <button class="tab-btn"        data-tab="matamata"      onclick="switchTab('matamata')"><span class="tab-icon">⚔️</span><span class="tab-label">Mata-Mata</span></button>
+      <button class="tab-btn"        data-tab="revisao-mm"    onclick="switchTab('revisao-mm')"><span class="tab-icon">📋</span><span class="tab-label">Revisão M-M</span></button>
       <button class="tab-btn"        data-tab="previsoes"     onclick="switchTab('previsoes')"><span class="tab-icon">🔮</span><span class="tab-label">Previsões</span></button>
       <button class="tab-btn"        data-tab="regras"        onclick="switchTab('regras')"><span class="tab-icon">📖</span><span class="tab-label">Regras</span></button>
       <button class="tab-btn"        data-tab="whatsapp"      onclick="switchTab('whatsapp')"><span class="tab-icon">💬</span><span class="tab-label">WhatsApp</span></button>
@@ -111,6 +112,10 @@
 
     <div class="tab-content" id="tab-matamata">
       <div id="matamata-content"></div>
+    </div>
+
+    <div class="tab-content" id="tab-revisao-mm">
+      <div id="revisao-mm-content"></div>
     </div>
 
     <div class="tab-content" id="tab-previsoes">
@@ -142,6 +147,7 @@
       <div class="mobile-sheet-handle"></div>
       <h3>Mais opções</h3>
       <div class="mobile-sheet-grid">
+        <button class="sheet-item" data-tab="revisao-mm" onclick="switchTab('revisao-mm');closeMobileMore()"><span>📋</span>Revisão M-M</button>
         <button class="sheet-item" data-tab="previsoes" onclick="switchTab('previsoes');closeMobileMore()"><span>🔮</span>Previsões</button>
         <button class="sheet-item" data-tab="regras"    onclick="switchTab('regras');closeMobileMore()"><span>📖</span>Regras</button>
         <button class="sheet-item" data-tab="whatsapp"  onclick="switchTab('whatsapp');closeMobileMore()"><span>💬</span>WhatsApp</button>
@@ -193,12 +199,12 @@
 </div>
 
 <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2/dist/umd/supabase.js"></script>
-<script src="js/config.js?v=9"></script>
-<script src="js/scoring.js?v=9"></script>
-<script src="js/db.js?v=9"></script>
-<script src="js/api.js?v=9"></script>
-<script src="js/features.js?v=9"></script>
-<script src="js/data.js?v=9"></script>
-<script src="js/app.js?v=9"></script>
+<script src="js/config.js?v=11"></script>
+<script src="js/scoring.js?v=11"></script>
+<script src="js/db.js?v=11"></script>
+<script src="js/api.js?v=11"></script>
+<script src="js/features.js?v=11"></script>
+<script src="js/data.js?v=11"></script>
+<script src="js/app.js?v=11"></script>
 </body>
 </html>
