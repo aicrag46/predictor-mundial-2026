@@ -72,12 +72,19 @@ function calcParticipante(nome, resultados, gsOv, mm, koP) {
       const games = mm[round.id];
       if (!games) continue;
       games.forEach((game, idx) => {
+        if (!game) return;
         const pred = koP[pi]?.[`${round.id}:${idx}`];
         if (!pred || pred.gc === null || pred.gc === undefined) return;
         if (game.gc === null || game.gc === undefined) return;
         const winner = mmWinner(game);
-        const { pts: kp } = calcKO(round.id, pred.gc, pred.gf, pred.qualifier, game.gc, game.gf, winner);
-        koPts += kp;
+        const ko = calcKO(round.id, pred.gc, pred.gf, pred.qualifier, game.gc, game.gf, winner);
+        koPts += ko.pts;
+        // Os contadores ✅/⚽/🎯/❌ têm de incluir o mata-mata, não só a
+        // fase de grupos — senão ficam presos mesmo com previsões novas.
+        if (ko.tipoScore === "Exato")            exatos++;
+        else if (ko.tipoScore === "Vencedor/Empate") ve++;
+        else if (ko.tipoScore === "Golos Equipa")    golos++;
+        else if (ko.tipoScore === "Não Pontuou")     naoPontua++;
       });
     }
   }
@@ -89,7 +96,16 @@ function calcClassificacao(resultados) {
   const gsOv = getGSOverrides();
   const mm   = getMataMata();
   const koP  = getKOPredsAll();
-  const stats = DADOS.participantes.map(n => calcParticipante(n, resultados, gsOv, mm, koP));
+  // Isola cada participante: um dado corrompido de UM jogador não pode
+  // impedir o cálculo (e o re-render) da classificação de todos os outros.
+  const stats = DADOS.participantes.map(n => {
+    try {
+      return calcParticipante(n, resultados, gsOv, mm, koP);
+    } catch (e) {
+      console.error(`[Classificação] Erro ao calcular "${n}":`, e);
+      return { nome: n, pts: 0, gsPts: 0, koPts: 0, exatos: 0, ve: 0, golos: 0, naoPontua: 0 };
+    }
+  });
   stats.sort((a, b) => {
     if (b.pts !== a.pts)         return b.pts - a.pts;
     if (b.exatos !== a.exatos)   return b.exatos - a.exatos;
