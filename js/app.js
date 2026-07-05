@@ -161,8 +161,12 @@ const MM_BRACKET_MAP = {
 
 function getMataMata() {
   const s = dbGet(DB_KEYS.MATAMATA);
-  if (s) return s;
-  return initMataMata();
+  const mm = s || initMataMata();
+  // Reparar sempre que os dados são lidos, para todas as tabs (Previsões,
+  // Revisão, exportações, templates) verem o mesmo bracket consistente,
+  // não só a tab Mata-Mata.
+  if (repairMataMataState(mm)) saveMataMata(mm);
+  return mm;
 }
 function initMataMata() {
   const mm = {};
