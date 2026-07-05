@@ -1391,15 +1391,16 @@ function renderPrevisoes() {
   const resultados = getResultados();
   const mm         = getMataMata();
   const gsOv       = getGSOverrides();
+  const koP        = getKOPredsAll();
   const nome       = DADOS.participantes[predsPI];
-  const stats      = calcParticipante(nome, resultados, gsOv);
+  const stats      = calcParticipante(nome, resultados, gsOv, mm, koP);
   const cls        = calcClassificacao(resultados);
   const pos        = cls.find(s => s.nome === nome)?.pos ?? "?";
 
   // ── Sub-tabs ──────────────────────────────────────────────────────────────
   let html = `<div class="pp-tabs">`;
   DADOS.participantes.forEach((n, i) => {
-    const st = calcParticipante(n, resultados, gsOv);
+    const st = calcParticipante(n, resultados, gsOv, mm, koP);
     html += `<button class="pp-btn ${predsPI === i ? "active" : ""}" onclick="setPredsParticipant(${i})">
       <span class="pp-nome">${n.split(" ")[0]}</span>
       <span class="pp-pts">${st.pts}pts</span>
