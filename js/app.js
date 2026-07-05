@@ -924,10 +924,17 @@ function renderKOMataMataReview(mm) {
         }
 
         const predScore = `${pred.gc}-${pred.gf}`;
-        const predQual = pred.qualifier || "—";
-        html += `<td class="${TIPO_CSS[tipo]}" title="Score90: ${predScore} | Apurado: ${predQual} | Score: ${scorePts}p | Apurado: ${qualPts}p | Total: ${totalPts}p">
+        // O emparelhamento deste jogo pode ter mudado depois da previsão ter
+        // sido guardada (correcção de ronda anterior, sync da API, edição
+        // manual). Se o apurado guardado já não é nenhuma das duas equipas
+        // actuais, é uma previsão desactualizada — não mostrar como se fosse
+        // válida.
+        const qualStale = pred.qualifier && game.e1 && game.e2 &&
+          pred.qualifier !== game.e1 && pred.qualifier !== game.e2;
+        const predQual = qualStale ? "⚠️ desactualizado" : (pred.qualifier || "—");
+        html += `<td class="${TIPO_CSS[tipo]}" title="Score90: ${predScore} | Apurado: ${qualStale ? `${pred.qualifier} (equipa já não está neste jogo)` : predQual} | Score: ${scorePts}p | Apurado: ${qualPts}p | Total: ${totalPts}p">
           <span class="prog-val">${predScore}</span>
-          <span class="ko-pred-qual">${predQual}</span>
+          <span class="ko-pred-qual${qualStale ? " ko-pred-stale" : ""}">${predQual}</span>
           ${hasRes ? `<span class="pts-small">S:${scorePts} + A:${qualPts} = ${totalPts}p</span>` : ""}
         </td>`;
       }
@@ -1269,7 +1276,19 @@ function onMMScore(inp) {
 function onMMTeam(inp) {
   const { round, idx, field } = inp.dataset;
   const mm = getMataMata();
-  mm[round][+idx][field] = inp.value.trim();
+  const game = mm[round][+idx];
+  const val = inp.value.trim();
+  if (game[field] !== val) {
+    // A identidade da equipa deste slot mudou — qualquer resultado já
+    // inserido pertencia ao emparelhamento antigo, por isso deixa de ser
+    // válido (mesma lógica de segurança do mmPropagate).
+    if (game.gc !== null || game.gf !== null || game.pen_winner !== null) {
+      game.gc = null;
+      game.gf = null;
+      game.pen_winner = null;
+    }
+    game[field] = val;
+  }
   saveMataMata(mm);
 }
 

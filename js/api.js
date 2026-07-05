@@ -196,6 +196,14 @@ function syncKnockoutFixturesFromApi(matches, mm, stats) {
 
       const game = games[idx];
       if (game.e1 !== homePT || game.e2 !== awayPT) {
+        // A equipa deste slot mudou — um resultado já guardado (ex.:
+        // introduzido manualmente antes de a API confirmar o emparelhamento)
+        // pertence às equipas antigas e deixa de ser válido.
+        if (game.gc !== null || game.gf !== null || game.pen_winner !== null) {
+          game.gc = null;
+          game.gf = null;
+          game.pen_winner = null;
+        }
         game.e1 = homePT;
         game.e2 = awayPT;
         changed = true;

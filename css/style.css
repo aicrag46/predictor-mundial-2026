@@ -525,6 +525,7 @@ body {
 .prog-val  { display: block; font-weight: 700; font-size: .78rem; }
 .pts-small { font-size: .6rem; opacity: .75; margin-top: 2px; display: block; }
 .ko-pred-qual { display: block; font-size: .62rem; opacity: .9; margin-top: 1px; }
+.ko-pred-stale { color: #f59e0b; font-weight: 700; opacity: 1; }
 .mm-review-section { margin-top: 16px; }
 .mm-review-actions { margin-bottom: 12px; }
 .ko-resumo-btn {
