@@ -247,7 +247,7 @@ function switchTab(tab) {
   document.querySelectorAll(".mobile-nav-btn").forEach(b => {
     const t = b.dataset.tab;
     if (t === "more") {
-      b.classList.toggle("active", ["revisao-mm","previsoes","regras","whatsapp"].includes(tab));
+      b.classList.toggle("active", ["revisao-mm","importacoes","previsoes","regras","whatsapp"].includes(tab));
     } else {
       b.classList.toggle("active", t === tab);
     }
@@ -287,6 +287,7 @@ function renderTab(tab) {
   else if (tab === "whatsapp")      renderWhatsapp(r);
   else if (tab === "matamata")      renderMataMata(getMataMata());
   else if (tab === "revisao-mm")    renderRevisaoMM(getMataMata());
+  else if (tab === "importacoes")   renderImportacoes();
   else if (tab === "previsoes")     renderPrevisoes();
   else if (tab === "regras")        renderRegras();
 }
@@ -1511,7 +1512,7 @@ function renderKOPredSection(pi, mm) {
       </select>
       <button class="btn-feat" onclick="copyKOTemplateForCurrentPlayer()">📤 Copiar template da fase</button>
       <button class="btn-feat" onclick="importKOPredsFromPrivateMessage()">📥 Importar mensagem da fase</button>
-      <button class="btn-feat" onclick="importKOPredsBulk()">📥📥 Importar todos os jogadores</button>
+      <button class="btn-feat" onclick="switchTab('importacoes')">📥📥 Importar todos os jogadores →</button>
     </div>
     <div class="ko-scoring-info">
       Score (90') e Apurado pontuam <strong>independentemente e acumulam</strong>.
@@ -1785,20 +1786,15 @@ function splitKOBulkByPlayer(raw) {
 // Cada jogo é validado exactamente como no import individual
 // (parseKOMessageLine + resolveQualifier), por isso um emparelhamento
 // errado ou apurado inválido fica reportado em vez de guardado às cegas.
-function importKOPredsBulk() {
-  const raw = window.prompt(
-    "Cola aqui as previsões de VÁRIOS jogadores.\n" +
-    "Cada jogador começa numa linha própria com \"Nome:\", seguida das linhas de jogo (aceita qualquer ronda R32/R16/QF/SF/TP/F, misturadas)."
-  );
-  if (!raw || !raw.trim()) return;
-
+// Devolve um relatório estruturado (usado pela aba Importações) em vez de
+// mostrar alert()s — permite um ecrã só de importações, rápido de rever.
+function runKOBulkImport(raw) {
   const mm = getMataMata();
   const all = getKOPredsAll();
   const blocks = splitKOBulkByPlayer(raw);
 
   if (!blocks.length) {
-    alert("Não encontrei nenhum cabeçalho de jogador (ex: \"José:\") no texto colado.");
-    return;
+    return { ok: false, message: "Não encontrei nenhum cabeçalho de jogador (ex: \"José:\") no texto colado.", report: [], totalImported: 0 };
   }
 
   let totalImported = 0;
@@ -1807,7 +1803,7 @@ function importKOPredsBulk() {
   for (const { name, lines } of blocks) {
     const pi = findParticipantIndex(name);
     if (pi === -1) {
-      report.push(`⚠️ "${name}": jogador não encontrado — ignorado.`);
+      report.push({ name, found: false, imported: 0, errors: [] });
       continue;
     }
     if (!all[pi]) all[pi] = {};
@@ -1845,12 +1841,96 @@ function importKOPredsBulk() {
     });
 
     totalImported += imported;
-    report.push(`${imported ? "✅" : "⚠️"} ${DADOS.participantes[pi]}: ${imported} previsões${errors.length ? ` · ${errors.length} erro(s):\n   ${errors.join("\n   ")}` : ""}`);
+    report.push({ name: DADOS.participantes[pi], found: true, imported, errors });
   }
 
   saveKOPredsAll(all);
+  return { ok: true, report, totalImported };
+}
+
+function importacoesExample() {
+  return [
+    "José:",
+    "R16-01 | Paraguai vs França | Score90: 0-2 | Apurado: França",
+    "R16-02 | Canadá vs Marrocos | Score90: 1-2 | Apurado: Marrocos",
+    "",
+    "Miguel:",
+    "R16-01 | Paraguai vs França | Score90: 1-3 | Apurado: França",
+    "R16-02 | Canadá vs Marrocos | Score90: 1-2 | Apurado: Marrocos",
+  ].join("\n");
+}
+
+function renderImportacoes() {
+  const container = document.getElementById("importacoes-content");
+  if (!container) return;
+  container.innerHTML = `
+    <div class="mm-section">
+      <div class="mm-section-header">
+        <h2 class="mm-section-title">📥 Importações — Mata-Mata</h2>
+        <span class="mm-hint">Cola as previsões de vários jogadores de uma vez e importa tudo num só clique.</span>
+      </div>
+
+      <div class="imp-format-box">
+        <div class="imp-format-title">Formato esperado</div>
+        <pre class="imp-format-example">Nome:
+R16-01 | Equipa1 vs Equipa2 | Score90: 2-1 | Apurado: Equipa1
+R16-02 | Equipa1 vs Equipa2 | Score90: 1-1 | Apurado: Equipa2
+
+Outro Nome:
+R16-01 | ...</pre>
+        <span class="mm-hint">Cada jogador começa numa linha só com "Nome:". Aceita qualquer ronda (R32/R16/QF/SF/TP/F) e várias rondas misturadas no mesmo texto.</span>
+      </div>
+
+      <textarea id="importacoes-textarea" class="wa-textarea imp-textarea"
+        placeholder="${importacoesExample()}"></textarea>
+
+      <div class="feat-actions-bar">
+        <button class="btn-feat imp-btn-primary" onclick="submitImportacoes()">🚀 Importar previsões</button>
+        <button class="btn-feat" onclick="document.getElementById('importacoes-textarea').value=''; document.getElementById('importacoes-result').innerHTML='';">🗑️ Limpar</button>
+      </div>
+
+      <div id="importacoes-result"></div>
+    </div>`;
+}
+
+function submitImportacoes() {
+  const ta = document.getElementById("importacoes-textarea");
+  const resultDiv = document.getElementById("importacoes-result");
+  const raw = ta?.value || "";
+
+  if (!raw.trim()) {
+    resultDiv.innerHTML = `<div class="imp-empty">Cola o texto das previsões antes de importar.</div>`;
+    return;
+  }
+
+  const { ok, message, report, totalImported } = runKOBulkImport(raw);
+
+  if (!ok) {
+    resultDiv.innerHTML = `<div class="imp-empty">${message}</div>`;
+    return;
+  }
+
+  let html = `<div class="imp-summary">✅ <strong>${totalImported}</strong> previsões importadas · ${report.length} jogador(es) processado(s)</div>
+    <div class="imp-report">`;
+
+  for (const r of report) {
+    if (!r.found) {
+      html += `<div class="imp-row imp-row-warn">⚠️ <strong>${esc(r.name)}</strong>: jogador não encontrado — ignorado.</div>`;
+      continue;
+    }
+    const cls = r.errors.length ? "imp-row-warn" : "imp-row-ok";
+    const icon = r.errors.length ? "⚠️" : "✅";
+    html += `<div class="imp-row ${cls}">
+      ${icon} <strong>${esc(r.name)}</strong>: ${r.imported} previsões importadas
+      ${r.errors.length ? `<div class="imp-errors">${r.errors.map(e => `· ${esc(e)}`).join("<br>")}</div>` : ""}
+    </div>`;
+  }
+
+  html += `</div>`;
+  resultDiv.innerHTML = html;
+
   renderPrevisoes();
-  alert(`Importação em lote\n\n${report.join("\n")}\n\nTotal: ${totalImported} previsões importadas.`);
+  showApiStatus(`✅ Importação em lote: ${totalImported} previsões`, "ok");
 }
 
 function togglePredGroup(hdr) {
