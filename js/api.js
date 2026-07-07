@@ -195,7 +195,12 @@ function syncKnockoutFixturesFromApi(matches, mm, stats) {
       usedIdx.add(idx);
 
       const game = games[idx];
-      if (game.e1 !== homePT || game.e2 !== awayPT) {
+      // A mesma equipa pode já estar guardada na ordem inversa (ex.: o nosso
+      // bracket propaga Espanha-Portugal, a API reporta Portugal-Espanha).
+      // Isso não é uma mudança de emparelhamento — só reatribuímos e
+      // invalidamos o resultado quando as equipas são mesmo diferentes.
+      const swapped = cleanTeamName(game.e1) === awayPT && cleanTeamName(game.e2) === homePT;
+      if (!swapped && (game.e1 !== homePT || game.e2 !== awayPT)) {
         // A equipa deste slot mudou — um resultado já guardado (ex.:
         // introduzido manualmente antes de a API confirmar o emparelhamento)
         // pertence às equipas antigas e deixa de ser válido.
@@ -213,14 +218,18 @@ function syncKnockoutFixturesFromApi(matches, mm, stats) {
       const sc = parseApiScore(m);
       if (!sc || !sc.finished) return;
 
-      if (game.gc !== sc.gc || game.gf !== sc.gf) {
-        game.gc = sc.gc;
-        game.gf = sc.gf;
+      // Respeitar a ordem já guardada em vez de forçar a ordem home/away da API.
+      const gcFinal = swapped ? sc.gf : sc.gc;
+      const gfFinal = swapped ? sc.gc : sc.gf;
+
+      if (game.gc !== gcFinal || game.gf !== gfFinal) {
+        game.gc = gcFinal;
+        game.gf = gfFinal;
         changed = true;
         stats.koUpdated++;
       }
 
-      if (sc.gc === sc.gf) {
+      if (gcFinal === gfFinal) {
         const winner = apiWinnerTeam(m, homePT, awayPT);
         if (winner && game.pen_winner !== winner) {
           game.pen_winner = winner;
