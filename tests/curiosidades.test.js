@@ -1,4 +1,4 @@
-const { maxBy, minBy, calcSniperECoracaoDePedra, calcEspecialistas, calcSequencias, calcTotalExatos, calcDistribuicaoMalta, calcTendencias, calcEstiloApostador } = require("../js/curiosidades.js");
+const { maxBy, minBy, calcSniperECoracaoDePedra, calcEspecialistas, calcSequencias, calcTotalExatos, calcDistribuicaoMalta, calcTendencias, calcEstiloApostador, calcBolaDeCristal } = require("../js/curiosidades.js");
 
 let passed = 0, failed = 0;
 function ok(cond, msg) {
@@ -99,6 +99,25 @@ ok(nuncaSofre.vencedor === "Bruno" && nuncaSofre.valor === "2 vezes", "Nunca Sof
 const emptyResult = calcEstiloApostador([], []);
 ok(emptyResult.length === 4, "sem previsões devolve 4 prémios por decidir");
 ok(emptyResult.every(a => a.vencedor === null), "todos os prémios vazios têm vencedor === null");
+
+console.log("Curiosidades — Bola de Cristal / Zica");
+const jogosMM7 = [
+  { key: "r16:0", winner: "Portugal" }, { key: "r16:1", winner: "França" },
+  { key: "r16:2", winner: "Brasil" }, { key: "r16:3", winner: null },
+];
+const previsoesMM7 = [
+  { nome: "Ana", preds: {
+    "r16:0": { qualifier: "Portugal" }, "r16:1": { qualifier: "França" }, "r16:2": { qualifier: "Argentina" },
+  } },
+  { nome: "Bruno", preds: {
+    "r16:0": { qualifier: "Espanha" }, "r16:1": { qualifier: "Bélgica" }, "r16:2": { qualifier: "Croácia" },
+  } },
+];
+const [bola, zica] = calcBolaDeCristal(jogosMM7, previsoesMM7);
+ok(bola.vencedor === "Ana" && bola.valor === "67% (2/3)", "Bola de Cristal = melhor taxa de acerto no Apurado");
+ok(zica.vencedor === "Bruno" && zica.valor === "0% (0/3)", "Zica = pior taxa de acerto no Apurado");
+const poucoDecidido = calcBolaDeCristal([{ key: "r16:0", winner: "Portugal" }], [{ nome: "Ana", preds: { "r16:0": { qualifier: "Portugal" } } }]);
+ok(poucoDecidido.every(a => a.vencedor === null), "menos de 3 jogos decididos fica por decidir");
 
 console.log("\n" + passed + " passed, " + failed + " failed");
 process.exit(failed ? 1 : 0);

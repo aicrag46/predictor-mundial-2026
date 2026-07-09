@@ -219,6 +219,34 @@ function calcEstiloApostador(jogosGrupos, previsoesGrupos) {
   ];
 }
 
+// 15-16: Bola de Cristal / Zica
+function calcBolaDeCristal(jogosMataMata, previsoesMataMata) {
+  const decididos = jogosMataMata.filter(j => j.winner);
+  const porParticipante = previsoesMataMata.map(p => {
+    let acertos = 0, total = 0;
+    decididos.forEach(j => {
+      const pred = p.preds[j.key];
+      if (!pred || !pred.qualifier) return;
+      total++;
+      if (pred.qualifier === j.winner) acertos++;
+    });
+    return { nome: p.nome, acertos, total, taxa: total ? acertos / total : 0 };
+  }).filter(p => p.total >= 3);
+
+  if (!porParticipante.length) {
+    return [
+      { id: "bola-de-cristal", icon: "🔮", titulo: "Bola de Cristal", vencedor: null, valor: "—", detalhe: "Por decidir — poucos jogos de mata-mata decididos" },
+      { id: "zica", icon: "💀", titulo: "Zica", vencedor: null, valor: "—", detalhe: "Por decidir — poucos jogos de mata-mata decididos" },
+    ];
+  }
+  const bola = maxBy(porParticipante, p => p.taxa);
+  const zica = minBy(porParticipante, p => p.taxa);
+  return [
+    { id: "bola-de-cristal", icon: "🔮", titulo: "Bola de Cristal", vencedor: bola.nome, valor: `${Math.round(bola.taxa * 100)}% (${bola.acertos}/${bola.total})`, detalhe: "Melhor taxa de acerto em quem passa no mata-mata" },
+    { id: "zica", icon: "💀", titulo: "Zica", vencedor: zica.nome, valor: `${Math.round(zica.taxa * 100)}% (${zica.acertos}/${zica.total})`, detalhe: "Pior taxa de acerto em quem passa no mata-mata" },
+  ];
+}
+
 if (typeof module !== "undefined") {
-  module.exports = { maxBy, minBy, calcSniperECoracaoDePedra, calcEspecialistas, calcSequencias, calcTotalExatos, calcDistribuicaoMalta, calcTendencias, calcEstiloApostador };
+  module.exports = { maxBy, minBy, calcSniperECoracaoDePedra, calcEspecialistas, calcSequencias, calcTotalExatos, calcDistribuicaoMalta, calcTendencias, calcEstiloApostador, calcBolaDeCristal };
 }
