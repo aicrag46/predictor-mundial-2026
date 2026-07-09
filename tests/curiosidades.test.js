@@ -1,4 +1,4 @@
-const { maxBy, minBy, calcSniperECoracaoDePedra, calcEspecialistas, calcSequencias, calcTotalExatos, calcDistribuicaoMalta, calcTendencias, calcEstiloApostador, calcBolaDeCristal, calcContraManada, calcHabitueJantar, calcCuriosidades } = require("../js/curiosidades.js");
+const { maxBy, minBy, calcSniperECoracaoDePedra, calcEspecialistas, calcSequencias, calcTotalExatos, calcDistribuicaoMalta, calcTendencias, calcEstiloApostador, calcBolaDeCristal, calcContraManada, calcHabitueJantar, calcCuriosidades, buildPresentationOrder } = require("../js/curiosidades.js");
 
 let passed = 0, failed = 0;
 function ok(cond, msg) {
@@ -153,6 +153,22 @@ const awards = calcCuriosidades({
 ok(awards.length === 20, `calcCuriosidades devolve 20 prémios (veio ${awards.length})`);
 ok(awards.every(a => a.id && a.icon && a.titulo), "todos os prémios têm id/icon/titulo");
 ok(calcCuriosidades({}).length === 20, "input vazio não rebenta, devolve 20 prémios com por-decidir");
+
+console.log("Curiosidades — buildPresentationOrder");
+const ordem10 = buildPresentationOrder(10);
+ok(ordem10.length === 10, "10 participantes -> 10 entradas, uma por posição");
+ok(ordem10.map(o => o.pos).sort((a, b) => a - b).join(",") === "1,2,3,4,5,6,7,8,9,10", "cobre todas as posições sem repetir");
+ok(ordem10[0].pos === 10 && ordem10[0].fase === "A", "começa no último lugar (fase A)");
+ok(ordem10.slice(0, 4).every(o => o.fase === "A"), "fase A = posições 10,9,8,7");
+ok(ordem10.slice(4, 7).every(o => o.fase === "B"), "fase B = posições 4,3,2");
+ok(ordem10[7].pos === 1 && ordem10[7].fase === "C", "fase C = posição 1 (campeão)");
+ok(ordem10[8].pos === 6 && ordem10[8].fase === "D", "fase D revela primeiro quem paga (6º)");
+ok(ordem10[9].pos === 5 && ordem10[9].fase === "D", "fase D revela por último quem escapa (5º) — clímax final");
+
+ok(buildPresentationOrder(0).length === 0, "0 participantes não rebenta");
+ok(buildPresentationOrder(1).length === 1, "1 participante -> só o campeão, sem fronteira duplicada");
+const ordem2 = buildPresentationOrder(2);
+ok(ordem2.length === 2 && ordem2.map(o => o.pos).sort().join(",") === "1,2", "2 participantes cobre as 2 posições sem duplicar");
 
 console.log("\n" + passed + " passed, " + failed + " failed");
 process.exit(failed ? 1 : 0);

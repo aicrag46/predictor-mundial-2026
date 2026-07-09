@@ -363,6 +363,25 @@ function calcCuriosidades(input) {
   ];
 }
 
+// Ordem de revelação do Modo Jantar: pior bloco -> bloco de cima -> campeão
+// -> fronteira paga/não-paga (clímax final). Ver secção "Modo Jantar" da spec.
+function buildPresentationOrder(n) {
+  if (n <= 0) return [];
+  const half = Math.floor(n / 2);
+  const ordem = [];
+  for (let pos = n; pos >= half + 2; pos--) ordem.push({ pos, fase: "A" });
+  for (let pos = half - 1; pos >= 2; pos--) ordem.push({ pos, fase: "B" });
+  ordem.push({ pos: 1, fase: "C" });
+  if (half >= 1 && half + 1 !== 1) ordem.push({ pos: half + 1, fase: "D" });
+  if (half >= 1 && half !== 1) ordem.push({ pos: half, fase: "D" });
+  return ordem;
+}
+
 if (typeof module !== "undefined") {
-  module.exports = { maxBy, minBy, calcSniperECoracaoDePedra, calcEspecialistas, calcSequencias, calcTotalExatos, calcDistribuicaoMalta, calcTendencias, calcEstiloApostador, calcBolaDeCristal, calcContraManada, calcHabitueJantar, calcCuriosidades };
+  module.exports = {
+    maxBy, minBy, calcSniperECoracaoDePedra, calcEspecialistas, calcSequencias,
+    calcTotalExatos, calcDistribuicaoMalta, calcTendencias, calcEstiloApostador,
+    calcBolaDeCristal, calcContraManada, calcHabitueJantar, calcCuriosidades,
+    buildPresentationOrder,
+  };
 }
