@@ -31,7 +31,7 @@ tempo, gravados em cada sync da API).
 - Atualiza sempre que `renderTab('curiosidades')` corre (mesmo padrão das
   outras tabs, recalculado a cada render — sem cache).
 
-## Conteúdo — 18 categorias
+## Conteúdo — 20 prémios (em 18 categorias/números, 2 números agrupam um par)
 
 **Melhor / Pior**
 1. 🎯 **Sniper** — mais "Exato" (soma fase de grupos + mata-mata). Fonte:
@@ -91,8 +91,10 @@ pelo primeiro encontrado, de forma determinística)
     metade que paga (`paga === true`) ao longo dos snapshots do
     `CLASS_HISTORY`.
 
-(Nota: a lista cresceu para 18 durante a conversa — números 1-9 e 18 vêm
-da primeira leva aprovada, 10-17 da segunda.)
+(Nota: a lista tem 20 prémios individuais no total — números 3 e "8"
+(Maior Subida/Maior Queda) agrupam 2 prémios cada, os restantes são 1
+prémio por número. Números 1-9 e 18 vêm da primeira leva aprovada, 10-17
+da segunda.)
 
 **Fora de scope (não entra nesta versão):** qualquer prémio que precise
 de timestamp por prognóstico (ex.: "mais rápido a prognosticar") — não
