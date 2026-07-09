@@ -26,6 +26,24 @@ function calcSniperECoracaoDePedra(participantStats) {
   ];
 }
 
+// 3-4: Especialista de Grupos / Rei do Mata-Mata
+function calcEspecialistas(participantStats) {
+  const comKO = participantStats.filter(p => p.koPts > 0);
+  if (!comKO.length) {
+    return [
+      { id: "especialista-grupos", icon: "📚", titulo: "Especialista de Grupos", vencedor: null, valor: "—", detalhe: "Por decidir — ainda sem pontos no mata-mata" },
+      { id: "rei-mata-mata", icon: "🗡️", titulo: "Rei do Mata-Mata", vencedor: null, valor: "—", detalhe: "Por decidir — ainda sem pontos no mata-mata" },
+    ];
+  }
+  const comRacio = comKO.map(p => ({ ...p, gsShare: p.gsPts / (p.gsPts + p.koPts), koShare: p.koPts / (p.gsPts + p.koPts) }));
+  const especialista = maxBy(comRacio, p => p.gsShare);
+  const rei = maxBy(comRacio, p => p.koShare);
+  return [
+    { id: "especialista-grupos", icon: "📚", titulo: "Especialista de Grupos", vencedor: especialista.nome, valor: `${Math.round(especialista.gsShare * 100)}% dos pontos`, detalhe: "Maior fatia dos pontos vem da fase de grupos" },
+    { id: "rei-mata-mata", icon: "🗡️", titulo: "Rei do Mata-Mata", vencedor: rei.nome, valor: `${Math.round(rei.koShare * 100)}% dos pontos`, detalhe: "Maior fatia dos pontos vem do mata-mata" },
+  ];
+}
+
 if (typeof module !== "undefined") {
-  module.exports = { maxBy, minBy, calcSniperECoracaoDePedra };
+  module.exports = { maxBy, minBy, calcSniperECoracaoDePedra, calcEspecialistas };
 }

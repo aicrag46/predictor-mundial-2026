@@ -1,4 +1,4 @@
-const { maxBy, minBy, calcSniperECoracaoDePedra } = require("../js/curiosidades.js");
+const { maxBy, minBy, calcSniperECoracaoDePedra, calcEspecialistas } = require("../js/curiosidades.js");
 
 let passed = 0, failed = 0;
 function ok(cond, msg) {
@@ -21,6 +21,18 @@ ok(sniper.id === "sniper" && sniper.vencedor === "Bruno" && sniper.valor === "8 
 ok(coracao.id === "coracao-de-pedra" && coracao.vencedor === "Bruno" && coracao.valor === "6 sem pontos", "Coração de Pedra = mais Não Pontuou");
 const [sniperVazio, coracaoVazio] = calcSniperECoracaoDePedra([]);
 ok(sniperVazio.vencedor === null && coracaoVazio.vencedor === null, "lista vazia devolve 2 prémios por decidir");
+
+console.log("Curiosidades — Especialista de Grupos / Rei do Mata-Mata");
+const stats2 = [
+  { nome: "Ana", exatos: 0, naoPontua: 0, gsPts: 40, koPts: 10, ve: 0, golos: 0 },
+  { nome: "Bruno", exatos: 0, naoPontua: 0, gsPts: 20, koPts: 30, ve: 0, golos: 0 },
+];
+const [especialista, rei] = calcEspecialistas(stats2);
+ok(especialista.vencedor === "Ana", "Especialista de Grupos = maior fatia gsPts");
+ok(rei.vencedor === "Bruno", "Rei do Mata-Mata = maior fatia koPts");
+const semKO = [{ nome: "Ana", exatos: 0, naoPontua: 0, gsPts: 40, koPts: 0, ve: 0, golos: 0 }];
+const [especialistaPend, reiPend] = calcEspecialistas(semKO);
+ok(especialistaPend.vencedor === null && reiPend.vencedor === null, "sem koPts > 0 fica por decidir");
 
 console.log("\n" + passed + " passed, " + failed + " failed");
 process.exit(failed ? 1 : 0);
