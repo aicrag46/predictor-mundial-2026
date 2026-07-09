@@ -6,7 +6,7 @@
     "build:players": "node gerar_previsoes_html.js",
     "build": "npm run build:data && npm run build:players",
     "upload:prognosticos": "node scripts/upload-prognosticos.js",
-    "test": "node tests/scoring.test.js"
+    "test": "node tests/scoring.test.js && node tests/curiosidades.test.js"
   },
   "devDependencies": {
     "@supabase/supabase-js": "^2.49.0"
