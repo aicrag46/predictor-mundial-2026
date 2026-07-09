@@ -105,20 +105,39 @@ Estado atual (`js/features.js:237-277`): `renderPresentationSlide` gera
 slides na ordem `cls` (1º ao último) e mostra posição+pontos+paga de
 imediato, um clique = um slide.
 
-Novo fluxo:
-1. **Ordem invertida** — slides do último para o primeiro lugar.
-2. **Revelação em 2 tempos por pessoa** — 1º clique nessa posição mostra
+A fronteira entre quem paga e quem não paga (posição `half`/`half+1`,
+onde `half = Math.floor(nParticipantes/2)`, ex. 5º/6º com 10
+participantes) é o momento de maior peso emocional do grupo — mais do
+que saber quem é campeão — por isso fica reservada para o **clímax
+final**, depois até do próprio campeão.
+
+Novo fluxo, em 4 fases:
+
+**Fase A — pior bloco** (últimas posições até logo acima da fronteira,
+ex. 10º→7º com 10 participantes): revela do último lugar para cima,
+claramente "paga o jantar", sem ainda mexer na fronteira.
+1. **Revelação em 2 tempos por pessoa** — 1º clique nessa posição mostra
    só "posição + nome" (nome pode entrar com efeito de blur→foco); 2º
    clique no mesmo slide revela pontos + badge paga/não paga.
-3. **Slides de prémio intercalados** — a cada 2-3 posições reveladas,
+2. **Slides de prémio intercalados** — a cada 2-3 posições reveladas,
    insere um slide vindo de `calcCuriosidades()` (ex. Sniper, Kamikaze,
    Fora da Manada — escolhidos por ordem fixa, não aleatória, para ser
    previsível ao testar).
-4. **Slide de campeão** — ao chegar ao 1º lugar, layout próprio em ecrã
-   inteiro com animação de confetti (CSS), distinto dos slides normais.
-5. **Slide "paga o jantar"** — quando a posição revelada está na metade
-   de baixo, o badge tem uma pequena animação/emoji cómico em vez do
-   texto estático atual.
+
+**Fase B — bloco de cima, sem a fronteira** (da posição logo acima da
+fronteira até ao 2º lugar, ex. 4º→2º): mesma mecânica de revelação em 2
+tempos + prémios intercalados.
+
+**Fase C — campeão**: slide próprio em ecrã inteiro com animação de
+confetti (CSS), distinto dos slides normais — celebra o 1º lugar, mas
+**não é o fim** da apresentação.
+
+**Fase D — a fronteira, clímax final**: revela primeiro a posição
+`half+1` ("quem paga o jantar hoje", com pequena animação/emoji cómico
+em vez do badge estático atual) e só depois, como último slide de
+sempre, a posição `half` ("quem escapou por um triz"). Esta fase tem
+layout de destaque próprio (maior que os slides normais, mais próximo do
+slide de campeão em impacto visual).
 
 Tudo client-side (CSS/JS), sem infraestrutura nova — a única peça nova de
 verdade é o gerador de slides de prémio, que consome
