@@ -1204,3 +1204,22 @@ body {
 }
 .pres-nav button:disabled { opacity: .3; cursor: not-allowed; }
 .pres-nav span { color: var(--muted); font-size: .85rem; }
+
+/* ─── Curiosidades ─────────────────────────────────────────────────────── */
+.curiosidades-header { text-align: center; margin-bottom: 20px; }
+.curiosidades-title { font-size: 1.6rem; font-weight: 900; color: var(--gold); }
+.curiosidades-sub { color: var(--muted); font-size: .85rem; margin-top: 4px; }
+.curiosidades-grid {
+  display: grid; grid-template-columns: repeat(auto-fill, minmax(220px, 1fr));
+  gap: 16px; padding: 4px;
+}
+.curio-card {
+  background: var(--surface); border: 1px solid var(--glass-border);
+  border-radius: 16px; padding: 20px; text-align: center;
+}
+.curio-card.curio-pending { opacity: .55; }
+.curio-icon { font-size: 2.2rem; margin-bottom: 8px; }
+.curio-titulo { font-weight: 800; color: var(--gold); font-size: .95rem; text-transform: uppercase; letter-spacing: .04em; }
+.curio-vencedor { font-size: 1.3rem; font-weight: 900; color: var(--text); margin-top: 6px; }
+.curio-valor { color: var(--cyan); font-weight: 700; margin-top: 4px; }
+.curio-detalhe { color: var(--muted); font-size: .8rem; margin-top: 6px; }

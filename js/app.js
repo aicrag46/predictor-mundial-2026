@@ -118,6 +118,78 @@ function calcClassificacao(resultados) {
   return stats.map((s, i) => ({ ...s, pos: i + 1, paga: i >= half }));
 }
 
+// ─── CURIOSIDADES ────────────────────────────────────────────────────────────
+function buildCuriosidadesInput() {
+  const resultados = getResultados();
+  const gsOv = getGSOverrides();
+  const mm = getMataMata();
+  const koP = getKOPredsAll();
+  const classHistory = dbGet(DB_KEYS.CLASS_HISTORY) || [];
+
+  const participantStats = DADOS.participantes.map(nome =>
+    calcParticipante(nome, resultados, gsOv, mm, koP));
+
+  const jogosGrupos = DADOS.jogos.map(j => {
+    const r = resultados[j.codigo];
+    return { codigo: j.codigo, gc: r ? r.gc : null, gf: r ? r.gf : null };
+  });
+
+  const previsoesGrupos = DADOS.participantes.map((nome, pi) => {
+    const preds = {};
+    DADOS.jogos.forEach(j => {
+      const p = getGSPredFor(pi, j.codigo);
+      if (p) preds[j.codigo] = { gc: p.casa, gf: p.fora };
+    });
+    return { nome, preds };
+  });
+
+  const jogosMataMata = [];
+  MM_ROUNDS.forEach(round => {
+    (mm[round.id] || []).forEach((game, idx) => {
+      jogosMataMata.push({
+        key: `${round.id}:${idx}`, roundId: round.id,
+        gc: game.gc, gf: game.gf, winner: mmWinner(game),
+      });
+    });
+  });
+
+  const previsoesMataMata = DADOS.participantes.map((nome, pi) => {
+    const preds = {};
+    MM_ROUNDS.forEach(round => {
+      (mm[round.id] || []).forEach((game, idx) => {
+        const p = getKOPredFor(pi, round.id, idx);
+        if (p && p.gc !== null && p.gc !== undefined) {
+          preds[`${round.id}:${idx}`] = { gc: p.gc, gf: p.gf, qualifier: p.qualifier || null };
+        }
+      });
+    });
+    return { nome, preds };
+  });
+
+  return { participantStats, jogosGrupos, previsoesGrupos, jogosMataMata, previsoesMataMata, classHistory };
+}
+
+function renderCuriosidades() {
+  const container = document.getElementById("curiosidades-content");
+  if (!container) return;
+  const awards = calcCuriosidades(buildCuriosidadesInput());
+  let html = `<div class="curiosidades-header">
+    <h2 class="curiosidades-title">🏆 Curiosidades da Época</h2>
+    <p class="curiosidades-sub">Atualiza sempre que há resultados novos</p>
+  </div><div class="curiosidades-grid">`;
+  awards.forEach(a => {
+    html += `<div class="curio-card ${a.vencedor ? "" : "curio-pending"}">
+      <div class="curio-icon">${a.icon}</div>
+      <div class="curio-titulo">${a.titulo}</div>
+      <div class="curio-vencedor">${a.vencedor || "Por decidir"}</div>
+      <div class="curio-valor">${a.valor}</div>
+      <div class="curio-detalhe">${a.detalhe}</div>
+    </div>`;
+  });
+  html += `</div>`;
+  container.innerHTML = html;
+}
+
 const TIPO_CSS = {
   "Exato": "tipo-exato", "Vencedor/Empate": "tipo-ve",
   "Golos Equipa": "tipo-golos", "Não Pontuou": "tipo-nao", "Pendente": "tipo-pendente",
@@ -263,7 +335,7 @@ function switchTab(tab) {
   document.querySelectorAll(".mobile-nav-btn").forEach(b => {
     const t = b.dataset.tab;
     if (t === "more") {
-      b.classList.toggle("active", ["revisao-mm","importacoes","previsoes","regras","whatsapp"].includes(tab));
+      b.classList.toggle("active", ["revisao-mm","importacoes","previsoes","curiosidades","regras","whatsapp"].includes(tab));
     } else {
       b.classList.toggle("active", t === tab);
     }
@@ -305,6 +377,7 @@ function renderTab(tab) {
   else if (tab === "revisao-mm")    renderRevisaoMM(getMataMata());
   else if (tab === "importacoes")   renderImportacoes();
   else if (tab === "previsoes")     renderPrevisoes();
+  else if (tab === "curiosidades")  renderCuriosidades();
   else if (tab === "regras")        renderRegras();
 }
 

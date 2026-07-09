@@ -13,7 +13,7 @@
   <link href="https://fonts.googleapis.com/css2?family=Outfit:wght@300;400;500;600;700;800;900&family=JetBrains+Mono:wght@500;700&display=swap" rel="stylesheet" />
   <link rel="manifest" href="/manifest.json" />
   <link rel="apple-touch-icon" href="/icons/icon-192.svg" />
-  <link rel="stylesheet" href="css/style.css?v=10" />
+  <link rel="stylesheet" href="css/style.css?v=11" />
 </head>
 <body>
 
@@ -92,6 +92,7 @@
       <button class="tab-btn"        data-tab="revisao-mm"    onclick="switchTab('revisao-mm')"><span class="tab-icon">📋</span><span class="tab-label">Revisão M-M</span></button>
       <button class="tab-btn"        data-tab="importacoes"   onclick="switchTab('importacoes')"><span class="tab-icon">📥</span><span class="tab-label">Importações</span></button>
       <button class="tab-btn"        data-tab="previsoes"     onclick="switchTab('previsoes')"><span class="tab-icon">🔮</span><span class="tab-label">Previsões</span></button>
+      <button class="tab-btn"        data-tab="curiosidades"  onclick="switchTab('curiosidades')"><span class="tab-icon">🏆</span><span class="tab-label">Curiosidades</span></button>
       <button class="tab-btn"        data-tab="regras"        onclick="switchTab('regras')"><span class="tab-icon">📖</span><span class="tab-label">Regras</span></button>
       <button class="tab-btn"        data-tab="whatsapp"      onclick="switchTab('whatsapp')"><span class="tab-icon">💬</span><span class="tab-label">WhatsApp</span></button>
     </div>
@@ -127,6 +128,10 @@
       <div id="previsoes-content"></div>
     </div>
 
+    <div class="tab-content" id="tab-curiosidades">
+      <div id="curiosidades-content"></div>
+    </div>
+
     <div class="tab-content" id="tab-regras">
       <div id="regras-content"></div>
     </div>
@@ -155,6 +160,7 @@
         <button class="sheet-item" data-tab="revisao-mm" onclick="switchTab('revisao-mm');closeMobileMore()"><span>📋</span>Revisão M-M</button>
         <button class="sheet-item" data-tab="importacoes" onclick="switchTab('importacoes');closeMobileMore()"><span>📥</span>Importações</button>
         <button class="sheet-item" data-tab="previsoes" onclick="switchTab('previsoes');closeMobileMore()"><span>🔮</span>Previsões</button>
+        <button class="sheet-item" data-tab="curiosidades" onclick="switchTab('curiosidades');closeMobileMore()"><span>🏆</span>Curiosidades</button>
         <button class="sheet-item" data-tab="regras"    onclick="switchTab('regras');closeMobileMore()"><span>📖</span>Regras</button>
         <button class="sheet-item" data-tab="whatsapp"  onclick="switchTab('whatsapp');closeMobileMore()"><span>💬</span>WhatsApp</button>
       </div>
@@ -205,12 +211,13 @@
 </div>
 
 <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2/dist/umd/supabase.js"></script>
-<script src="js/config.js?v=17"></script>
-<script src="js/scoring.js?v=17"></script>
-<script src="js/db.js?v=17"></script>
-<script src="js/api.js?v=17"></script>
-<script src="js/features.js?v=17"></script>
-<script src="js/data.js?v=17"></script>
-<script src="js/app.js?v=17"></script>
+<script src="js/config.js?v=18"></script>
+<script src="js/scoring.js?v=18"></script>
+<script src="js/curiosidades.js?v=18"></script>
+<script src="js/db.js?v=18"></script>
+<script src="js/api.js?v=18"></script>
+<script src="js/features.js?v=18"></script>
+<script src="js/data.js?v=18"></script>
+<script src="js/app.js?v=18"></script>
 </body>
 </html>
