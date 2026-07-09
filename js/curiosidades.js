@@ -177,6 +177,48 @@ function calcTendencias(classHistory) {
   ];
 }
 
+// 11-14: Kamikaze / Betão Armado / Fã de Empates / Nunca Sofre
+function calcEstiloApostador(jogosGrupos, previsoesGrupos) {
+  const porDecidirArray = [
+    { id: "kamikaze", icon: "🎰", titulo: "Kamikaze", vencedor: null, valor: "—", detalhe: "Por decidir — falta prognósticos" },
+    { id: "betao-armado", icon: "🛡️", titulo: "Betão Armado", vencedor: null, valor: "—", detalhe: "Por decidir — falta prognósticos" },
+    { id: "fa-de-empates", icon: "⚖️", titulo: "Fã de Empates", vencedor: null, valor: "—", detalhe: "Por decidir — falta prognósticos" },
+    { id: "nunca-sofre", icon: "🥅", titulo: "Nunca Sofre", vencedor: null, valor: "—", detalhe: "Por decidir — falta prognósticos" },
+  ];
+
+  if (!previsoesGrupos.length) return porDecidirArray;
+
+  const porParticipante = previsoesGrupos.map(p => {
+    const preds = Object.values(p.preds);
+    const totalGolos = preds.reduce((s, pr) => s + pr.gc + pr.gf, 0);
+    const mediaGolos = preds.length ? totalGolos / preds.length : 0;
+    const empates = preds.filter(pr => pr.gc === pr.gf).length;
+    let nuncaSofreCount = 0;
+    jogosGrupos.forEach(j => {
+      if (j.gc === null || j.gc === undefined) return;
+      const pred = p.preds[j.codigo];
+      if (!pred) return;
+      if (pred.gc === 0 && j.gc === 0) nuncaSofreCount++;
+      if (pred.gf === 0 && j.gf === 0) nuncaSofreCount++;
+    });
+    return { nome: p.nome, mediaGolos, empates, nuncaSofreCount, nPreds: preds.length };
+  }).filter(p => p.nPreds > 0);
+
+  if (!porParticipante.length) return porDecidirArray;
+
+  const kamikaze = maxBy(porParticipante, p => p.mediaGolos);
+  const betao = minBy(porParticipante, p => p.mediaGolos);
+  const faDeEmpates = maxBy(porParticipante, p => p.empates);
+  const nuncaSofre = maxBy(porParticipante, p => p.nuncaSofreCount);
+
+  return [
+    { id: "kamikaze", icon: "🎰", titulo: "Kamikaze", vencedor: kamikaze.nome, valor: `${kamikaze.mediaGolos.toFixed(1)} golos/jogo`, detalhe: "Maior média de golos previstos por jogo" },
+    { id: "betao-armado", icon: "🛡️", titulo: "Betão Armado", vencedor: betao.nome, valor: `${betao.mediaGolos.toFixed(1)} golos/jogo`, detalhe: "Menor média de golos previstos por jogo" },
+    { id: "fa-de-empates", icon: "⚖️", titulo: "Fã de Empates", vencedor: faDeEmpates.empates > 0 ? faDeEmpates.nome : null, valor: `${faDeEmpates.empates} empates previstos`, detalhe: "Mais prognósticos de empate" },
+    { id: "nunca-sofre", icon: "🥅", titulo: "Nunca Sofre", vencedor: nuncaSofre.nuncaSofreCount > 0 ? nuncaSofre.nome : null, valor: `${nuncaSofre.nuncaSofreCount} vezes`, detalhe: "Mais vezes a acertar uma equipa a sofrer 0 golos" },
+  ];
+}
+
 if (typeof module !== "undefined") {
-  module.exports = { maxBy, minBy, calcSniperECoracaoDePedra, calcEspecialistas, calcSequencias, calcTotalExatos, calcDistribuicaoMalta, calcTendencias };
+  module.exports = { maxBy, minBy, calcSniperECoracaoDePedra, calcEspecialistas, calcSequencias, calcTotalExatos, calcDistribuicaoMalta, calcTendencias, calcEstiloApostador };
 }

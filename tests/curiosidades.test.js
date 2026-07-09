@@ -1,4 +1,4 @@
-const { maxBy, minBy, calcSniperECoracaoDePedra, calcEspecialistas, calcSequencias, calcTotalExatos, calcDistribuicaoMalta, calcTendencias } = require("../js/curiosidades.js");
+const { maxBy, minBy, calcSniperECoracaoDePedra, calcEspecialistas, calcSequencias, calcTotalExatos, calcDistribuicaoMalta, calcTendencias, calcEstiloApostador } = require("../js/curiosidades.js");
 
 let passed = 0, failed = 0;
 function ok(cond, msg) {
@@ -84,6 +84,21 @@ const emptyRankingHistory = [
 ];
 const emptyRankingResult = calcTendencias(emptyRankingHistory);
 ok(emptyRankingResult.every(a => a.vencedor === null), "com ranking vazio em ambos snapshots, fica por decidir (não rebentar)");
+
+console.log("Curiosidades — Estilo de Apostador");
+const jogosGrupos6 = [{ codigo: "A1", gc: 0, gf: 0 }, { codigo: "A2", gc: 1, gf: 2 }];
+const previsoesGrupos6 = [
+  { nome: "Ana", preds: { A1: { gc: 3, gf: 2 }, A2: { gc: 2, gf: 2 } } },   // média 2.25 (total 9 golos em 4 préditos), 1 empate previsto, 0 "nunca sofre"
+  { nome: "Bruno", preds: { A1: { gc: 0, gf: 0 }, A2: { gc: 1, gf: 0 } } }, // média 0.25 (total 1 golo em 4 préditos), 1 empate previsto, acerta A1 (0-0 -> ambos 0 golos sofridos)
+];
+const [kamikaze, betao, faDeEmpates, nuncaSofre] = calcEstiloApostador(jogosGrupos6, previsoesGrupos6);
+ok(kamikaze.vencedor === "Ana", "Kamikaze = maior média de golos previstos");
+ok(betao.vencedor === "Bruno", "Betão Armado = menor média de golos previstos");
+ok(faDeEmpates.vencedor === "Ana" || faDeEmpates.vencedor === "Bruno", "Fã de Empates escolhe quem previu mais empates (empate técnico aqui, 1 cada)");
+ok(nuncaSofre.vencedor === "Bruno" && nuncaSofre.valor === "2 vezes", "Nunca Sofre: Bruno acerta 0-0 em A1 (2 golos sofridos corretos)");
+const emptyResult = calcEstiloApostador([], []);
+ok(emptyResult.length === 4, "sem previsões devolve 4 prémios por decidir");
+ok(emptyResult.every(a => a.vencedor === null), "todos os prémios vazios têm vencedor === null");
 
 console.log("\n" + passed + " passed, " + failed + " failed");
 process.exit(failed ? 1 : 0);
