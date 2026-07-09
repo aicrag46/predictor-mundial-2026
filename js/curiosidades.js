@@ -131,12 +131,14 @@ function calcDistribuicaoMalta(participantStats) {
 
 // 9-10: Maior Subida / Maior Queda / Montanha-Russa
 function calcTendencias(classHistory) {
+  const porDecidirArray = [
+    { id: "maior-subida", icon: "📈", titulo: "Maior Subida", vencedor: null, valor: "—", detalhe: "Por decidir — falta histórico" },
+    { id: "maior-queda", icon: "📉", titulo: "Maior Queda", vencedor: null, valor: "—", detalhe: "Por decidir — falta histórico" },
+    { id: "montanha-russa", icon: "🎢", titulo: "Montanha-Russa", vencedor: null, valor: "—", detalhe: "Por decidir — falta histórico" },
+  ];
+
   if (classHistory.length < 2) {
-    return [
-      { id: "maior-subida", icon: "📈", titulo: "Maior Subida", vencedor: null, valor: "—", detalhe: "Por decidir — falta histórico" },
-      { id: "maior-queda", icon: "📉", titulo: "Maior Queda", vencedor: null, valor: "—", detalhe: "Por decidir — falta histórico" },
-      { id: "montanha-russa", icon: "🎢", titulo: "Montanha-Russa", vencedor: null, valor: "—", detalhe: "Por decidir — falta histórico" },
-    ];
+    return porDecidirArray;
   }
   const primeiro = classHistory[0].ranking;
   const ultimo = classHistory[classHistory.length - 1].ranking;
@@ -145,6 +147,11 @@ function calcTendencias(classHistory) {
   const deltas = ultimo.map(r => ({ nome: r.nome, delta: (posPrimeiro[r.nome] ?? r.pos) - r.pos }));
   const subida = maxBy(deltas, d => d.delta);
   const queda = minBy(deltas, d => d.delta);
+
+  // Guard against empty deltas array (which causes maxBy/minBy to return null)
+  if (!subida || !queda) {
+    return porDecidirArray;
+  }
 
   const posPorNome = {};
   classHistory.forEach(snap => {

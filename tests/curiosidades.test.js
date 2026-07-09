@@ -78,6 +78,12 @@ const semHistorico = calcTendencias([]);
 ok(semHistorico.every(a => a.vencedor === null), "sem histórico fica tudo por decidir");
 const umSnapshot = calcTendencias([{ ts: 1, ranking: [{ nome: "Ana", pts: 5, pos: 1 }] }]);
 ok(umSnapshot.every(a => a.vencedor === null), "com 1 snapshot só, fica por decidir");
+const emptyRankingHistory = [
+  { ts: 1, ranking: [] },
+  { ts: 2, ranking: [] },
+];
+const emptyRankingResult = calcTendencias(emptyRankingHistory);
+ok(emptyRankingResult.every(a => a.vencedor === null), "com ranking vazio em ambos snapshots, fica por decidir (não rebentar)");
 
 console.log("\n" + passed + " passed, " + failed + " failed");
 process.exit(failed ? 1 : 0);
