@@ -1,4 +1,4 @@
-const { maxBy, minBy, calcSniperECoracaoDePedra, calcEspecialistas, calcSequencias, calcTotalExatos, calcDistribuicaoMalta, calcTendencias, calcEstiloApostador, calcBolaDeCristal, calcContraManada } = require("../js/curiosidades.js");
+const { maxBy, minBy, calcSniperECoracaoDePedra, calcEspecialistas, calcSequencias, calcTotalExatos, calcDistribuicaoMalta, calcTendencias, calcEstiloApostador, calcBolaDeCristal, calcContraManada, calcHabitueJantar, calcCuriosidades } = require("../js/curiosidades.js");
 
 let passed = 0, failed = 0;
 function ok(cond, msg) {
@@ -132,6 +132,27 @@ ok(fora.vencedor === "Duda" && fora.valor === "0% igual à malta", "Fora da Mana
 ok(voz.valor === "100% igual à malta", "Voz da Malta = 100% de coincidência para quem segue a moda");
 const poucosJogadores = calcContraManada(jogosGrupos8, previsoesGrupos8.slice(0, 2));
 ok(poucosJogadores.every(a => a.vencedor === null), "menos de 4 jogadores fica por decidir");
+
+console.log("Curiosidades — Habitué do Jantar + orquestrador");
+const hist9 = [
+  { ts: 1, ranking: [{ nome: "Ana", pts: 1, pos: 1 }, { nome: "Bruno", pts: 0, pos: 2 }] },
+  { ts: 2, ranking: [{ nome: "Ana", pts: 1, pos: 2 }, { nome: "Bruno", pts: 2, pos: 1 }] },
+];
+const habitue = calcHabitueJantar(hist9);
+ok(habitue.vencedor === "Ana" && habitue.valor === "1x na metade que paga", "Habitué do Jantar conta snapshots na metade que paga (pos > half)");
+ok(calcHabitueJantar([]).vencedor === null, "sem histórico fica por decidir");
+
+const awards = calcCuriosidades({
+  participantStats: stats4,
+  jogosGrupos: jogosGrupos3,
+  previsoesGrupos: previsoesGrupos3,
+  jogosMataMata: jogosMataMata3,
+  previsoesMataMata: previsoesMataMata3,
+  classHistory: hist9,
+});
+ok(awards.length === 20, `calcCuriosidades devolve 20 prémios (veio ${awards.length})`);
+ok(awards.every(a => a.id && a.icon && a.titulo), "todos os prémios têm id/icon/titulo");
+ok(calcCuriosidades({}).length === 20, "input vazio não rebenta, devolve 20 prémios com por-decidir");
 
 console.log("\n" + passed + " passed, " + failed + " failed");
 process.exit(failed ? 1 : 0);

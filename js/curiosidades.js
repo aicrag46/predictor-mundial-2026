@@ -296,6 +296,73 @@ function calcContraManada(jogosGrupos, previsoesGrupos) {
   ];
 }
 
+// 19: Habitué do Jantar
+function calcHabitueJantar(classHistory) {
+  if (!classHistory.length) {
+    return { id: "habitue-jantar", icon: "🍽️", titulo: "Habitué do Jantar", vencedor: null, valor: "—", detalhe: "Por decidir — falta histórico" };
+  }
+  const contagem = {};
+  classHistory.forEach(snap => {
+    const half = Math.floor(snap.ranking.length / 2);
+    snap.ranking.forEach(r => {
+      if (r.pos > half) contagem[r.nome] = (contagem[r.nome] || 0) + 1;
+    });
+  });
+  const entradas = Object.entries(contagem);
+  if (!entradas.length) {
+    return { id: "habitue-jantar", icon: "🍽️", titulo: "Habitué do Jantar", vencedor: null, valor: "0 vezes", detalhe: "Ninguém esteve na metade que paga ainda" };
+  }
+
+  // Find max count
+  const maxVezes = Math.max(...entradas.map(e => e[1]));
+  const maxEntradas = entradas.filter(e => e[1] === maxVezes);
+
+  // On tie, prefer whoever is in paying position in latest snapshot
+  let vencedorEntry;
+  if (maxEntradas.length === 1) {
+    vencedorEntry = maxEntradas[0];
+  } else {
+    const ultimoSnapshot = classHistory[classHistory.length - 1];
+    const half = Math.floor(ultimoSnapshot.ranking.length / 2);
+    const naPaga = ultimoSnapshot.ranking.find(r => r.pos > half);
+    if (naPaga && maxEntradas.some(e => e[0] === naPaga.nome)) {
+      vencedorEntry = maxEntradas.find(e => e[0] === naPaga.nome);
+    } else {
+      vencedorEntry = maxEntradas[0];
+    }
+  }
+
+  const [nome, vezes] = vencedorEntry;
+  return { id: "habitue-jantar", icon: "🍽️", titulo: "Habitué do Jantar", vencedor: nome, valor: `${vezes}x na metade que paga`, detalhe: "Mais vezes na metade que paga o jantar, ao longo da época" };
+}
+
+// Orquestrador — junta todos os prémios num único array
+function calcCuriosidades(input) {
+  const {
+    participantStats = [],
+    jogosGrupos = [],
+    previsoesGrupos = [],
+    jogosMataMata = [],
+    previsoesMataMata = [],
+    classHistory = [],
+  } = input || {};
+
+  const nJogosComResultado = jogosGrupos.filter(j => j.gc !== null && j.gc !== undefined).length;
+
+  return [
+    ...calcSniperECoracaoDePedra(participantStats),
+    ...calcEspecialistas(participantStats),
+    ...calcSequencias(jogosGrupos, previsoesGrupos, jogosMataMata, previsoesMataMata),
+    calcTotalExatos(participantStats, nJogosComResultado),
+    calcDistribuicaoMalta(participantStats),
+    ...calcTendencias(classHistory),
+    ...calcEstiloApostador(jogosGrupos, previsoesGrupos),
+    ...calcBolaDeCristal(jogosMataMata, previsoesMataMata),
+    ...calcContraManada(jogosGrupos, previsoesGrupos),
+    calcHabitueJantar(classHistory),
+  ];
+}
+
 if (typeof module !== "undefined") {
-  module.exports = { maxBy, minBy, calcSniperECoracaoDePedra, calcEspecialistas, calcSequencias, calcTotalExatos, calcDistribuicaoMalta, calcTendencias, calcEstiloApostador, calcBolaDeCristal, calcContraManada };
+  module.exports = { maxBy, minBy, calcSniperECoracaoDePedra, calcEspecialistas, calcSequencias, calcTotalExatos, calcDistribuicaoMalta, calcTendencias, calcEstiloApostador, calcBolaDeCristal, calcContraManada, calcHabitueJantar, calcCuriosidades };
 }
