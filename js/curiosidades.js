@@ -1,6 +1,11 @@
 // ─── CURIOSIDADES (estatísticas divertidas — partilhado app + testes) ────────
 // Ver docs/superpowers/specs/2026-07-09-curiosidades-modo-jantar-design.md
 
+// Em Node importamos getTipo/calcKO de js/scoring.js. No browser, scoring.js
+// já os define como globais (carrega antes deste ficheiro) — usamos esse
+// objeto diretamente para nunca sombrear os globais do browser.
+const _S = typeof module !== "undefined" ? require("./scoring.js") : { getTipo, calcKO };
+
 function maxBy(arr, fn) {
   if (!arr.length) return null;
   return arr.reduce((best, cur) => (fn(cur) > fn(best) ? cur : best), arr[0]);
@@ -44,6 +49,59 @@ function calcEspecialistas(participantStats) {
   ];
 }
 
+// 5-6: Sequência Imparável / Seca
+function calcSequencias(jogosGrupos, previsoesGrupos, jogosMataMata, previsoesMataMata) {
+  const previsoesGruposPorNome = {};
+  previsoesGrupos.forEach(p => { previsoesGruposPorNome[p.nome] = p.preds; });
+  const previsoesMataMataPorNome = {};
+  previsoesMataMata.forEach(p => { previsoesMataMataPorNome[p.nome] = p.preds; });
+
+  const nomes = previsoesGrupos.map(p => p.nome);
+
+  function maiorSequencia(bools, alvo) {
+    let melhor = 0, atual = 0;
+    for (const v of bools) {
+      if (v === alvo) { atual++; melhor = Math.max(melhor, atual); }
+      else atual = 0;
+    }
+    return melhor;
+  }
+
+  const comSequencias = nomes.map(nome => {
+    const bools = [];
+    const predsGrupos = previsoesGruposPorNome[nome] || {};
+    jogosGrupos.forEach(j => {
+      if (j.gc === null || j.gc === undefined) return;
+      const pred = predsGrupos[j.codigo];
+      if (!pred) return;
+      const tipo = _S.getTipo(pred.gc, pred.gf, j.gc, j.gf);
+      bools.push(tipo !== "Não Pontuou");
+    });
+    const predsKO = previsoesMataMataPorNome[nome] || {};
+    jogosMataMata.forEach(j => {
+      if (j.gc === null || j.gc === undefined) return;
+      const pred = predsKO[j.key];
+      if (!pred || pred.gc === null || pred.gc === undefined) return;
+      const ko = _S.calcKO(j.roundId, pred.gc, pred.gf, pred.qualifier, j.gc, j.gf, j.winner);
+      bools.push(ko.pts > 0);
+    });
+    return { nome, imparavel: maiorSequencia(bools, true), seca: maiorSequencia(bools, false) };
+  });
+
+  if (!comSequencias.length) {
+    return [
+      { id: "sequencia-imparavel", icon: "🔥", titulo: "Sequência Imparável", vencedor: null, valor: "0 jogos seguidos", detalhe: "Mais jogos seguidos a pontuar" },
+      { id: "seca", icon: "🧊", titulo: "Seca", vencedor: null, valor: "0 jogos seguidos", detalhe: "Mais jogos seguidos sem pontuar" },
+    ];
+  }
+  const imparavel = maxBy(comSequencias, p => p.imparavel);
+  const seca = maxBy(comSequencias, p => p.seca);
+  return [
+    { id: "sequencia-imparavel", icon: "🔥", titulo: "Sequência Imparável", vencedor: imparavel.imparavel > 0 ? imparavel.nome : null, valor: `${imparavel.imparavel} jogos seguidos`, detalhe: "Mais jogos seguidos a pontuar" },
+    { id: "seca", icon: "🧊", titulo: "Seca", vencedor: seca.seca > 0 ? seca.nome : null, valor: `${seca.seca} jogos seguidos`, detalhe: "Mais jogos seguidos sem pontuar" },
+  ];
+}
+
 if (typeof module !== "undefined") {
-  module.exports = { maxBy, minBy, calcSniperECoracaoDePedra, calcEspecialistas };
+  module.exports = { maxBy, minBy, calcSniperECoracaoDePedra, calcEspecialistas, calcSequencias };
 }

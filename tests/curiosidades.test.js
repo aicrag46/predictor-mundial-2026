@@ -1,4 +1,4 @@
-const { maxBy, minBy, calcSniperECoracaoDePedra, calcEspecialistas } = require("../js/curiosidades.js");
+const { maxBy, minBy, calcSniperECoracaoDePedra, calcEspecialistas, calcSequencias } = require("../js/curiosidades.js");
 
 let passed = 0, failed = 0;
 function ok(cond, msg) {
@@ -33,6 +33,26 @@ ok(rei.vencedor === "Bruno", "Rei do Mata-Mata = maior fatia koPts");
 const semKO = [{ nome: "Ana", exatos: 0, naoPontua: 0, gsPts: 40, koPts: 0, ve: 0, golos: 0 }];
 const [especialistaPend, reiPend] = calcEspecialistas(semKO);
 ok(especialistaPend.vencedor === null && reiPend.vencedor === null, "sem koPts > 0 fica por decidir");
+
+console.log("Curiosidades — Sequências");
+const jogosGrupos3 = [
+  { codigo: "A1", gc: 2, gf: 0 }, { codigo: "A2", gc: 1, gf: 1 },
+  { codigo: "A3", gc: 0, gf: 3 }, { codigo: "A4", gc: 2, gf: 2 },
+];
+const previsoesGrupos3 = [
+  { nome: "Ana", preds: {
+    A1: { gc: 2, gf: 0 }, // Exato -> pontua
+    A2: { gc: 1, gf: 1 }, // Exato -> pontua
+    A3: { gc: 1, gf: 0 }, // Não Pontuou
+    A4: { gc: 2, gf: 2 }, // Exato -> pontua
+  } },
+];
+const jogosMataMata3 = [{ key: "r32:0", roundId: "r32", gc: null, gf: null, winner: null }];
+const previsoesMataMata3 = [{ nome: "Ana", preds: {} }];
+const [imparavel, seca] = calcSequencias(jogosGrupos3, previsoesGrupos3, jogosMataMata3, previsoesMataMata3);
+ok(imparavel.vencedor === "Ana" && imparavel.valor === "2 jogos seguidos", "Sequência Imparável ignora jogo pendente e para na falha");
+ok(seca.vencedor === "Ana" && seca.valor === "1 jogos seguidos", "Seca conta o único jogo sem pontos");
+ok(calcSequencias([], [], [], []).length === 2, "sem jogos devolve 2 prémios (vencedor null)");
 
 console.log("\n" + passed + " passed, " + failed + " failed");
 process.exit(failed ? 1 : 0);
