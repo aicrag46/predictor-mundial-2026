@@ -247,6 +247,55 @@ function calcBolaDeCristal(jogosMataMata, previsoesMataMata) {
   ];
 }
 
+// 17-18: Fora da Manada / Voz da Malta
+function calcContraManada(jogosGrupos, previsoesGrupos) {
+  if (previsoesGrupos.length < 4) {
+    return [
+      { id: "fora-da-manada", icon: "🐑", titulo: "Fora da Manada", vencedor: null, valor: "—", detalhe: "Por decidir — poucos jogadores com prognóstico" },
+      { id: "voz-da-malta", icon: "🤝", titulo: "Voz da Malta", vencedor: null, valor: "—", detalhe: "Por decidir — poucos jogadores com prognóstico" },
+    ];
+  }
+  const conformidade = {};
+  previsoesGrupos.forEach(p => { conformidade[p.nome] = { igual: 0, total: 0 }; });
+
+  jogosGrupos.forEach(j => {
+    const contagem = {};
+    previsoesGrupos.forEach(p => {
+      const pred = p.preds[j.codigo];
+      if (!pred) return;
+      const chave = `${pred.gc}-${pred.gf}`;
+      contagem[chave] = (contagem[chave] || 0) + 1;
+    });
+    const entradas = Object.entries(contagem);
+    const totalPrevisoes = entradas.reduce((s, [, n]) => s + n, 0);
+    if (totalPrevisoes < 4) return;
+    const moda = entradas.reduce((best, cur) => (cur[1] > best[1] ? cur : best), entradas[0])[0];
+    previsoesGrupos.forEach(p => {
+      const pred = p.preds[j.codigo];
+      if (!pred) return;
+      conformidade[p.nome].total++;
+      if (`${pred.gc}-${pred.gf}` === moda) conformidade[p.nome].igual++;
+    });
+  });
+
+  const comTaxa = Object.entries(conformidade)
+    .map(([nome, c]) => ({ nome, taxa: c.total ? c.igual / c.total : 0, total: c.total }))
+    .filter(p => p.total > 0);
+
+  if (!comTaxa.length) {
+    return [
+      { id: "fora-da-manada", icon: "🐑", titulo: "Fora da Manada", vencedor: null, valor: "—", detalhe: "Por decidir — poucos jogos com prognósticos suficientes" },
+      { id: "voz-da-malta", icon: "🤝", titulo: "Voz da Malta", vencedor: null, valor: "—", detalhe: "Por decidir — poucos jogos com prognósticos suficientes" },
+    ];
+  }
+  const fora = minBy(comTaxa, p => p.taxa);
+  const voz = maxBy(comTaxa, p => p.taxa);
+  return [
+    { id: "fora-da-manada", icon: "🐑", titulo: "Fora da Manada", vencedor: fora.nome, valor: `${Math.round(fora.taxa * 100)}% igual à malta`, detalhe: "Previsões mais diferentes do consenso geral" },
+    { id: "voz-da-malta", icon: "🤝", titulo: "Voz da Malta", vencedor: voz.nome, valor: `${Math.round(voz.taxa * 100)}% igual à malta`, detalhe: "Previsões mais alinhadas com o consenso geral" },
+  ];
+}
+
 if (typeof module !== "undefined") {
-  module.exports = { maxBy, minBy, calcSniperECoracaoDePedra, calcEspecialistas, calcSequencias, calcTotalExatos, calcDistribuicaoMalta, calcTendencias, calcEstiloApostador, calcBolaDeCristal };
+  module.exports = { maxBy, minBy, calcSniperECoracaoDePedra, calcEspecialistas, calcSequencias, calcTotalExatos, calcDistribuicaoMalta, calcTendencias, calcEstiloApostador, calcBolaDeCristal, calcContraManada };
 }

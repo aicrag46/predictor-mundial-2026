@@ -1,4 +1,4 @@
-const { maxBy, minBy, calcSniperECoracaoDePedra, calcEspecialistas, calcSequencias, calcTotalExatos, calcDistribuicaoMalta, calcTendencias, calcEstiloApostador, calcBolaDeCristal } = require("../js/curiosidades.js");
+const { maxBy, minBy, calcSniperECoracaoDePedra, calcEspecialistas, calcSequencias, calcTotalExatos, calcDistribuicaoMalta, calcTendencias, calcEstiloApostador, calcBolaDeCristal, calcContraManada } = require("../js/curiosidades.js");
 
 let passed = 0, failed = 0;
 function ok(cond, msg) {
@@ -118,6 +118,20 @@ ok(bola.vencedor === "Ana" && bola.valor === "67% (2/3)", "Bola de Cristal = mel
 ok(zica.vencedor === "Bruno" && zica.valor === "0% (0/3)", "Zica = pior taxa de acerto no Apurado");
 const poucoDecidido = calcBolaDeCristal([{ key: "r16:0", winner: "Portugal" }], [{ nome: "Ana", preds: { "r16:0": { qualifier: "Portugal" } } }]);
 ok(poucoDecidido.every(a => a.vencedor === null), "menos de 3 jogos decididos fica por decidir");
+
+console.log("Curiosidades — Fora da Manada / Voz da Malta");
+const jogosGrupos8 = [{ codigo: "A1" }, { codigo: "A2" }];
+const previsoesGrupos8 = [
+  { nome: "Ana",   preds: { A1: { gc: 2, gf: 1 }, A2: { gc: 1, gf: 1 } } },
+  { nome: "Bruno", preds: { A1: { gc: 2, gf: 1 }, A2: { gc: 1, gf: 1 } } },
+  { nome: "Carla", preds: { A1: { gc: 2, gf: 1 }, A2: { gc: 1, gf: 1 } } },
+  { nome: "Duda",  preds: { A1: { gc: 0, gf: 3 }, A2: { gc: 3, gf: 0 } } },
+];
+const [fora, voz] = calcContraManada(jogosGrupos8, previsoesGrupos8);
+ok(fora.vencedor === "Duda" && fora.valor === "0% igual à malta", "Fora da Manada = Duda nunca bate com a moda (2-1/1-1)");
+ok(voz.valor === "100% igual à malta", "Voz da Malta = 100% de coincidência para quem segue a moda");
+const poucosJogadores = calcContraManada(jogosGrupos8, previsoesGrupos8.slice(0, 2));
+ok(poucosJogadores.every(a => a.vencedor === null), "menos de 4 jogadores fica por decidir");
 
 console.log("\n" + passed + " passed, " + failed + " failed");
 process.exit(failed ? 1 : 0);
