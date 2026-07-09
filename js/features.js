@@ -1,6 +1,5 @@
 // ─── FEATURES AVANÇADAS ──────────────────────────────────────────────────────
 
-let _presentationActive = false;
 let _pendingConflicts = [];
 
 // ─── Prognósticos protegidos (Supabase) ───────────────────────────────────────
@@ -234,12 +233,57 @@ function exportBackupJSON() {
 }
 
 // ─── Modo Apresentação (jantar) ─────────────────────────────────────────────
+// A fronteira paga/não-paga (posição half/half+1) é o clímax final — mais
+// peso que o próprio campeão. Ver secção "Modo Jantar" da spec.
+function buildJantarSlides(cls, awards) {
+  const ordem = buildPresentationOrder(cls.length);
+  const porPos = {};
+  cls.forEach(s => { porPos[s.pos] = s; });
+  const slides = [
+    { type: "intro", title: "🏆 Predictor Parque Biológico", body: "Mundial 2026 · Revelação no Jantar", sub: `${cls.length} participantes` },
+  ];
+
+  const premiosDisponiveis = awards.filter(a => a.vencedor);
+  let premioIdx = 0;
+  let contadorFaseAB = 0;
+
+  ordem.forEach(({ pos, fase }) => {
+    const s = porPos[pos];
+    if (!s) return;
+    if (fase === "C") {
+      slides.push({ type: "campeao", pos: s.pos, nome: s.nome, pts: s.pts, paga: s.paga });
+      return;
+    }
+    if (fase === "D") {
+      slides.push({ type: "fronteira", pos: s.pos, nome: s.nome, pts: s.pts, paga: s.paga });
+      return;
+    }
+    slides.push({ type: "rank", pos: s.pos, nome: s.nome, pts: s.pts, paga: s.paga });
+    contadorFaseAB++;
+    if (contadorFaseAB % 3 === 0 && premioIdx < premiosDisponiveis.length) {
+      slides.push({ type: "premio", ...premiosDisponiveis[premioIdx++] });
+    }
+  });
+
+  return slides;
+}
+
+let _presentationActive = false;
+let _presSlides = [];
+let _presSlide = 0;
+let _presStage = 1;
+
 function openPresentationMode() {
   _presentationActive = true;
   const overlay = document.getElementById("presentation-overlay");
   if (!overlay) return;
+  const cls = calcClassificacao(getResultados());
+  const awards = calcCuriosidades(buildCuriosidadesInput());
+  _presSlides = buildJantarSlides(cls, awards);
+  _presSlide = 0;
+  _presStage = 1;
   overlay.classList.add("active");
-  renderPresentationSlide(0);
+  renderPresentationSlide();
 }
 
 function closePresentationMode() {
@@ -247,32 +291,54 @@ function closePresentationMode() {
   document.getElementById("presentation-overlay")?.classList.remove("active");
 }
 
-let _presSlide = 0;
-function renderPresentationSlide(n) {
-  const resultados = getResultados();
-  const cls = calcClassificacao(resultados);
-  const slides = [
-    { title: "🏆 Predictor Parque Biológico", body: "Mundial 2026 · Revelação no Jantar", sub: `${Object.keys(resultados).length} jogos disputados` },
-    ...cls.map(s => ({
-      title: `${s.pos === 1 ? "🥇" : s.pos === 2 ? "🥈" : s.pos === 3 ? "🥉" : s.pos + "."} ${s.nome}`,
-      body: `${s.pts} pontos`,
-      sub: s.paga ? "🍽️ Paga o jantar" : "🎉 Não paga!",
-    })),
-  ];
-  _presSlide = Math.max(0, Math.min(n, slides.length - 1));
-  const s = slides[_presSlide];
+function presentationNext() {
+  const slide = _presSlides[_presSlide];
+  if (slide.type === "rank" && _presStage === 1) {
+    _presStage = 2;
+  } else if (_presSlide < _presSlides.length - 1) {
+    _presSlide++;
+    _presStage = 1;
+  }
+  renderPresentationSlide();
+}
+
+function presentationPrev() {
+  if (_presSlide > 0) {
+    _presSlide--;
+    _presStage = 1;
+  }
+  renderPresentationSlide();
+}
+
+function renderPresentationSlide() {
   const el = document.getElementById("presentation-content");
   if (!el) return;
-  el.innerHTML = `
-    <div class="pres-slide">
-      <h2 class="pres-title">${s.title}</h2>
-      <p class="pres-body">${s.body}</p>
-      <p class="pres-sub">${s.sub || ""}</p>
-    </div>
+  const slide = _presSlides[_presSlide];
+  const isFirst = _presSlide === 0;
+  const isLast = _presSlide >= _presSlides.length - 1 && !(slide.type === "rank" && _presStage === 1);
+
+  let bodyHtml = "";
+  if (slide.type === "intro") {
+    bodyHtml = `<div class="pres-slide"><h2 class="pres-title">${slide.title}</h2><p class="pres-body">${slide.body}</p><p class="pres-sub">${slide.sub}</p></div>`;
+  } else if (slide.type === "premio") {
+    bodyHtml = `<div class="pres-slide pres-premio"><div class="pres-premio-icon">${slide.icon}</div><h2 class="pres-title">${slide.titulo}</h2><p class="pres-body">${slide.vencedor}</p><p class="pres-sub">${slide.valor} · ${slide.detalhe}</p></div>`;
+  } else if (slide.type === "rank") {
+    bodyHtml = _presStage === 1
+      ? `<div class="pres-slide"><h2 class="pres-title pres-blur">${slide.pos}.º lugar</h2><p class="pres-sub">clica para revelar</p></div>`
+      : `<div class="pres-slide"><h2 class="pres-title">${slide.pos}.º ${slide.nome}</h2><p class="pres-body">${slide.pts} pontos</p><p class="pres-sub ${slide.paga ? "pres-paga" : ""}">${slide.paga ? "🍽️ Paga o jantar" : "🎉 Não paga!"}</p></div>`;
+  } else if (slide.type === "campeao") {
+    bodyHtml = `<div class="pres-slide pres-campeao"><div class="pres-confetti"></div><h2 class="pres-title">🏆 CAMPEÃO</h2><p class="pres-body">${slide.nome}</p><p class="pres-sub">${slide.pts} pontos</p></div>`;
+  } else if (slide.type === "fronteira") {
+    const label = slide.paga ? "😅 Vais pagar o jantar hoje!" : "🥳 Escapaste por um triz!";
+    bodyHtml = `<div class="pres-slide pres-fronteira"><h2 class="pres-title">${slide.pos}.º ${slide.nome}</h2><p class="pres-body">${slide.pts} pontos</p><p class="pres-sub pres-fronteira-label">${label}</p></div>`;
+  }
+
+  const proximoLabel = (slide.type === "rank" && _presStage === 1) ? "Revelar →" : "Seguinte →";
+  el.innerHTML = `${bodyHtml}
     <div class="pres-nav">
-      <button onclick="renderPresentationSlide(${_presSlide - 1})" ${ _presSlide === 0 ? "disabled" : ""}>← Anterior</button>
-      <span>${_presSlide + 1} / ${slides.length}</span>
-      <button onclick="renderPresentationSlide(${_presSlide + 1})" ${ _presSlide >= slides.length - 1 ? "disabled" : ""}>Seguinte →</button>
+      <button onclick="presentationPrev()" ${isFirst ? "disabled" : ""}>← Anterior</button>
+      <span>${_presSlide + 1} / ${_presSlides.length}</span>
+      <button onclick="presentationNext()" ${isLast ? "disabled" : ""}>${proximoLabel}</button>
     </div>`;
 }
 

@@ -1223,3 +1223,26 @@ body {
 .curio-vencedor { font-size: 1.3rem; font-weight: 900; color: var(--text); margin-top: 6px; }
 .curio-valor { color: var(--cyan); font-weight: 700; margin-top: 4px; }
 .curio-detalhe { color: var(--muted); font-size: .8rem; margin-top: 6px; }
+
+/* ─── Modo Jantar — slides extra ──────────────────────────────────────── */
+.pres-blur { filter: blur(6px); transition: filter .3s ease; }
+.pres-premio-icon { font-size: 3rem; margin-bottom: 12px; }
+.pres-campeao, .pres-fronteira { position: relative; }
+.pres-campeao .pres-title { font-size: clamp(2.5rem, 10vw, 4.5rem); }
+.pres-confetti {
+  position: absolute; inset: -40px -40px auto -40px; height: 300px;
+  pointer-events: none;
+  background-image:
+    radial-gradient(circle, var(--gold) 3px, transparent 3px),
+    radial-gradient(circle, var(--cyan) 3px, transparent 3px),
+    radial-gradient(circle, var(--emerald) 3px, transparent 3px);
+  background-size: 60px 60px, 80px 80px, 70px 70px;
+  animation: confetti-fall 3s linear infinite;
+  opacity: .6;
+}
+@keyframes confetti-fall {
+  from { background-position: 0 -100px, 20px -140px, 40px -120px; }
+  to   { background-position: 0 400px, 20px 440px, 40px 420px; }
+}
+.pres-fronteira-label { font-size: 1.3rem; font-weight: 800; margin-top: 10px; }
+.pres-paga { color: var(--rose); }
