@@ -102,6 +102,33 @@ function calcSequencias(jogosGrupos, previsoesGrupos, jogosMataMata, previsoesMa
   ];
 }
 
+// 7: Total de Exatos da competição
+function calcTotalExatos(participantStats, nJogosComResultado) {
+  const total = participantStats.reduce((sum, p) => sum + p.exatos, 0);
+  const oportunidades = nJogosComResultado * participantStats.length;
+  const pct = oportunidades > 0 ? Math.round((total / oportunidades) * 1000) / 10 : 0;
+  return {
+    id: "total-exatos", icon: "⚡", titulo: "Total de Exatos da Competição", vencedor: null,
+    valor: `${total} exatos`,
+    detalhe: oportunidades > 0 ? `${pct}% de acerto exato em ${oportunidades} oportunidades` : "Ainda sem jogos com resultado",
+  };
+}
+
+// 8: Distribuição da malta
+function calcDistribuicaoMalta(participantStats) {
+  const totais = participantStats.reduce((acc, p) => {
+    acc.exatos += p.exatos; acc.ve += p.ve; acc.golos += p.golos; acc.naoPontua += p.naoPontua;
+    return acc;
+  }, { exatos: 0, ve: 0, golos: 0, naoPontua: 0 });
+  const soma = totais.exatos + totais.ve + totais.golos + totais.naoPontua;
+  const pct = n => (soma > 0 ? Math.round((n / soma) * 1000) / 10 : 0);
+  return {
+    id: "distribuicao-malta", icon: "🌍", titulo: "Distribuição da Malta", vencedor: null,
+    valor: `${totais.exatos} Exato · ${totais.ve} VE · ${totais.golos} Golos · ${totais.naoPontua} Nada`,
+    detalhe: `${pct(totais.exatos)}% Exato · ${pct(totais.ve)}% VE · ${pct(totais.golos)}% Golos · ${pct(totais.naoPontua)}% Nada`,
+  };
+}
+
 if (typeof module !== "undefined") {
-  module.exports = { maxBy, minBy, calcSniperECoracaoDePedra, calcEspecialistas, calcSequencias };
+  module.exports = { maxBy, minBy, calcSniperECoracaoDePedra, calcEspecialistas, calcSequencias, calcTotalExatos, calcDistribuicaoMalta };
 }

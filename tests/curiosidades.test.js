@@ -1,4 +1,4 @@
-const { maxBy, minBy, calcSniperECoracaoDePedra, calcEspecialistas, calcSequencias } = require("../js/curiosidades.js");
+const { maxBy, minBy, calcSniperECoracaoDePedra, calcEspecialistas, calcSequencias, calcTotalExatos, calcDistribuicaoMalta } = require("../js/curiosidades.js");
 
 let passed = 0, failed = 0;
 function ok(cond, msg) {
@@ -53,6 +53,17 @@ const [imparavel, seca] = calcSequencias(jogosGrupos3, previsoesGrupos3, jogosMa
 ok(imparavel.vencedor === "Ana" && imparavel.valor === "2 jogos seguidos", "Sequência Imparável ignora jogo pendente e para na falha");
 ok(seca.vencedor === "Ana" && seca.valor === "1 jogos seguidos", "Seca conta o único jogo sem pontos");
 ok(calcSequencias([], [], [], []).length === 2, "sem jogos devolve 2 prémios (vencedor null)");
+
+console.log("Curiosidades — Total de Exatos / Distribuição da Malta");
+const stats4 = [
+  { nome: "Ana", exatos: 3, ve: 2, golos: 1, naoPontua: 4, gsPts: 0, koPts: 0 },
+  { nome: "Bruno", exatos: 5, ve: 1, golos: 0, naoPontua: 4, gsPts: 0, koPts: 0 },
+];
+const totalExatos = calcTotalExatos(stats4, 10);
+ok(totalExatos.valor === "8 exatos", "Total de Exatos soma todos os participantes");
+ok(totalExatos.detalhe.includes("40%"), "% sobre oportunidades (8 / (10*2) = 40%)");
+const distribuicao = calcDistribuicaoMalta(stats4);
+ok(distribuicao.valor === "8 Exato · 3 VE · 1 Golos · 8 Nada", "Distribuição soma cada categoria");
 
 console.log("\n" + passed + " passed, " + failed + " failed");
 process.exit(failed ? 1 : 0);
