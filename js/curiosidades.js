@@ -129,6 +129,47 @@ function calcDistribuicaoMalta(participantStats) {
   };
 }
 
+// 9-10: Maior Subida / Maior Queda / Montanha-Russa
+function calcTendencias(classHistory) {
+  if (classHistory.length < 2) {
+    return [
+      { id: "maior-subida", icon: "📈", titulo: "Maior Subida", vencedor: null, valor: "—", detalhe: "Por decidir — falta histórico" },
+      { id: "maior-queda", icon: "📉", titulo: "Maior Queda", vencedor: null, valor: "—", detalhe: "Por decidir — falta histórico" },
+      { id: "montanha-russa", icon: "🎢", titulo: "Montanha-Russa", vencedor: null, valor: "—", detalhe: "Por decidir — falta histórico" },
+    ];
+  }
+  const primeiro = classHistory[0].ranking;
+  const ultimo = classHistory[classHistory.length - 1].ranking;
+  const posPrimeiro = {};
+  primeiro.forEach(r => { posPrimeiro[r.nome] = r.pos; });
+  const deltas = ultimo.map(r => ({ nome: r.nome, delta: (posPrimeiro[r.nome] ?? r.pos) - r.pos }));
+  const subida = maxBy(deltas, d => d.delta);
+  const queda = minBy(deltas, d => d.delta);
+
+  const posPorNome = {};
+  classHistory.forEach(snap => {
+    snap.ranking.forEach(r => {
+      if (!posPorNome[r.nome]) posPorNome[r.nome] = [];
+      posPorNome[r.nome].push(r.pos);
+    });
+  });
+  function desvioPadrao(nums) {
+    const media = nums.reduce((a, b) => a + b, 0) / nums.length;
+    const variancia = nums.reduce((a, b) => a + (b - media) ** 2, 0) / nums.length;
+    return Math.sqrt(variancia);
+  }
+  const comDesvio = Object.entries(posPorNome)
+    .filter(([, posicoes]) => posicoes.length >= 2)
+    .map(([nome, posicoes]) => ({ nome, desvio: desvioPadrao(posicoes) }));
+  const montanhaRussa = comDesvio.length ? maxBy(comDesvio, p => p.desvio) : null;
+
+  return [
+    { id: "maior-subida", icon: "📈", titulo: "Maior Subida", vencedor: subida.delta > 0 ? subida.nome : null, valor: `${Math.max(subida.delta, 0)} posições`, detalhe: "Desde o primeiro registo até agora" },
+    { id: "maior-queda", icon: "📉", titulo: "Maior Queda", vencedor: queda.delta < 0 ? queda.nome : null, valor: `${Math.max(-queda.delta, 0)} posições`, detalhe: "Desde o primeiro registo até agora" },
+    { id: "montanha-russa", icon: "🎢", titulo: "Montanha-Russa", vencedor: montanhaRussa ? montanhaRussa.nome : null, valor: montanhaRussa ? `desvio de ${montanhaRussa.desvio.toFixed(1)}` : "—", detalhe: "Posição mais instável ao longo do tempo" },
+  ];
+}
+
 if (typeof module !== "undefined") {
-  module.exports = { maxBy, minBy, calcSniperECoracaoDePedra, calcEspecialistas, calcSequencias, calcTotalExatos, calcDistribuicaoMalta };
+  module.exports = { maxBy, minBy, calcSniperECoracaoDePedra, calcEspecialistas, calcSequencias, calcTotalExatos, calcDistribuicaoMalta, calcTendencias };
 }

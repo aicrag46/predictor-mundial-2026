@@ -1,4 +1,4 @@
-const { maxBy, minBy, calcSniperECoracaoDePedra, calcEspecialistas, calcSequencias, calcTotalExatos, calcDistribuicaoMalta } = require("../js/curiosidades.js");
+const { maxBy, minBy, calcSniperECoracaoDePedra, calcEspecialistas, calcSequencias, calcTotalExatos, calcDistribuicaoMalta, calcTendencias } = require("../js/curiosidades.js");
 
 let passed = 0, failed = 0;
 function ok(cond, msg) {
@@ -64,6 +64,20 @@ ok(totalExatos.valor === "8 exatos", "Total de Exatos soma todos os participante
 ok(totalExatos.detalhe.includes("40%"), "% sobre oportunidades (8 / (10*2) = 40%)");
 const distribuicao = calcDistribuicaoMalta(stats4);
 ok(distribuicao.valor === "8 Exato · 3 VE · 1 Golos · 8 Nada", "Distribuição soma cada categoria");
+
+console.log("Curiosidades — Tendências");
+const hist5 = [
+  { ts: 1, ranking: [{ nome: "Ana", pts: 5, pos: 3 }, { nome: "Bruno", pts: 10, pos: 1 }] },
+  { ts: 2, ranking: [{ nome: "Ana", pts: 20, pos: 1 }, { nome: "Bruno", pts: 10, pos: 3 }] },
+];
+const [subida, queda, montanha] = calcTendencias(hist5);
+ok(subida.vencedor === "Ana" && subida.valor === "2 posições", "Maior Subida: Ana foi de 3º a 1º");
+ok(queda.vencedor === "Bruno" && queda.valor === "2 posições", "Maior Queda: Bruno foi de 1º a 3º");
+ok(montanha.vencedor === "Ana" || montanha.vencedor === "Bruno", "Montanha-Russa escolhe alguém com histórico");
+const semHistorico = calcTendencias([]);
+ok(semHistorico.every(a => a.vencedor === null), "sem histórico fica tudo por decidir");
+const umSnapshot = calcTendencias([{ ts: 1, ranking: [{ nome: "Ana", pts: 5, pos: 1 }] }]);
+ok(umSnapshot.every(a => a.vencedor === null), "com 1 snapshot só, fica por decidir");
 
 console.log("\n" + passed + " passed, " + failed + " failed");
 process.exit(failed ? 1 : 0);
