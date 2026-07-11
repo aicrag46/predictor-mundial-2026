@@ -28,6 +28,33 @@ ok(coracao.id === "coracao-de-pedra" && coracao.vencedor === "Bruno" && coracao.
 const [sniperVazio, coracaoVazio] = calcSniperECoracaoDePedra([]);
 ok(sniperVazio.vencedor === null && coracaoVazio.vencedor === null, "lista vazia devolve 2 prémios por decidir");
 
+console.log("Curiosidades — ranking e jogos concretos (drill-down)");
+const jogosGrupos1b = [
+  { codigo: "A1", casa: "México", fora: "África do Sul", gc: 2, gf: 0 },
+  { codigo: "A2", casa: "Coreia do Sul", fora: "Chéquia", gc: 1, gf: 1 },
+];
+const previsoesGrupos1b = [
+  { nome: "Ana", preds: { A1: { gc: 2, gf: 0 }, A2: { gc: 1, gf: 1 } } },   // acerta A1 e A2 (Exato, Exato)
+  { nome: "Bruno", preds: { A1: { gc: 0, gf: 0 }, A2: { gc: 2, gf: 0 } } }, // A1 Golos Equipa, A2 Não Pontuou
+];
+const stats1b = [
+  { nome: "Ana", exatos: 2, naoPontua: 0, gsPts: 10, koPts: 0, ve: 0, golos: 0 },
+  { nome: "Bruno", exatos: 0, naoPontua: 1, gsPts: 1, koPts: 0, ve: 0, golos: 1 },
+];
+const [sniper1b, coracao1b] = calcSniperECoracaoDePedra(stats1b, jogosGrupos1b, previsoesGrupos1b, [], []);
+ok(sniper1b.ranking.length === 2 && sniper1b.ranking[0].nome === "Ana" && sniper1b.ranking[0].valor === "2 exatos", "Sniper.ranking tem todos os participantes, ordenado");
+ok(sniper1b.jogos.length === 2 && sniper1b.jogos.every(j => j.label.includes("—")), "Sniper.jogos lista os jogos concretos do vencedor (Ana acertou os 2)");
+ok(coracao1b.jogos.length === 1 && coracao1b.jogos[0].codigo === "A2", "Coração de Pedra.jogos lista só o jogo Não Pontuou do Bruno (A2)");
+
+console.log("Curiosidades — Especialista de Grupos (sem jogos concretos aplicáveis)");
+const statsKO1b = [
+  { nome: "Ana", exatos: 0, naoPontua: 0, gsPts: 40, koPts: 10, ve: 0, golos: 0 },
+  { nome: "Bruno", exatos: 0, naoPontua: 0, gsPts: 20, koPts: 30, ve: 0, golos: 0 },
+];
+const [especialista1b] = calcEspecialistas(statsKO1b);
+ok(especialista1b.jogos === null, "Especialista de Grupos não tem jogos concretos (jogos === null)");
+ok(especialista1b.ranking.length === 2, "Especialista de Grupos.ranking tem os dois participantes com koPts>0");
+
 console.log("Curiosidades — Especialista de Grupos / Rei do Mata-Mata");
 const stats2 = [
   { nome: "Ana", exatos: 0, naoPontua: 0, gsPts: 40, koPts: 10, ve: 0, golos: 0 },
@@ -59,6 +86,18 @@ const [imparavel, seca] = calcSequencias(jogosGrupos3, previsoesGrupos3, jogosMa
 ok(imparavel.vencedor === "Ana" && imparavel.valor === "2 jogos seguidos", "Sequência Imparável ignora jogo pendente e para na falha");
 ok(seca.vencedor === "Ana" && seca.valor === "1 jogos seguidos", "Seca conta o único jogo sem pontos");
 ok(calcSequencias([], [], [], []).length === 2, "sem jogos devolve 2 prémios (vencedor null)");
+
+const jogosGrupos3b = [
+  { codigo: "A1", casa: "México", fora: "África do Sul", gc: 2, gf: 0 },
+  { codigo: "A2", casa: "Coreia do Sul", fora: "Chéquia", gc: 1, gf: 1 },
+  { codigo: "A3", casa: "Brasil", fora: "Marrocos", gc: 0, gf: 3 },
+];
+const previsoesGrupos3b = [{ nome: "Ana", preds: {
+  A1: { gc: 2, gf: 0 }, A2: { gc: 1, gf: 1 }, A3: { gc: 1, gf: 0 },
+} }];
+const [imparavel3b] = calcSequencias(jogosGrupos3b, previsoesGrupos3b, [], [{ nome: "Ana", preds: {} }]);
+ok(imparavel3b.jogos.length === 2 && imparavel3b.jogos[0].codigo === "A1" && imparavel3b.jogos[1].codigo === "A2", "Sequência Imparável.jogos lista exatamente os jogos da sequência vencedora (A1, A2)");
+ok(imparavel3b.jogos[0].label.includes("México") && imparavel3b.jogos[0].label.includes("África do Sul"), "jogos da sequência incluem os nomes das equipas");
 
 console.log("Curiosidades — Total de Exatos / Distribuição da Malta");
 const stats4 = [
@@ -124,6 +163,7 @@ ok(bola.vencedor === "Ana" && bola.valor === "67% (2/3)", "Bola de Cristal = mel
 ok(zica.vencedor === "Bruno" && zica.valor === "0% (0/3)", "Zica = pior taxa de acerto no Apurado");
 const poucoDecidido = calcBolaDeCristal([{ key: "r16:0", winner: "Portugal" }], [{ nome: "Ana", preds: { "r16:0": { qualifier: "Portugal" } } }]);
 ok(poucoDecidido.every(a => a.vencedor === null), "menos de 3 jogos decididos fica por decidir");
+ok(bola.jogos.length === 3 && bola.jogos.filter(j => j.label.includes("✓")).length === 2, "Bola de Cristal.jogos marca ✓/✗ por jogo (Ana acertou 2 de 3)");
 
 console.log("Curiosidades — Fora da Manada / Voz da Malta");
 const jogosGrupos8 = [{ codigo: "A1" }, { codigo: "A2" }];
@@ -138,6 +178,8 @@ ok(fora.vencedor === "Duda" && fora.valor === "0% igual à malta", "Fora da Mana
 ok(voz.valor === "100% igual à malta", "Voz da Malta = 100% de coincidência para quem segue a moda");
 const poucosJogadores = calcContraManada(jogosGrupos8, previsoesGrupos8.slice(0, 2));
 ok(poucosJogadores.every(a => a.vencedor === null), "menos de 4 jogadores fica por decidir");
+ok(fora.jogos.length === 2 && fora.jogos.every(j => j.label.includes("✗")), "Fora da Manada.jogos mostra os jogos do Duda, todos ✗ (nunca bateu com a malta)");
+ok(fora.ranking.length === 4, "Fora da Manada.ranking tem os 4 participantes");
 
 console.log("Curiosidades — Habitué do Jantar + orquestrador");
 const hist9 = [

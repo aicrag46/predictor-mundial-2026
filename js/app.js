@@ -131,7 +131,7 @@ function buildCuriosidadesInput() {
 
   const jogosGrupos = DADOS.jogos.map(j => {
     const r = resultados[j.codigo];
-    return { codigo: j.codigo, gc: r ? r.gc : null, gf: r ? r.gf : null };
+    return { codigo: j.codigo, casa: j.casa, fora: j.fora, gc: r ? r.gc : null, gf: r ? r.gf : null };
   });
 
   const previsoesGrupos = DADOS.participantes.map((nome, pi) => {
@@ -148,6 +148,7 @@ function buildCuriosidadesInput() {
     (mm[round.id] || []).forEach((game, idx) => {
       jogosMataMata.push({
         key: `${round.id}:${idx}`, roundId: round.id,
+        e1: game.e1, e2: game.e2,
         gc: game.gc, gf: game.gf, winner: mmWinner(game),
       });
     });
@@ -169,16 +170,19 @@ function buildCuriosidadesInput() {
   return { participantStats, jogosGrupos, previsoesGrupos, jogosMataMata, previsoesMataMata, classHistory };
 }
 
+let _curiosidadesAwards = [];
+
 function renderCuriosidades() {
   const container = document.getElementById("curiosidades-content");
   if (!container) return;
   const awards = calcCuriosidades(buildCuriosidadesInput());
+  _curiosidadesAwards = awards;
   let html = `<div class="curiosidades-header">
     <h2 class="curiosidades-title">🏆 Curiosidades da Época</h2>
-    <p class="curiosidades-sub">Atualiza sempre que há resultados novos</p>
+    <p class="curiosidades-sub">Atualiza sempre que há resultados novos · clica num cartão para ver todos os dados</p>
   </div><div class="curiosidades-grid">`;
   awards.forEach(a => {
-    html += `<div class="curio-card ${a.vencedor ? "" : "curio-pending"}">
+    html += `<div class="curio-card ${a.vencedor ? "" : "curio-pending"}" onclick="openCurioModal('${a.id}')">
       <div class="curio-icon">${a.icon}</div>
       <div class="curio-titulo">${a.titulo}</div>
       <div class="curio-vencedor">${a.vencedor || "Por decidir"}</div>
@@ -188,6 +192,49 @@ function renderCuriosidades() {
   });
   html += `</div>`;
   container.innerHTML = html;
+}
+
+function openCurioModal(id) {
+  const a = _curiosidadesAwards.find(x => x.id === id);
+  if (!a) return;
+  document.getElementById("curio-modal-icon").textContent = a.icon;
+  document.getElementById("curio-modal-title").textContent = a.titulo;
+
+  let html = `<p class="curio-modal-detalhe">${a.detalhe}</p>`;
+
+  html += `<div class="curio-modal-section-title">📊 Todos os jogadores</div><div class="curio-ranking">`;
+  if (a.ranking && a.ranking.length) {
+    a.ranking.forEach((r, i) => {
+      const destaque = a.vencedor && a.vencedor.split(" & ").includes(r.nome);
+      html += `<div class="curio-ranking-row ${destaque ? "curio-ranking-top" : ""}">
+        <span class="curio-ranking-pos">${i + 1}.º</span>
+        <span class="curio-ranking-nome">${r.nome}</span>
+        <span class="curio-ranking-valor">${r.valor}</span>
+      </div>`;
+    });
+  } else {
+    html += `<p class="curio-modal-vazio">Ainda sem dados suficientes.</p>`;
+  }
+  html += `</div>`;
+
+  if (a.jogos !== null && a.jogos !== undefined) {
+    html += `<div class="curio-modal-section-title">⚽ Jogos em questão</div><div class="curio-jogos-lista">`;
+    if (a.jogos.length) {
+      a.jogos.forEach(j => {
+        html += `<div class="curio-jogo-row"><span class="curio-jogo-codigo">${j.codigo}</span><span class="curio-jogo-label">${j.label}</span></div>`;
+      });
+    } else {
+      html += `<p class="curio-modal-vazio">Ainda sem jogos que contem para este prémio.</p>`;
+    }
+    html += `</div>`;
+  }
+
+  document.getElementById("curio-modal-body").innerHTML = html;
+  document.getElementById("curio-modal").classList.add("active");
+}
+
+function closeCurioModal() {
+  document.getElementById("curio-modal")?.classList.remove("active");
 }
 
 const TIPO_CSS = {

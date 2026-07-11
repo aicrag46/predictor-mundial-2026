@@ -13,7 +13,7 @@
   <link href="https://fonts.googleapis.com/css2?family=Outfit:wght@300;400;500;600;700;800;900&family=JetBrains+Mono:wght@500;700&display=swap" rel="stylesheet" />
   <link rel="manifest" href="/manifest.json" />
   <link rel="apple-touch-icon" href="/icons/icon-192.svg" />
-  <link rel="stylesheet" href="css/style.css?v=12" />
+  <link rel="stylesheet" href="css/style.css?v=13" />
 </head>
 <body>
 
@@ -191,6 +191,18 @@
   <div id="presentation-content"></div>
 </div>
 
+<!-- Modal Curiosidades (detalhe: ranking de todos + jogos concretos) -->
+<div class="wa-modal-overlay" id="curio-modal" onclick="if(event.target===this)closeCurioModal()">
+  <div class="wa-modal-box">
+    <div class="wa-modal-header">
+      <span class="wa-modal-icon" id="curio-modal-icon">🏆</span>
+      <span class="wa-modal-title-text" id="curio-modal-title">Curiosidade</span>
+      <button class="wa-modal-close" onclick="closeCurioModal()">✕</button>
+    </div>
+    <div class="wa-modal-body" id="curio-modal-body"></div>
+  </div>
+</div>
+
 <!-- Modal WhatsApp -->
 <div class="wa-modal-overlay" id="wa-modal" onclick="if(event.target===this)closeWAModal()">
   <div class="wa-modal-box">
@@ -211,13 +223,13 @@
 </div>
 
 <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2/dist/umd/supabase.js"></script>
-<script src="js/config.js?v=21"></script>
-<script src="js/scoring.js?v=21"></script>
-<script src="js/curiosidades.js?v=21"></script>
-<script src="js/db.js?v=21"></script>
-<script src="js/api.js?v=21"></script>
-<script src="js/features.js?v=21"></script>
-<script src="js/data.js?v=21"></script>
-<script src="js/app.js?v=21"></script>
+<script src="js/config.js?v=22"></script>
+<script src="js/scoring.js?v=22"></script>
+<script src="js/curiosidades.js?v=22"></script>
+<script src="js/db.js?v=22"></script>
+<script src="js/api.js?v=22"></script>
+<script src="js/features.js?v=22"></script>
+<script src="js/data.js?v=22"></script>
+<script src="js/app.js?v=22"></script>
 </body>
 </html>

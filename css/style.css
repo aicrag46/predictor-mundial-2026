@@ -1216,13 +1216,36 @@ body {
 .curio-card {
   background: var(--surface); border: 1px solid var(--glass-border);
   border-radius: 16px; padding: 20px; text-align: center;
+  cursor: pointer; transition: transform .15s, border-color .15s;
 }
+.curio-card:hover { transform: translateY(-2px); border-color: var(--gold); }
 .curio-card.curio-pending { opacity: .55; }
 .curio-icon { font-size: 2.2rem; margin-bottom: 8px; }
 .curio-titulo { font-weight: 800; color: var(--gold); font-size: .95rem; text-transform: uppercase; letter-spacing: .04em; }
 .curio-vencedor { font-size: 1.3rem; font-weight: 900; color: var(--text); margin-top: 6px; }
 .curio-valor { color: var(--cyan); font-weight: 700; margin-top: 4px; }
 .curio-detalhe { color: var(--muted); font-size: .8rem; margin-top: 6px; }
+
+/* ─── Curiosidades — modal de detalhe ─────────────────────────────────── */
+.curio-modal-detalhe { color: var(--muted); font-size: .85rem; }
+.curio-modal-section-title { font-weight: 800; color: var(--gold); font-size: .85rem; text-transform: uppercase; letter-spacing: .03em; margin-top: 4px; }
+.curio-ranking { display: flex; flex-direction: column; gap: 4px; }
+.curio-ranking-row {
+  display: flex; align-items: center; gap: 10px;
+  padding: 8px 10px; border-radius: 8px; background: var(--glass);
+}
+.curio-ranking-row.curio-ranking-top { background: rgba(251,191,36,.1); border: 1px solid rgba(251,191,36,.25); }
+.curio-ranking-pos { color: var(--muted); font-size: .8rem; width: 28px; flex-shrink: 0; }
+.curio-ranking-nome { flex: 1; font-weight: 700; }
+.curio-ranking-valor { color: var(--cyan); font-weight: 700; font-size: .9rem; }
+.curio-jogos-lista { display: flex; flex-direction: column; gap: 4px; max-height: 240px; overflow-y: auto; }
+.curio-jogo-row {
+  display: flex; align-items: center; gap: 10px;
+  padding: 6px 10px; border-radius: 8px; background: var(--glass); font-size: .82rem;
+}
+.curio-jogo-codigo { color: var(--muted); font-family: var(--mono); flex-shrink: 0; }
+.curio-jogo-label { color: var(--text); }
+.curio-modal-vazio { color: var(--muted); font-size: .85rem; font-style: italic; }
 
 /* ─── Modo Jantar — slides extra ──────────────────────────────────────── */
 .pres-blur { filter: blur(6px); transition: filter .3s ease; }
