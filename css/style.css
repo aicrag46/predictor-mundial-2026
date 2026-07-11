@@ -1246,3 +1246,4 @@ body {
 }
 .pres-fronteira-label { font-size: 1.3rem; font-weight: 800; margin-top: 10px; }
 .pres-paga { color: var(--rose); }
+.pres-curio-vencedor { font-size: 1.4rem; font-weight: 800; color: var(--gold); margin-top: 10px; }

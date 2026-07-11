@@ -273,6 +273,35 @@ let _presSlides = [];
 let _presSlide = 0;
 let _presStage = 1;
 
+// Nº de cliques de revelação por tipo de slide: 1 = mostra tudo já.
+function stageCountFor(slide) {
+  if (slide.type === "rank") return 2;
+  if (slide.type === "curio") return 3;
+  return 1;
+}
+
+// ─── Modo Curiosidades (slides das 20 curiosidades, título → stat → nome) ────
+function buildCuriosidadesSlides(awards) {
+  const comVencedor = awards.filter(a => a.vencedor);
+  const slides = [
+    { type: "intro", title: "🏆 Curiosidades da Época", body: "As estatísticas mais divertidas do grupo", sub: `${comVencedor.length} prémios` },
+  ];
+  comVencedor.forEach(a => slides.push({ type: "curio", ...a }));
+  return slides;
+}
+
+function openCuriosidadesMode() {
+  _presentationActive = true;
+  const overlay = document.getElementById("presentation-overlay");
+  if (!overlay) return;
+  const awards = calcCuriosidades(buildCuriosidadesInput());
+  _presSlides = buildCuriosidadesSlides(awards);
+  _presSlide = 0;
+  _presStage = 1;
+  overlay.classList.add("active");
+  renderPresentationSlide();
+}
+
 function openPresentationMode() {
   _presentationActive = true;
   const overlay = document.getElementById("presentation-overlay");
@@ -293,8 +322,8 @@ function closePresentationMode() {
 
 function presentationNext() {
   const slide = _presSlides[_presSlide];
-  if (slide.type === "rank" && _presStage === 1) {
-    _presStage = 2;
+  if (_presStage < stageCountFor(slide)) {
+    _presStage++;
   } else if (_presSlide < _presSlides.length - 1) {
     _presSlide++;
     _presStage = 1;
@@ -314,8 +343,9 @@ function renderPresentationSlide() {
   const el = document.getElementById("presentation-content");
   if (!el) return;
   const slide = _presSlides[_presSlide];
+  const maxStage = stageCountFor(slide);
   const isFirst = _presSlide === 0;
-  const isLast = _presSlide >= _presSlides.length - 1 && !(slide.type === "rank" && _presStage === 1);
+  const isLast = _presSlide >= _presSlides.length - 1 && _presStage >= maxStage;
 
   let bodyHtml = "";
   if (slide.type === "intro") {
@@ -331,9 +361,17 @@ function renderPresentationSlide() {
   } else if (slide.type === "fronteira") {
     const label = slide.paga ? "😅 Vais pagar o jantar hoje!" : "🥳 Escapaste por um triz!";
     bodyHtml = `<div class="pres-slide pres-fronteira"><h2 class="pres-title">${slide.pos}.º ${slide.nome}</h2><p class="pres-body">${slide.pts} pontos</p><p class="pres-sub pres-fronteira-label">${label}</p></div>`;
+  } else if (slide.type === "curio") {
+    if (_presStage === 1) {
+      bodyHtml = `<div class="pres-slide pres-premio"><div class="pres-premio-icon">${slide.icon}</div><h2 class="pres-title">${slide.titulo}</h2><p class="pres-sub">clica para revelar</p></div>`;
+    } else if (_presStage === 2) {
+      bodyHtml = `<div class="pres-slide pres-premio"><div class="pres-premio-icon">${slide.icon}</div><h2 class="pres-title">${slide.titulo}</h2><p class="pres-body">${slide.valor}</p><p class="pres-sub">${slide.detalhe}</p></div>`;
+    } else {
+      bodyHtml = `<div class="pres-slide pres-premio"><div class="pres-premio-icon">${slide.icon}</div><h2 class="pres-title">${slide.titulo}</h2><p class="pres-body">${slide.valor}</p><p class="pres-sub pres-curio-vencedor">🏆 ${slide.vencedor}</p></div>`;
+    }
   }
 
-  const proximoLabel = (slide.type === "rank" && _presStage === 1) ? "Revelar →" : "Seguinte →";
+  const proximoLabel = _presStage < maxStage ? "Revelar →" : "Seguinte →";
   el.innerHTML = `${bodyHtml}
     <div class="pres-nav">
       <button onclick="presentationPrev()" ${isFirst ? "disabled" : ""}>← Anterior</button>

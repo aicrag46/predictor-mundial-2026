@@ -469,6 +469,7 @@ function renderClassificacao(resultados) {
     <button class="btn-feat" onclick="exportClassificacaoImage()">🖼️ Exportar imagem</button>
     <button class="btn-feat" onclick="exportBackupJSON()">💾 Backup JSON</button>
     <button class="btn-feat" onclick="openPresentationMode()">🎬 Modo jantar</button>
+    <button class="btn-feat" onclick="openCuriosidadesMode()">🏆 Modo Curiosidades</button>
     <button class="btn-feat" onclick="shareNative(buildMsgClassificacao(resultados),'Classificação')">📤 Partilhar</button>
   </div>
   <div class="cls-info">
