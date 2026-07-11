@@ -137,10 +137,35 @@ console.log("Curiosidades — Habitué do Jantar + orquestrador");
 const hist9 = [
   { ts: 1, ranking: [{ nome: "Ana", pts: 1, pos: 1 }, { nome: "Bruno", pts: 0, pos: 2 }] },
   { ts: 2, ranking: [{ nome: "Ana", pts: 1, pos: 2 }, { nome: "Bruno", pts: 2, pos: 1 }] },
+  { ts: 3, ranking: [{ nome: "Ana", pts: 1, pos: 2 }, { nome: "Bruno", pts: 2, pos: 1 }] },
 ];
 const habitue = calcHabitueJantar(hist9);
-ok(habitue.vencedor === "Ana" && habitue.valor === "1x na metade que paga", "Habitué do Jantar conta snapshots na metade que paga (pos > half)");
+ok(habitue.vencedor === "Ana" && habitue.valor === "2x na metade que paga", "Habitué do Jantar conta snapshots na metade que paga (pos > half)");
 ok(calcHabitueJantar([]).vencedor === null, "sem histórico fica por decidir");
+
+// Empate: Ana, Bruno e Carla pagaram em todos os snapshots (3x cada), mas
+// Carla ficou sempre em último (5º), Bruno oscilou 4º/5º, Ana ficou sempre
+// mais perto da fronteira (3º). O desempate deve premiar quem esteve pior
+// em média, não quem por acaso apareceu primeiro nos dados.
+const histEmpate = [
+  { ts: 1, ranking: [
+    { nome: "Zeca", pts: 5, pos: 1 }, { nome: "Yara", pts: 4, pos: 2 },
+    { nome: "Ana", pts: 3, pos: 3 }, { nome: "Bruno", pts: 2, pos: 4 },
+    { nome: "Carla", pts: 1, pos: 5 },
+  ] },
+  { ts: 2, ranking: [
+    { nome: "Zeca", pts: 5, pos: 1 }, { nome: "Yara", pts: 4, pos: 2 },
+    { nome: "Ana", pts: 3, pos: 3 }, { nome: "Carla", pts: 1, pos: 4 },
+    { nome: "Bruno", pts: 2, pos: 5 },
+  ] },
+  { ts: 3, ranking: [
+    { nome: "Zeca", pts: 5, pos: 1 }, { nome: "Yara", pts: 4, pos: 2 },
+    { nome: "Ana", pts: 3, pos: 3 }, { nome: "Bruno", pts: 2, pos: 4 },
+    { nome: "Carla", pts: 1, pos: 5 },
+  ] },
+];
+const habitueEmpate = calcHabitueJantar(histEmpate);
+ok(habitueEmpate.vencedor === "Carla", `empate de contagem desempata pela pior posição média (veio ${habitueEmpate.vencedor})`);
 
 const awards = calcCuriosidades({
   participantStats: stats4,

@@ -317,19 +317,29 @@ function calcHabitueJantar(classHistory) {
   const maxVezes = Math.max(...entradas.map(e => e[1]));
   const maxEntradas = entradas.filter(e => e[1] === maxVezes);
 
-  // On tie, prefer whoever is in paying position in latest snapshot
+  // Em caso de empate na contagem, ganha quem teve a pior posição média
+  // (mais longe da fronteira) enquanto esteve na metade que paga — não
+  // quem por acaso apareceu primeiro nos dados.
   let vencedorEntry;
   if (maxEntradas.length === 1) {
     vencedorEntry = maxEntradas[0];
   } else {
-    const ultimoSnapshot = classHistory[classHistory.length - 1];
-    const half = Math.floor(ultimoSnapshot.ranking.length / 2);
-    const naPaga = ultimoSnapshot.ranking.find(r => r.pos > half);
-    if (naPaga && maxEntradas.some(e => e[0] === naPaga.nome)) {
-      vencedorEntry = maxEntradas.find(e => e[0] === naPaga.nome);
-    } else {
-      vencedorEntry = maxEntradas[0];
-    }
+    const somaPos = {};
+    const contPos = {};
+    classHistory.forEach(snap => {
+      const half = Math.floor(snap.ranking.length / 2);
+      snap.ranking.forEach(r => {
+        if (r.pos > half && maxEntradas.some(e => e[0] === r.nome)) {
+          somaPos[r.nome] = (somaPos[r.nome] || 0) + r.pos;
+          contPos[r.nome] = (contPos[r.nome] || 0) + 1;
+        }
+      });
+    });
+    vencedorEntry = maxEntradas.reduce((pior, cur) => {
+      const mediaCur = somaPos[cur[0]] / contPos[cur[0]];
+      const mediaPior = somaPos[pior[0]] / contPos[pior[0]];
+      return mediaCur > mediaPior ? cur : pior;
+    }, maxEntradas[0]);
   }
 
   const [nome, vezes] = vencedorEntry;
