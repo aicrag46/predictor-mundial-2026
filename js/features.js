@@ -363,9 +363,9 @@ function renderPresentationSlide() {
     bodyHtml = `<div class="pres-slide pres-fronteira"><h2 class="pres-title">${slide.pos}.º ${slide.nome}</h2><p class="pres-body">${slide.pts} pontos</p><p class="pres-sub pres-fronteira-label">${label}</p></div>`;
   } else if (slide.type === "curio") {
     if (_presStage === 1) {
-      bodyHtml = `<div class="pres-slide pres-premio"><div class="pres-premio-icon">${slide.icon}</div><h2 class="pres-title">${slide.titulo}</h2><p class="pres-sub">clica para revelar</p></div>`;
+      bodyHtml = `<div class="pres-slide pres-premio"><div class="pres-premio-icon">${slide.icon}</div><h2 class="pres-title">${slide.titulo}</h2><p class="pres-body">${slide.detalhe}</p><p class="pres-sub">clica para revelar</p></div>`;
     } else if (_presStage === 2) {
-      bodyHtml = `<div class="pres-slide pres-premio"><div class="pres-premio-icon">${slide.icon}</div><h2 class="pres-title">${slide.titulo}</h2><p class="pres-body">${slide.valor}</p><p class="pres-sub">${slide.detalhe}</p></div>`;
+      bodyHtml = `<div class="pres-slide pres-premio"><div class="pres-premio-icon">${slide.icon}</div><h2 class="pres-title">${slide.titulo}</h2><p class="pres-sub">${slide.detalhe}</p><p class="pres-body">${slide.valor}</p></div>`;
     } else {
       bodyHtml = `<div class="pres-slide pres-premio"><div class="pres-premio-icon">${slide.icon}</div><h2 class="pres-title">${slide.titulo}</h2><p class="pres-body">${slide.valor}</p><p class="pres-sub pres-curio-vencedor">🏆 ${slide.vencedor}</p></div>`;
     }
