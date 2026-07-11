@@ -1,4 +1,4 @@
-const { maxBy, minBy, calcSniperECoracaoDePedra, calcEspecialistas, calcSequencias, calcTotalExatos, calcDistribuicaoMalta, calcTendencias, calcEstiloApostador, calcBolaDeCristal, calcContraManada, calcHabitueJantar, calcCuriosidades, buildPresentationOrder } = require("../js/curiosidades.js");
+const { maxBy, minBy, maxByAll, minByAll, juntarNomes, calcSniperECoracaoDePedra, calcEspecialistas, calcSequencias, calcTotalExatos, calcDistribuicaoMalta, calcTendencias, calcEstiloApostador, calcBolaDeCristal, calcContraManada, calcHabitueJantar, calcCuriosidades, buildPresentationOrder } = require("../js/curiosidades.js");
 
 let passed = 0, failed = 0;
 function ok(cond, msg) {
@@ -10,6 +10,12 @@ console.log("Curiosidades — helpers");
 ok(maxBy([{ n: 1 }, { n: 3 }, { n: 2 }], x => x.n).n === 3, "maxBy encontra o maior");
 ok(minBy([{ n: 1 }, { n: 3 }, { n: 2 }], x => x.n).n === 1, "minBy encontra o menor");
 ok(maxBy([], x => x.n) === null, "maxBy devolve null em array vazio");
+ok(maxByAll([{n:1},{n:3},{n:2}], x=>x.n).length === 1 && maxByAll([{n:1},{n:3},{n:2}], x=>x.n)[0].n === 3, "maxByAll sem empate devolve só o maior");
+ok(maxByAll([{n:3},{n:1},{n:3}], x=>x.n).length === 2, "maxByAll com empate devolve todos os empatados");
+ok(minByAll([{n:3},{n:1},{n:1}], x=>x.n).length === 2, "minByAll com empate devolve todos os empatados");
+ok(maxByAll([], x=>x.n).length === 0, "maxByAll devolve [] em array vazio");
+ok(juntarNomes([{nome:"Ana"}]) === "Ana", "juntarNomes com 1 nome não acrescenta separador");
+ok(juntarNomes([{nome:"Ana"},{nome:"Bruno"}]) === "Ana & Bruno", "juntarNomes junta vários nomes com & ");
 
 console.log("Curiosidades — Sniper / Coração de Pedra");
 const stats1 = [
@@ -73,7 +79,7 @@ const hist5 = [
 const [subida, queda, montanha] = calcTendencias(hist5);
 ok(subida.vencedor === "Ana" && subida.valor === "2 posições", "Maior Subida: Ana foi de 3º a 1º");
 ok(queda.vencedor === "Bruno" && queda.valor === "2 posições", "Maior Queda: Bruno foi de 1º a 3º");
-ok(montanha.vencedor === "Ana" || montanha.vencedor === "Bruno", "Montanha-Russa escolhe alguém com histórico");
+ok(montanha.vencedor === "Ana & Bruno", `Montanha-Russa empatada mostra os dois nomes (veio ${montanha.vencedor})`);
 const semHistorico = calcTendencias([]);
 ok(semHistorico.every(a => a.vencedor === null), "sem histórico fica tudo por decidir");
 const umSnapshot = calcTendencias([{ ts: 1, ranking: [{ nome: "Ana", pts: 5, pos: 1 }] }]);
@@ -94,7 +100,7 @@ const previsoesGrupos6 = [
 const [kamikaze, betao, faDeEmpates, nuncaSofre] = calcEstiloApostador(jogosGrupos6, previsoesGrupos6);
 ok(kamikaze.vencedor === "Ana", "Kamikaze = maior média de golos previstos");
 ok(betao.vencedor === "Bruno", "Betão Armado = menor média de golos previstos");
-ok(faDeEmpates.vencedor === "Ana" || faDeEmpates.vencedor === "Bruno", "Fã de Empates escolhe quem previu mais empates (empate técnico aqui, 1 cada)");
+ok(faDeEmpates.vencedor === "Ana & Bruno", `Fã de Empates empatado (1 cada) mostra os dois nomes (veio ${faDeEmpates.vencedor})`);
 ok(nuncaSofre.vencedor === "Bruno" && nuncaSofre.valor === "2 vezes", "Nunca Sofre: Bruno acerta 0-0 em A1 (2 golos sofridos corretos)");
 const emptyResult = calcEstiloApostador([], []);
 ok(emptyResult.length === 4, "sem previsões devolve 4 prémios por decidir");
@@ -143,10 +149,9 @@ const habitue = calcHabitueJantar(hist9);
 ok(habitue.vencedor === "Ana" && habitue.valor === "2x na metade que paga", "Habitué do Jantar conta snapshots na metade que paga (pos > half)");
 ok(calcHabitueJantar([]).vencedor === null, "sem histórico fica por decidir");
 
-// Empate: Ana, Bruno e Carla pagaram em todos os snapshots (3x cada), mas
-// Carla ficou sempre em último (5º), Bruno oscilou 4º/5º, Ana ficou sempre
-// mais perto da fronteira (3º). O desempate deve premiar quem esteve pior
-// em média, não quem por acaso apareceu primeiro nos dados.
+// Empate: Bruno e Carla pagaram 3x cada (o máximo), Ana só 2x (não deve
+// entrar no empate) — quando há empate no topo, mostra os dois nomes
+// juntos em vez de escolher um arbitrariamente.
 const histEmpate = [
   { ts: 1, ranking: [
     { nome: "Zeca", pts: 5, pos: 1 }, { nome: "Yara", pts: 4, pos: 2 },
@@ -154,9 +159,9 @@ const histEmpate = [
     { nome: "Carla", pts: 1, pos: 5 },
   ] },
   { ts: 2, ranking: [
-    { nome: "Zeca", pts: 5, pos: 1 }, { nome: "Yara", pts: 4, pos: 2 },
-    { nome: "Ana", pts: 3, pos: 3 }, { nome: "Carla", pts: 1, pos: 4 },
-    { nome: "Bruno", pts: 2, pos: 5 },
+    { nome: "Ana", pts: 5, pos: 1 }, { nome: "Yara", pts: 4, pos: 2 },
+    { nome: "Zeca", pts: 3, pos: 3 }, { nome: "Bruno", pts: 2, pos: 4 },
+    { nome: "Carla", pts: 1, pos: 5 },
   ] },
   { ts: 3, ranking: [
     { nome: "Zeca", pts: 5, pos: 1 }, { nome: "Yara", pts: 4, pos: 2 },
@@ -165,7 +170,7 @@ const histEmpate = [
   ] },
 ];
 const habitueEmpate = calcHabitueJantar(histEmpate);
-ok(habitueEmpate.vencedor === "Carla", `empate de contagem desempata pela pior posição média (veio ${habitueEmpate.vencedor})`);
+ok(habitueEmpate.vencedor === "Bruno & Carla" && habitueEmpate.valor === "3x na metade que paga", `empate no topo mostra os dois nomes, não escolhe um (veio ${habitueEmpate.vencedor})`);
 
 const awards = calcCuriosidades({
   participantStats: stats4,

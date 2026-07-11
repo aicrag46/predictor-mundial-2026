@@ -14,6 +14,22 @@ function minBy(arr, fn) {
   if (!arr.length) return null;
   return arr.reduce((best, cur) => (fn(cur) < fn(best) ? cur : best), arr[0]);
 }
+// Variantes que devolvem TODOS os empatados no valor extremo, não só o
+// primeiro — usadas sempre que "vencedor" é mostrado a alguém, para nunca
+// escolher arbitrariamente entre pessoas empatadas.
+function maxByAll(arr, fn) {
+  if (!arr.length) return [];
+  const max = Math.max(...arr.map(fn));
+  return arr.filter(x => fn(x) === max);
+}
+function minByAll(arr, fn) {
+  if (!arr.length) return [];
+  const min = Math.min(...arr.map(fn));
+  return arr.filter(x => fn(x) === min);
+}
+function juntarNomes(entradas) {
+  return entradas.map(e => e.nome).join(" & ");
+}
 
 // 1-2: Sniper / Coração de Pedra
 function calcSniperECoracaoDePedra(participantStats) {
@@ -23,11 +39,11 @@ function calcSniperECoracaoDePedra(participantStats) {
       { id: "coracao-de-pedra", icon: "🥶", titulo: "Coração de Pedra", vencedor: null, valor: "—", detalhe: "Mais prognósticos sem qualquer ponto" },
     ];
   }
-  const sniper = maxBy(participantStats, p => p.exatos);
-  const coracao = maxBy(participantStats, p => p.naoPontua);
+  const sniper = maxByAll(participantStats, p => p.exatos);
+  const coracao = maxByAll(participantStats, p => p.naoPontua);
   return [
-    { id: "sniper", icon: "🎯", titulo: "Sniper", vencedor: sniper.nome, valor: `${sniper.exatos} exatos`, detalhe: "Mais resultados exatos (grupos + mata-mata)" },
-    { id: "coracao-de-pedra", icon: "🥶", titulo: "Coração de Pedra", vencedor: coracao.nome, valor: `${coracao.naoPontua} sem pontos`, detalhe: "Mais prognósticos sem qualquer ponto" },
+    { id: "sniper", icon: "🎯", titulo: "Sniper", vencedor: juntarNomes(sniper), valor: `${sniper[0].exatos} exatos`, detalhe: "Mais resultados exatos (grupos + mata-mata)" },
+    { id: "coracao-de-pedra", icon: "🥶", titulo: "Coração de Pedra", vencedor: juntarNomes(coracao), valor: `${coracao[0].naoPontua} sem pontos`, detalhe: "Mais prognósticos sem qualquer ponto" },
   ];
 }
 
@@ -41,11 +57,11 @@ function calcEspecialistas(participantStats) {
     ];
   }
   const comRacio = comKO.map(p => ({ ...p, gsShare: p.gsPts / (p.gsPts + p.koPts), koShare: p.koPts / (p.gsPts + p.koPts) }));
-  const especialista = maxBy(comRacio, p => p.gsShare);
-  const rei = maxBy(comRacio, p => p.koShare);
+  const especialista = maxByAll(comRacio, p => p.gsShare);
+  const rei = maxByAll(comRacio, p => p.koShare);
   return [
-    { id: "especialista-grupos", icon: "📚", titulo: "Especialista de Grupos", vencedor: especialista.nome, valor: `${Math.round(especialista.gsShare * 100)}% dos pontos`, detalhe: "Maior fatia dos pontos vem da fase de grupos" },
-    { id: "rei-mata-mata", icon: "🗡️", titulo: "Rei do Mata-Mata", vencedor: rei.nome, valor: `${Math.round(rei.koShare * 100)}% dos pontos`, detalhe: "Maior fatia dos pontos vem do mata-mata" },
+    { id: "especialista-grupos", icon: "📚", titulo: "Especialista de Grupos", vencedor: juntarNomes(especialista), valor: `${Math.round(especialista[0].gsShare * 100)}% dos pontos`, detalhe: "Maior fatia dos pontos vem da fase de grupos" },
+    { id: "rei-mata-mata", icon: "🗡️", titulo: "Rei do Mata-Mata", vencedor: juntarNomes(rei), valor: `${Math.round(rei[0].koShare * 100)}% dos pontos`, detalhe: "Maior fatia dos pontos vem do mata-mata" },
   ];
 }
 
@@ -94,11 +110,11 @@ function calcSequencias(jogosGrupos, previsoesGrupos, jogosMataMata, previsoesMa
       { id: "seca", icon: "🧊", titulo: "Seca", vencedor: null, valor: "0 jogos seguidos", detalhe: "Mais jogos seguidos sem pontuar" },
     ];
   }
-  const imparavel = maxBy(comSequencias, p => p.imparavel);
-  const seca = maxBy(comSequencias, p => p.seca);
+  const imparavel = maxByAll(comSequencias, p => p.imparavel);
+  const seca = maxByAll(comSequencias, p => p.seca);
   return [
-    { id: "sequencia-imparavel", icon: "🔥", titulo: "Sequência Imparável", vencedor: imparavel.imparavel > 0 ? imparavel.nome : null, valor: `${imparavel.imparavel} jogos seguidos`, detalhe: "Mais jogos seguidos a pontuar" },
-    { id: "seca", icon: "🧊", titulo: "Seca", vencedor: seca.seca > 0 ? seca.nome : null, valor: `${seca.seca} jogos seguidos`, detalhe: "Mais jogos seguidos sem pontuar" },
+    { id: "sequencia-imparavel", icon: "🔥", titulo: "Sequência Imparável", vencedor: imparavel[0].imparavel > 0 ? juntarNomes(imparavel) : null, valor: `${imparavel[0].imparavel} jogos seguidos`, detalhe: "Mais jogos seguidos a pontuar" },
+    { id: "seca", icon: "🧊", titulo: "Seca", vencedor: seca[0].seca > 0 ? juntarNomes(seca) : null, valor: `${seca[0].seca} jogos seguidos`, detalhe: "Mais jogos seguidos sem pontuar" },
   ];
 }
 
@@ -145,11 +161,11 @@ function calcTendencias(classHistory) {
   const posPrimeiro = {};
   primeiro.forEach(r => { posPrimeiro[r.nome] = r.pos; });
   const deltas = ultimo.map(r => ({ nome: r.nome, delta: (posPrimeiro[r.nome] ?? r.pos) - r.pos }));
-  const subida = maxBy(deltas, d => d.delta);
-  const queda = minBy(deltas, d => d.delta);
+  const subida = maxByAll(deltas, d => d.delta);
+  const queda = minByAll(deltas, d => d.delta);
 
-  // Guard against empty deltas array (which causes maxBy/minBy to return null)
-  if (!subida || !queda) {
+  // Guard against empty deltas array (maxByAll/minByAll devolvem [])
+  if (!subida.length || !queda.length) {
     return porDecidirArray;
   }
 
@@ -168,12 +184,12 @@ function calcTendencias(classHistory) {
   const comDesvio = Object.entries(posPorNome)
     .filter(([, posicoes]) => posicoes.length >= 2)
     .map(([nome, posicoes]) => ({ nome, desvio: desvioPadrao(posicoes) }));
-  const montanhaRussa = comDesvio.length ? maxBy(comDesvio, p => p.desvio) : null;
+  const montanhaRussa = comDesvio.length ? maxByAll(comDesvio, p => p.desvio) : [];
 
   return [
-    { id: "maior-subida", icon: "📈", titulo: "Maior Subida", vencedor: subida.delta > 0 ? subida.nome : null, valor: `${Math.max(subida.delta, 0)} posições`, detalhe: "Desde o primeiro registo até agora" },
-    { id: "maior-queda", icon: "📉", titulo: "Maior Queda", vencedor: queda.delta < 0 ? queda.nome : null, valor: `${Math.max(-queda.delta, 0)} posições`, detalhe: "Desde o primeiro registo até agora" },
-    { id: "montanha-russa", icon: "🎢", titulo: "Montanha-Russa", vencedor: montanhaRussa ? montanhaRussa.nome : null, valor: montanhaRussa ? `desvio de ${montanhaRussa.desvio.toFixed(1)}` : "—", detalhe: "Posição mais instável ao longo do tempo" },
+    { id: "maior-subida", icon: "📈", titulo: "Maior Subida", vencedor: subida[0].delta > 0 ? juntarNomes(subida) : null, valor: `${Math.max(subida[0].delta, 0)} posições`, detalhe: "Desde o primeiro registo até agora" },
+    { id: "maior-queda", icon: "📉", titulo: "Maior Queda", vencedor: queda[0].delta < 0 ? juntarNomes(queda) : null, valor: `${Math.max(-queda[0].delta, 0)} posições`, detalhe: "Desde o primeiro registo até agora" },
+    { id: "montanha-russa", icon: "🎢", titulo: "Montanha-Russa", vencedor: montanhaRussa.length ? juntarNomes(montanhaRussa) : null, valor: montanhaRussa.length ? `desvio de ${montanhaRussa[0].desvio.toFixed(1)}` : "—", detalhe: "Posição mais instável ao longo do tempo" },
   ];
 }
 
@@ -206,16 +222,16 @@ function calcEstiloApostador(jogosGrupos, previsoesGrupos) {
 
   if (!porParticipante.length) return porDecidirArray;
 
-  const kamikaze = maxBy(porParticipante, p => p.mediaGolos);
-  const betao = minBy(porParticipante, p => p.mediaGolos);
-  const faDeEmpates = maxBy(porParticipante, p => p.empates);
-  const nuncaSofre = maxBy(porParticipante, p => p.nuncaSofreCount);
+  const kamikaze = maxByAll(porParticipante, p => p.mediaGolos);
+  const betao = minByAll(porParticipante, p => p.mediaGolos);
+  const faDeEmpates = maxByAll(porParticipante, p => p.empates);
+  const nuncaSofre = maxByAll(porParticipante, p => p.nuncaSofreCount);
 
   return [
-    { id: "kamikaze", icon: "🎰", titulo: "Kamikaze", vencedor: kamikaze.nome, valor: `${kamikaze.mediaGolos.toFixed(1)} golos/jogo`, detalhe: "Maior média de golos previstos por jogo" },
-    { id: "betao-armado", icon: "🛡️", titulo: "Betão Armado", vencedor: betao.nome, valor: `${betao.mediaGolos.toFixed(1)} golos/jogo`, detalhe: "Menor média de golos previstos por jogo" },
-    { id: "fa-de-empates", icon: "⚖️", titulo: "Fã de Empates", vencedor: faDeEmpates.empates > 0 ? faDeEmpates.nome : null, valor: `${faDeEmpates.empates} empates previstos`, detalhe: "Mais prognósticos de empate" },
-    { id: "nunca-sofre", icon: "🥅", titulo: "Nunca Sofre", vencedor: nuncaSofre.nuncaSofreCount > 0 ? nuncaSofre.nome : null, valor: `${nuncaSofre.nuncaSofreCount} vezes`, detalhe: "Mais vezes a acertar uma equipa a sofrer 0 golos" },
+    { id: "kamikaze", icon: "🎰", titulo: "Kamikaze", vencedor: juntarNomes(kamikaze), valor: `${kamikaze[0].mediaGolos.toFixed(1)} golos/jogo`, detalhe: "Maior média de golos previstos por jogo" },
+    { id: "betao-armado", icon: "🛡️", titulo: "Betão Armado", vencedor: juntarNomes(betao), valor: `${betao[0].mediaGolos.toFixed(1)} golos/jogo`, detalhe: "Menor média de golos previstos por jogo" },
+    { id: "fa-de-empates", icon: "⚖️", titulo: "Fã de Empates", vencedor: faDeEmpates[0].empates > 0 ? juntarNomes(faDeEmpates) : null, valor: `${faDeEmpates[0].empates} empates previstos`, detalhe: "Mais prognósticos de empate" },
+    { id: "nunca-sofre", icon: "🥅", titulo: "Nunca Sofre", vencedor: nuncaSofre[0].nuncaSofreCount > 0 ? juntarNomes(nuncaSofre) : null, valor: `${nuncaSofre[0].nuncaSofreCount} vezes`, detalhe: "Mais vezes a acertar uma equipa a sofrer 0 golos" },
   ];
 }
 
@@ -239,11 +255,11 @@ function calcBolaDeCristal(jogosMataMata, previsoesMataMata) {
       { id: "zica", icon: "💀", titulo: "Zica", vencedor: null, valor: "—", detalhe: "Por decidir — poucos jogos de mata-mata decididos" },
     ];
   }
-  const bola = maxBy(porParticipante, p => p.taxa);
-  const zica = minBy(porParticipante, p => p.taxa);
+  const bola = maxByAll(porParticipante, p => p.taxa);
+  const zica = minByAll(porParticipante, p => p.taxa);
   return [
-    { id: "bola-de-cristal", icon: "🔮", titulo: "Bola de Cristal", vencedor: bola.nome, valor: `${Math.round(bola.taxa * 100)}% (${bola.acertos}/${bola.total})`, detalhe: "Melhor taxa de acerto em quem passa no mata-mata" },
-    { id: "zica", icon: "💀", titulo: "Zica", vencedor: zica.nome, valor: `${Math.round(zica.taxa * 100)}% (${zica.acertos}/${zica.total})`, detalhe: "Pior taxa de acerto em quem passa no mata-mata" },
+    { id: "bola-de-cristal", icon: "🔮", titulo: "Bola de Cristal", vencedor: juntarNomes(bola), valor: `${Math.round(bola[0].taxa * 100)}% (${bola[0].acertos}/${bola[0].total})`, detalhe: "Melhor taxa de acerto em quem passa no mata-mata" },
+    { id: "zica", icon: "💀", titulo: "Zica", vencedor: juntarNomes(zica), valor: `${Math.round(zica[0].taxa * 100)}% (${zica[0].acertos}/${zica[0].total})`, detalhe: "Pior taxa de acerto em quem passa no mata-mata" },
   ];
 }
 
@@ -288,11 +304,11 @@ function calcContraManada(jogosGrupos, previsoesGrupos) {
       { id: "voz-da-malta", icon: "🤝", titulo: "Voz da Malta", vencedor: null, valor: "—", detalhe: "Por decidir — poucos jogos com prognósticos suficientes" },
     ];
   }
-  const fora = minBy(comTaxa, p => p.taxa);
-  const voz = maxBy(comTaxa, p => p.taxa);
+  const fora = minByAll(comTaxa, p => p.taxa);
+  const voz = maxByAll(comTaxa, p => p.taxa);
   return [
-    { id: "fora-da-manada", icon: "🐑", titulo: "Fora da Manada", vencedor: fora.nome, valor: `${Math.round(fora.taxa * 100)}% igual à malta`, detalhe: "Previsões mais diferentes do consenso geral" },
-    { id: "voz-da-malta", icon: "🤝", titulo: "Voz da Malta", vencedor: voz.nome, valor: `${Math.round(voz.taxa * 100)}% igual à malta`, detalhe: "Previsões mais alinhadas com o consenso geral" },
+    { id: "fora-da-manada", icon: "🐑", titulo: "Fora da Manada", vencedor: juntarNomes(fora), valor: `${Math.round(fora[0].taxa * 100)}% igual à malta`, detalhe: "Previsões mais diferentes do consenso geral" },
+    { id: "voz-da-malta", icon: "🤝", titulo: "Voz da Malta", vencedor: juntarNomes(voz), valor: `${Math.round(voz[0].taxa * 100)}% igual à malta`, detalhe: "Previsões mais alinhadas com o consenso geral" },
   ];
 }
 
@@ -308,42 +324,12 @@ function calcHabitueJantar(classHistory) {
       if (r.pos > half) contagem[r.nome] = (contagem[r.nome] || 0) + 1;
     });
   });
-  const entradas = Object.entries(contagem);
+  const entradas = Object.entries(contagem).map(([nome, vezes]) => ({ nome, vezes }));
   if (!entradas.length) {
     return { id: "habitue-jantar", icon: "🍽️", titulo: "Habitué do Jantar", vencedor: null, valor: "0 vezes", detalhe: "Ninguém esteve na metade que paga ainda" };
   }
-
-  // Find max count
-  const maxVezes = Math.max(...entradas.map(e => e[1]));
-  const maxEntradas = entradas.filter(e => e[1] === maxVezes);
-
-  // Em caso de empate na contagem, ganha quem teve a pior posição média
-  // (mais longe da fronteira) enquanto esteve na metade que paga — não
-  // quem por acaso apareceu primeiro nos dados.
-  let vencedorEntry;
-  if (maxEntradas.length === 1) {
-    vencedorEntry = maxEntradas[0];
-  } else {
-    const somaPos = {};
-    const contPos = {};
-    classHistory.forEach(snap => {
-      const half = Math.floor(snap.ranking.length / 2);
-      snap.ranking.forEach(r => {
-        if (r.pos > half && maxEntradas.some(e => e[0] === r.nome)) {
-          somaPos[r.nome] = (somaPos[r.nome] || 0) + r.pos;
-          contPos[r.nome] = (contPos[r.nome] || 0) + 1;
-        }
-      });
-    });
-    vencedorEntry = maxEntradas.reduce((pior, cur) => {
-      const mediaCur = somaPos[cur[0]] / contPos[cur[0]];
-      const mediaPior = somaPos[pior[0]] / contPos[pior[0]];
-      return mediaCur > mediaPior ? cur : pior;
-    }, maxEntradas[0]);
-  }
-
-  const [nome, vezes] = vencedorEntry;
-  return { id: "habitue-jantar", icon: "🍽️", titulo: "Habitué do Jantar", vencedor: nome, valor: `${vezes}x na metade que paga`, detalhe: "Mais vezes na metade que paga o jantar, ao longo da época" };
+  const top = maxByAll(entradas, e => e.vezes);
+  return { id: "habitue-jantar", icon: "🍽️", titulo: "Habitué do Jantar", vencedor: juntarNomes(top), valor: `${top[0].vezes}x na metade que paga`, detalhe: "Mais vezes na metade que paga o jantar, ao longo da época" };
 }
 
 // Orquestrador — junta todos os prémios num único array
@@ -389,7 +375,8 @@ function buildPresentationOrder(n) {
 
 if (typeof module !== "undefined") {
   module.exports = {
-    maxBy, minBy, calcSniperECoracaoDePedra, calcEspecialistas, calcSequencias,
+    maxBy, minBy, maxByAll, minByAll, juntarNomes,
+    calcSniperECoracaoDePedra, calcEspecialistas, calcSequencias,
     calcTotalExatos, calcDistribuicaoMalta, calcTendencias, calcEstiloApostador,
     calcBolaDeCristal, calcContraManada, calcHabitueJantar, calcCuriosidades,
     buildPresentationOrder,
