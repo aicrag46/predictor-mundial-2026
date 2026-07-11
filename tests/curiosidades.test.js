@@ -88,8 +88,8 @@ ok(emptyRankingResult.every(a => a.vencedor === null), "com ranking vazio em amb
 console.log("Curiosidades — Estilo de Apostador");
 const jogosGrupos6 = [{ codigo: "A1", gc: 0, gf: 0 }, { codigo: "A2", gc: 1, gf: 2 }];
 const previsoesGrupos6 = [
-  { nome: "Ana", preds: { A1: { gc: 3, gf: 2 }, A2: { gc: 2, gf: 2 } } },   // média 2.25 (total 9 golos em 4 préditos), 1 empate previsto, 0 "nunca sofre"
-  { nome: "Bruno", preds: { A1: { gc: 0, gf: 0 }, A2: { gc: 1, gf: 0 } } }, // média 0.25 (total 1 golo em 4 préditos), 1 empate previsto, acerta A1 (0-0 -> ambos 0 golos sofridos)
+  { nome: "Ana", preds: { A1: { gc: 3, gf: 2 }, A2: { gc: 2, gf: 2 } } },   // média 4.5 (total 9 golos em 2 jogos), 1 empate previsto, 0 "nunca sofre"
+  { nome: "Bruno", preds: { A1: { gc: 0, gf: 0 }, A2: { gc: 1, gf: 0 } } }, // média 0.5 (total 1 golo em 2 jogos), 1 empate previsto, acerta A1 (0-0 -> ambos 0 golos sofridos)
 ];
 const [kamikaze, betao, faDeEmpates, nuncaSofre] = calcEstiloApostador(jogosGrupos6, previsoesGrupos6);
 ok(kamikaze.vencedor === "Ana", "Kamikaze = maior média de golos previstos");

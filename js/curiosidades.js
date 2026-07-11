@@ -180,10 +180,10 @@ function calcTendencias(classHistory) {
 // 11-14: Kamikaze / Betão Armado / Fã de Empates / Nunca Sofre
 function calcEstiloApostador(jogosGrupos, previsoesGrupos) {
   const porDecidirArray = [
-    { id: "kamikaze", icon: "🎰", titulo: "Kamikaze", vencedor: null, valor: "—", detalhe: "Por decidir — falta prognósticos" },
-    { id: "betao-armado", icon: "🛡️", titulo: "Betão Armado", vencedor: null, valor: "—", detalhe: "Por decidir — falta prognósticos" },
-    { id: "fa-de-empates", icon: "⚖️", titulo: "Fã de Empates", vencedor: null, valor: "—", detalhe: "Por decidir — falta prognósticos" },
-    { id: "nunca-sofre", icon: "🥅", titulo: "Nunca Sofre", vencedor: null, valor: "—", detalhe: "Por decidir — falta prognósticos" },
+    { id: "kamikaze", icon: "🎰", titulo: "Kamikaze", vencedor: null, valor: "—", detalhe: "Por decidir — faltam prognósticos" },
+    { id: "betao-armado", icon: "🛡️", titulo: "Betão Armado", vencedor: null, valor: "—", detalhe: "Por decidir — faltam prognósticos" },
+    { id: "fa-de-empates", icon: "⚖️", titulo: "Fã de Empates", vencedor: null, valor: "—", detalhe: "Por decidir — faltam prognósticos" },
+    { id: "nunca-sofre", icon: "🥅", titulo: "Nunca Sofre", vencedor: null, valor: "—", detalhe: "Por decidir — faltam prognósticos" },
   ];
 
   if (!previsoesGrupos.length) return porDecidirArray;
