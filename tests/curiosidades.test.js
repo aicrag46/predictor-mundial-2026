@@ -1,4 +1,4 @@
-const { maxBy, minBy, maxByAll, minByAll, juntarNomes, calcSniperECoracaoDePedra, calcEspecialistas, calcSequencias, calcTotalExatos, calcDistribuicaoMalta, calcTendencias, calcEstiloApostador, calcBolaDeCristal, calcContraManada, calcHabitueJantar, calcCuriosidades, buildPresentationOrder } = require("../js/curiosidades.js");
+const { maxBy, minBy, maxByAll, minByAll, juntarNomes, calcSniperECoracaoDePedra, calcEspecialistas, calcSequencias, calcTotalExatos, calcDistribuicaoMalta, calcMontanhaRussa, calcEstiloApostador, calcBolaDeCristal, calcContraManada, calcHabitueJantar, calcCuriosidades, buildPresentationOrder } = require("../js/curiosidades.js");
 
 let passed = 0, failed = 0;
 function ok(cond, msg) {
@@ -115,20 +115,18 @@ const hist5 = [
   { ts: 1, ranking: [{ nome: "Ana", pts: 5, pos: 3 }, { nome: "Bruno", pts: 10, pos: 1 }] },
   { ts: 2, ranking: [{ nome: "Ana", pts: 20, pos: 1 }, { nome: "Bruno", pts: 10, pos: 3 }] },
 ];
-const [subida, queda, montanha] = calcTendencias(hist5);
-ok(subida.vencedor === "Ana" && subida.valor === "2 posições", "Maior Subida: Ana foi de 3º a 1º");
-ok(queda.vencedor === "Bruno" && queda.valor === "2 posições", "Maior Queda: Bruno foi de 1º a 3º");
+const montanha = calcMontanhaRussa(hist5);
 ok(montanha.vencedor === "Ana & Bruno", `Montanha-Russa empatada mostra os dois nomes (veio ${montanha.vencedor})`);
-const semHistorico = calcTendencias([]);
-ok(semHistorico.every(a => a.vencedor === null), "sem histórico fica tudo por decidir");
-const umSnapshot = calcTendencias([{ ts: 1, ranking: [{ nome: "Ana", pts: 5, pos: 1 }] }]);
-ok(umSnapshot.every(a => a.vencedor === null), "com 1 snapshot só, fica por decidir");
+const semHistorico = calcMontanhaRussa([]);
+ok(semHistorico.vencedor === null, "sem histórico fica por decidir");
+const umSnapshot = calcMontanhaRussa([{ ts: 1, ranking: [{ nome: "Ana", pts: 5, pos: 1 }] }]);
+ok(umSnapshot.vencedor === null, "com 1 snapshot só, fica por decidir");
 const emptyRankingHistory = [
   { ts: 1, ranking: [] },
   { ts: 2, ranking: [] },
 ];
-const emptyRankingResult = calcTendencias(emptyRankingHistory);
-ok(emptyRankingResult.every(a => a.vencedor === null), "com ranking vazio em ambos snapshots, fica por decidir (não rebentar)");
+const emptyRankingResult = calcMontanhaRussa(emptyRankingHistory);
+ok(emptyRankingResult.vencedor === null, "com ranking vazio em ambos snapshots, fica por decidir (não rebentar)");
 
 console.log("Curiosidades — Estilo de Apostador");
 const jogosGrupos6 = [{ codigo: "A1", gc: 0, gf: 0 }, { codigo: "A2", gc: 1, gf: 2 }];
@@ -222,9 +220,9 @@ const awards = calcCuriosidades({
   previsoesMataMata: previsoesMataMata3,
   classHistory: hist9,
 });
-ok(awards.length === 20, `calcCuriosidades devolve 20 prémios (veio ${awards.length})`);
+ok(awards.length === 18, `calcCuriosidades devolve 18 prémios (veio ${awards.length})`);
 ok(awards.every(a => a.id && a.icon && a.titulo), "todos os prémios têm id/icon/titulo");
-ok(calcCuriosidades({}).length === 20, "input vazio não rebenta, devolve 20 prémios com por-decidir");
+ok(calcCuriosidades({}).length === 18, "input vazio não rebenta, devolve 18 prémios com por-decidir");
 
 console.log("Curiosidades — buildPresentationOrder");
 const ordem10 = buildPresentationOrder(10);

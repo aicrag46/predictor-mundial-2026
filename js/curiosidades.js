@@ -205,30 +205,13 @@ function calcDistribuicaoMalta(participantStats) {
   };
 }
 
-// 9-10: Maior Subida / Maior Queda / Montanha-Russa
-function calcTendencias(classHistory) {
-  const porDecidirArray = [
-    { id: "maior-subida", icon: "📈", titulo: "Maior Subida", vencedor: null, valor: "—", detalhe: "Por decidir — falta histórico", ranking: [], jogos: null },
-    { id: "maior-queda", icon: "📉", titulo: "Maior Queda", vencedor: null, valor: "—", detalhe: "Por decidir — falta histórico", ranking: [], jogos: null },
-    { id: "montanha-russa", icon: "🎢", titulo: "Montanha-Russa", vencedor: null, valor: "—", detalhe: "Por decidir — falta histórico", ranking: [], jogos: null },
-  ];
+// 9: Montanha-Russa
+function calcMontanhaRussa(classHistory) {
+  const porDecidir = { id: "montanha-russa", icon: "🎢", titulo: "Montanha-Russa", vencedor: null, valor: "—", detalhe: "Por decidir — falta histórico", ranking: [], jogos: null };
 
   if (classHistory.length < 2) {
-    return porDecidirArray;
+    return porDecidir;
   }
-  const primeiro = classHistory[0].ranking;
-  const ultimo = classHistory[classHistory.length - 1].ranking;
-  const posPrimeiro = {};
-  primeiro.forEach(r => { posPrimeiro[r.nome] = r.pos; });
-  const deltas = ultimo.map(r => ({ nome: r.nome, delta: (posPrimeiro[r.nome] ?? r.pos) - r.pos }));
-  const subida = maxByAll(deltas, d => d.delta);
-  const queda = minByAll(deltas, d => d.delta);
-
-  // Guard against empty deltas array (maxByAll/minByAll devolvem [])
-  if (!subida.length || !queda.length) {
-    return porDecidirArray;
-  }
-
   const posPorNome = {};
   classHistory.forEach(snap => {
     snap.ranking.forEach(r => {
@@ -244,26 +227,15 @@ function calcTendencias(classHistory) {
   const comDesvio = Object.entries(posPorNome)
     .filter(([, posicoes]) => posicoes.length >= 2)
     .map(([nome, posicoes]) => ({ nome, desvio: desvioPadrao(posicoes) }));
-  const montanhaRussa = comDesvio.length ? maxByAll(comDesvio, p => p.desvio) : [];
+  if (!comDesvio.length) return porDecidir;
+  const montanhaRussa = maxByAll(comDesvio, p => p.desvio);
 
-  return [
-    {
-      id: "maior-subida", icon: "📈", titulo: "Maior Subida", vencedor: subida[0].delta > 0 ? juntarNomes(subida) : null, valor: `${Math.max(subida[0].delta, 0)} posições`,
-      detalhe: "Desde o primeiro registo até agora",
-      ranking: construirRanking(deltas, d => d.delta, d => `${d.delta > 0 ? "+" : ""}${d.delta} posições`, false), jogos: null,
-    },
-    {
-      id: "maior-queda", icon: "📉", titulo: "Maior Queda", vencedor: queda[0].delta < 0 ? juntarNomes(queda) : null, valor: `${Math.max(-queda[0].delta, 0)} posições`,
-      detalhe: "Desde o primeiro registo até agora",
-      ranking: construirRanking(deltas, d => d.delta, d => `${d.delta > 0 ? "+" : ""}${d.delta} posições`, true), jogos: null,
-    },
-    {
-      id: "montanha-russa", icon: "🎢", titulo: "Montanha-Russa", vencedor: montanhaRussa.length ? juntarNomes(montanhaRussa) : null,
-      valor: montanhaRussa.length ? `desvio de ${montanhaRussa[0].desvio.toFixed(1)}` : "—",
-      detalhe: "Posição mais instável ao longo do tempo",
-      ranking: construirRanking(comDesvio, p => p.desvio, p => `desvio de ${p.desvio.toFixed(1)}`, false), jogos: null,
-    },
-  ];
+  return {
+    id: "montanha-russa", icon: "🎢", titulo: "Montanha-Russa", vencedor: juntarNomes(montanhaRussa),
+    valor: `desvio de ${montanhaRussa[0].desvio.toFixed(1)}`,
+    detalhe: "Posição mais instável ao longo do tempo",
+    ranking: construirRanking(comDesvio, p => p.desvio, p => `desvio de ${p.desvio.toFixed(1)}`, false), jogos: null,
+  };
 }
 
 // 11-14: Kamikaze / Betão Armado / Fã de Empates / Nunca Sofre
@@ -473,7 +445,7 @@ function calcCuriosidades(input) {
     ...calcSequencias(jogosGrupos, previsoesGrupos, jogosMataMata, previsoesMataMata),
     calcTotalExatos(participantStats, nJogosComResultado),
     calcDistribuicaoMalta(participantStats),
-    ...calcTendencias(classHistory),
+    calcMontanhaRussa(classHistory),
     ...calcEstiloApostador(jogosGrupos, previsoesGrupos),
     ...calcBolaDeCristal(jogosMataMata, previsoesMataMata),
     ...calcContraManada(jogosGrupos, previsoesGrupos),
@@ -499,7 +471,7 @@ if (typeof module !== "undefined") {
   module.exports = {
     maxBy, minBy, maxByAll, minByAll, juntarNomes, construirRanking, jogosComTipoPorNome,
     calcSniperECoracaoDePedra, calcEspecialistas, calcSequencias,
-    calcTotalExatos, calcDistribuicaoMalta, calcTendencias, calcEstiloApostador,
+    calcTotalExatos, calcDistribuicaoMalta, calcMontanhaRussa, calcEstiloApostador,
     calcBolaDeCristal, calcContraManada, calcHabitueJantar, calcCuriosidades,
     buildPresentationOrder,
   };
