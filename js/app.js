@@ -64,32 +64,40 @@ function calcParticipante(nome, resultados, gsOv, mm, koP) {
     else if (tipo === "Não Pontuou")     naoPontua++;
   }
   const gsPts = pts;
+  // Breakdown por fase, usado para reconstruir a classificação tal como
+  // estava no fim de cada fase (ver calcClassificacaoPorFase).
+  const porFase = { grupos: { pts: gsPts, exatos, ve, golos, naoPontua } };
 
   // Mata-mata
   let koPts = 0;
   if (mm && koP) {
     for (const round of MM_ROUNDS) {
+      let rPts = 0, rExatos = 0, rVe = 0, rGolos = 0, rNaoPontua = 0;
       const games = mm[round.id];
-      if (!games) continue;
-      games.forEach((game, idx) => {
-        if (!game) return;
-        const pred = koP[pi]?.[`${round.id}:${idx}`];
-        if (!pred || pred.gc === null || pred.gc === undefined) return;
-        if (game.gc === null || game.gc === undefined) return;
-        const winner = mmWinner(game);
-        const ko = calcKO(round.id, pred.gc, pred.gf, pred.qualifier, game.gc, game.gf, winner);
-        koPts += ko.pts;
-        // Os contadores ✅/⚽/🎯/❌ têm de incluir o mata-mata, não só a
-        // fase de grupos — senão ficam presos mesmo com previsões novas.
-        if (ko.tipoScore === "Exato")            exatos++;
-        else if (ko.tipoScore === "Vencedor/Empate") ve++;
-        else if (ko.tipoScore === "Golos Equipa")    golos++;
-        else if (ko.tipoScore === "Não Pontuou")     naoPontua++;
-      });
+      if (games) {
+        games.forEach((game, idx) => {
+          if (!game) return;
+          const pred = koP[pi]?.[`${round.id}:${idx}`];
+          if (!pred || pred.gc === null || pred.gc === undefined) return;
+          if (game.gc === null || game.gc === undefined) return;
+          const winner = mmWinner(game);
+          const ko = calcKO(round.id, pred.gc, pred.gf, pred.qualifier, game.gc, game.gf, winner);
+          rPts += ko.pts;
+          // Os contadores ✅/⚽/🎯/❌ têm de incluir o mata-mata, não só a
+          // fase de grupos — senão ficam presos mesmo com previsões novas.
+          if (ko.tipoScore === "Exato")            rExatos++;
+          else if (ko.tipoScore === "Vencedor/Empate") rVe++;
+          else if (ko.tipoScore === "Golos Equipa")    rGolos++;
+          else if (ko.tipoScore === "Não Pontuou")     rNaoPontua++;
+        });
+      }
+      koPts += rPts;
+      exatos += rExatos; ve += rVe; golos += rGolos; naoPontua += rNaoPontua;
+      porFase[round.id] = { pts: rPts, exatos: rExatos, ve: rVe, golos: rGolos, naoPontua: rNaoPontua };
     }
   }
 
-  return { nome, pts: gsPts + koPts, gsPts, koPts, exatos, ve, golos, naoPontua };
+  return { nome, pts: gsPts + koPts, gsPts, koPts, exatos, ve, golos, naoPontua, porFase };
 }
 
 function calcClassificacao(resultados) {
@@ -116,6 +124,56 @@ function calcClassificacao(resultados) {
   });
   const half = Math.floor(stats.length / 2);
   return stats.map((s, i) => ({ ...s, pos: i + 1, paga: i >= half }));
+}
+
+// Classificação acumulada tal como estava no fim de cada fase do torneio.
+const FASES_CLASSIFICACAO = [
+  { id: "grupos", nome: "Fase de Grupos",    rounds: [] },
+  { id: "r32",    nome: "16 Avos de Final",  rounds: ["r32"] },
+  { id: "r16",    nome: "Oitavos de Final",  rounds: ["r32", "r16"] },
+  { id: "qf",     nome: "Quartos de Final",  rounds: ["r32", "r16", "qf"] },
+  { id: "sf",     nome: "Meias-Final",       rounds: ["r32", "r16", "qf", "sf"] },
+  { id: "tp",     nome: "3.º Lugar",         rounds: ["r32", "r16", "qf", "sf", "tp"] },
+  { id: "f",      nome: "Final",             rounds: ["r32", "r16", "qf", "sf", "tp", "f"] },
+];
+
+function calcClassificacaoPorFase(resultados) {
+  const gsOv = getGSOverrides();
+  const mm   = getMataMata();
+  const koP  = getKOPredsAll();
+  const full = DADOS.participantes.map(n => {
+    try {
+      return calcParticipante(n, resultados, gsOv, mm, koP);
+    } catch (e) {
+      console.error(`[Classificação por fase] Erro ao calcular "${n}":`, e);
+      return { nome: n, porFase: { grupos: { pts: 0, exatos: 0, ve: 0, golos: 0, naoPontua: 0 } } };
+    }
+  });
+
+  return FASES_CLASSIFICACAO.map(fase => {
+    const stats = full.map(p => {
+      const acc = { ...p.porFase.grupos };
+      fase.rounds.forEach(rid => {
+        const r = p.porFase[rid];
+        if (!r) return;
+        acc.pts += r.pts; acc.exatos += r.exatos; acc.ve += r.ve; acc.golos += r.golos; acc.naoPontua += r.naoPontua;
+      });
+      return { nome: p.nome, ...acc };
+    });
+    stats.sort((a, b) => {
+      if (b.pts !== a.pts)         return b.pts - a.pts;
+      if (b.exatos !== a.exatos)   return b.exatos - a.exatos;
+      if (b.ve !== a.ve)           return b.ve - a.ve;
+      if (b.golos !== a.golos)     return b.golos - a.golos;
+      if (a.naoPontua !== b.naoPontua) return a.naoPontua - b.naoPontua;
+      return a.nome.localeCompare(b.nome);
+    });
+    const half = Math.floor(stats.length / 2);
+    return {
+      faseId: fase.id, faseNome: fase.nome,
+      ranking: stats.map((s, i) => ({ ...s, pos: i + 1, paga: i >= half })),
+    };
+  });
 }
 
 // ─── CURIOSIDADES ────────────────────────────────────────────────────────────
@@ -518,6 +576,12 @@ function renderClassificacao(resultados) {
     <button class="btn-feat" onclick="openPresentationMode()">🎬 Modo jantar</button>
     <button class="btn-feat" onclick="openCuriosidadesMode()">🏆 Modo Curiosidades</button>
     <button class="btn-feat" onclick="shareNative(buildMsgClassificacao(resultados),'Classificação')">📤 Partilhar</button>
+  </div>
+  <div class="feat-actions-bar">
+    <select id="cls-fase-select" class="cls-fase-select">
+      ${FASES_CLASSIFICACAO.map(f => `<option value="${f.id}">${f.nome}</option>`).join("")}
+    </select>
+    <button class="btn-feat" onclick="exportClassificacaoFaseImage(document.getElementById('cls-fase-select').value)">🖼️ Exportar classificação da fase</button>
   </div>
   <div class="cls-info">
     <span>⚽ <strong>${jogados}</strong> / ${DADOS.jogos.length} jogos</span>

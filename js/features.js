@@ -215,6 +215,44 @@ function exportClassificacaoImage() {
   });
 }
 
+function exportClassificacaoFaseImage(faseId) {
+  const resultados = getResultados();
+  const fase = calcClassificacaoPorFase(resultados).find(f => f.faseId === faseId);
+  if (!fase) return;
+  const cls = fase.ranking;
+  const canvas = document.createElement("canvas");
+  canvas.width = 600;
+  canvas.height = 100 + cls.length * 36;
+  const ctx = canvas.getContext("2d");
+  ctx.fillStyle = "#0a0f1e";
+  ctx.fillRect(0, 0, canvas.width, canvas.height);
+  ctx.fillStyle = "#fbbf24";
+  ctx.font = "bold 22px Outfit, sans-serif";
+  ctx.fillText("🏆 Predictor Mundial 2026", 20, 32);
+  ctx.fillStyle = "#e2e8f0";
+  ctx.font = "16px Outfit, sans-serif";
+  ctx.fillText(`Classificação — ${fase.faseNome}`, 20, 56);
+  ctx.fillStyle = "#94a3b8";
+  ctx.font = "14px Outfit, sans-serif";
+  ctx.fillText(new Date().toLocaleString("pt-PT"), 20, 76);
+  cls.forEach((s, i) => {
+    const y = 108 + i * 36;
+    ctx.fillStyle = s.paga ? "#fb7185" : "#34d399";
+    ctx.font = "16px Outfit, sans-serif";
+    ctx.fillText(`${s.pos}. ${s.nome}`, 20, y);
+    ctx.fillStyle = "#fbbf24";
+    ctx.textAlign = "right";
+    ctx.fillText(`${s.pts} pts`, 580, y);
+    ctx.textAlign = "left";
+  });
+  canvas.toBlob(blob => {
+    const a = document.createElement("a");
+    a.href = URL.createObjectURL(blob);
+    a.download = `classificacao_${faseId}_${Date.now()}.png`;
+    a.click();
+  });
+}
+
 function exportBackupJSON() {
   const backup = {
     exported: new Date().toISOString(),
