@@ -126,15 +126,16 @@ function calcClassificacao(resultados) {
   return stats.map((s, i) => ({ ...s, pos: i + 1, paga: i >= half }));
 }
 
-// Classificação acumulada tal como estava no fim de cada fase do torneio.
+// Classificação isolada por fase: só os pontos ganhos nos jogos dessa
+// fase específica (não é acumulado desde o início do torneio).
 const FASES_CLASSIFICACAO = [
-  { id: "grupos", nome: "Fase de Grupos",    rounds: [] },
-  { id: "r32",    nome: "16 Avos de Final",  rounds: ["r32"] },
-  { id: "r16",    nome: "Oitavos de Final",  rounds: ["r32", "r16"] },
-  { id: "qf",     nome: "Quartos de Final",  rounds: ["r32", "r16", "qf"] },
-  { id: "sf",     nome: "Meias-Final",       rounds: ["r32", "r16", "qf", "sf"] },
-  { id: "tp",     nome: "3.º Lugar",         rounds: ["r32", "r16", "qf", "sf", "tp"] },
-  { id: "f",      nome: "Final",             rounds: ["r32", "r16", "qf", "sf", "tp", "f"] },
+  { id: "grupos", nome: "Fase de Grupos" },
+  { id: "r32",    nome: "16 Avos de Final" },
+  { id: "r16",    nome: "Oitavos de Final" },
+  { id: "qf",     nome: "Quartos de Final" },
+  { id: "sf",     nome: "Meias-Final" },
+  { id: "tp",     nome: "3.º Lugar" },
+  { id: "f",      nome: "Final" },
 ];
 
 function calcClassificacaoPorFase(resultados) {
@@ -152,13 +153,8 @@ function calcClassificacaoPorFase(resultados) {
 
   return FASES_CLASSIFICACAO.map(fase => {
     const stats = full.map(p => {
-      const acc = { ...p.porFase.grupos };
-      fase.rounds.forEach(rid => {
-        const r = p.porFase[rid];
-        if (!r) return;
-        acc.pts += r.pts; acc.exatos += r.exatos; acc.ve += r.ve; acc.golos += r.golos; acc.naoPontua += r.naoPontua;
-      });
-      return { nome: p.nome, ...acc };
+      const f = p.porFase[fase.id] || { pts: 0, exatos: 0, ve: 0, golos: 0, naoPontua: 0 };
+      return { nome: p.nome, ...f };
     });
     stats.sort((a, b) => {
       if (b.pts !== a.pts)         return b.pts - a.pts;
@@ -168,10 +164,9 @@ function calcClassificacaoPorFase(resultados) {
       if (a.naoPontua !== b.naoPontua) return a.naoPontua - b.naoPontua;
       return a.nome.localeCompare(b.nome);
     });
-    const half = Math.floor(stats.length / 2);
     return {
       faseId: fase.id, faseNome: fase.nome,
-      ranking: stats.map((s, i) => ({ ...s, pos: i + 1, paga: i >= half })),
+      ranking: stats.map((s, i) => ({ ...s, pos: i + 1 })),
     };
   });
 }

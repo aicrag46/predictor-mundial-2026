@@ -237,7 +237,7 @@ function exportClassificacaoFaseImage(faseId) {
   ctx.fillText(new Date().toLocaleString("pt-PT"), 20, 76);
   cls.forEach((s, i) => {
     const y = 108 + i * 36;
-    ctx.fillStyle = s.paga ? "#fb7185" : "#34d399";
+    ctx.fillStyle = i === 0 ? "#34d399" : "#e2e8f0";
     ctx.font = "16px Outfit, sans-serif";
     ctx.fillText(`${s.pos}. ${s.nome}`, 20, y);
     ctx.fillStyle = "#fbbf24";
